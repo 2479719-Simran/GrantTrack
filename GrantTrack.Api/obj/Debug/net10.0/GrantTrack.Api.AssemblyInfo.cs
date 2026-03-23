@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("GrantTrack.Api")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ab153da4ba339b444fd0905b8438b71bd44db98c")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+9d42b32215fd0a4a5ebb6bd8b8f556d702c8d93c")]
 [assembly: System.Reflection.AssemblyProductAttribute("GrantTrack.Api")]
 [assembly: System.Reflection.AssemblyTitleAttribute("GrantTrack.Api")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
