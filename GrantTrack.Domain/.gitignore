@@ -1,0 +1,65 @@
+# .gitignore for .NET Class Library
+
+# Build Folders
+bin/
+obj/
+out/
+artifacts/
+
+# Visual Studio
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# Rider
+.idea/
+
+# Logs
+*.log
+logs/
+
+# User-specific files
+*.user
+*.userprefs
+*.rsuser
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.swp
+*.cache
+*.dbmdl
+*.scc
+
+# NuGet
+*.nupkg
+*.snupkg
+packages/
+*.nuspec
+*.nuget.props
+*.nuget.targets
+
+# Compiled outputs
+*.dll
+*.exe
+*.pdb
+
+# Resharper
+_ReSharper*/
+*.[Rr]e[Ss]harper
+
+# Coverage
+coverage/
+*.coverage
+*.coveragexml
+
+# Others
+Thumbs.db
+Desktop.ini
