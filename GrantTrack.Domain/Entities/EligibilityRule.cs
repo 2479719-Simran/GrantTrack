@@ -1,9 +1,7 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-
 namespace GrantTrack.Domain.Entities;
-
 public class EligibilityRule
 {
     [Key]

@@ -8,7 +8,6 @@ namespace GrantTrack.Domain.Entities;
 public class ApplicationValidation
 {   
     public int ApplicationValidationId { get; set; } 
-
     public Application Application { get; set; }     
     public int ApplicationId { get; set; }
     public string RuleName { get; set; } 

@@ -1,8 +1,10 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-namespace GrantTrack.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
+namespace GrantTrack.Domain.Entities;
+
+
 [Table("Operation")]
 [PrimaryKey("ActionId")]
 public class Operation

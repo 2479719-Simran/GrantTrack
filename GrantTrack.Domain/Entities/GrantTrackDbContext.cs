@@ -1,7 +1,6 @@
 using System;
 using System.Security.AccessControl;
 using Microsoft.EntityFrameworkCore;
-
 namespace GrantTrack.Domain.Entities;
 
 public class GrantTrackDbContext : DbContext 
