@@ -94,25 +94,6 @@ public class GrantTrackDbContext : DbContext
         .HasOne( q => q.UserIdNavigation)
         .WithMany(q => q.Notifications)
         .HasForeignKey( q => q.UserId)
-        .OnDelete(DeleteBehavior.NoAction);  
-
-
-        
-
-
-
-
-
-
-
-
-
-
-        
-        
-        
-        
+        .OnDelete(DeleteBehavior.NoAction);    
     }
-
 }
-

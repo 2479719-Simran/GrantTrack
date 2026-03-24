@@ -16,7 +16,6 @@ public class Payment
         public DateTime Date { get; set; }
         [MaxLength(50)]
         public string? Method { get; set; } 
-        [MaxLength(50)]
         public bool Status { get; set; }
         public virtual Disbursement? DisbursementIDNavigation { get; set; }
 }
