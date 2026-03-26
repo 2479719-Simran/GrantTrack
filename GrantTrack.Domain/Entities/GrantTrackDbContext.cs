@@ -3,8 +3,14 @@ using System.Security.AccessControl;
 using Microsoft.EntityFrameworkCore;
 namespace GrantTrack.Domain.Entities;
 
-public class GrantTrackDbContext : DbContext 
+public class GrantTrackDbContext : DbContext  
 {
+        
+        public GrantTrackDbContext(DbContextOptions<GrantTrackDbContext> options)
+            : base(options)
+        {
+        }
+
     public DbSet<Application> Applications {get; set;}
 
     public DbSet<ApplicationValidation> ApplicationValidations { get; set; } 
@@ -27,13 +33,6 @@ public class GrantTrackDbContext : DbContext
     public DbSet <GrantReport> GrantReports{get; set;}
     public DbSet<Report> Reports{get; set;}
     public DbSet <Notification>notifications { get; set; }
-    
-
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    {
-        optionsBuilder.UseSqlServer("Server=LTIN718805\\SQLEXPRESS;Database=GrantTrack;Trusted_Connection=True;TrustServerCertificate=True");
-
-    }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Application>()

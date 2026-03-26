@@ -37,5 +37,6 @@ public class User
     public List<AuditLog> AuditLogs { get; set; } = new List<AuditLog>(); 
     public List<Notification> Notifications { get; set; }  = new List<Notification>(); 
 
-    public List<Report> Reports { get; set; } = new List<Report>(); 
+    public List<Report> Reports { get; set; } = new List<Report>();
+    public DateTime CreatedAt { get; set; }
 }
