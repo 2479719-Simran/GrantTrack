@@ -1,8 +1,22 @@
-var builder = WebApplication.CreateBuilder(args);
+using GrantTrack.Repository;
+using GrantTrack.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
+using GrantTrack.Repository.Interface;
+using GrantTrack.Service;
+using GrantTrack.Service.Interfaces;
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddControllers();
+
+builder.Services.AddDbContext<GrantTrackDbContext>(options => options.UseSqlServer(
+builder.Configuration.GetConnectionString("DefaultConnection")));
+
 builder.Services.AddOpenApi();
+
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+
+builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
@@ -11,7 +25,11 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
+app.MapControllers();
 
-app.UseHttpsRedirection();
+app.UseSwagger();
+app.UseSwaggerUI();
+
+//app.UseHttpsRedirection();
 
 app.Run();
