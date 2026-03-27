@@ -4,7 +4,7 @@ namespace GrantTrack.Repository.Interface
 {
     public interface IUserRepository
 {
-    Task<bool> UserExistsAsync(string email);
+    Task<bool> ActiveUserExistsAsync(string email);
     Task AddUserAsync(User user);
 }
 }

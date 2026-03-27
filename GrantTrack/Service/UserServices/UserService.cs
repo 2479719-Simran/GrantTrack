@@ -25,32 +25,26 @@ namespace GrantTrack.Service
             }
 
             // Check duplicate email
-            if (await _userRepository.UserExistsAsync(dto.Email))
+            if (await _userRepository.ActiveUserExistsAsync(dto.Email))
             {
-                throw new InvalidOperationException("User already exists");
+                throw new InvalidOperationException("Active User with this email already exists");
             }
-
             // Hash password (BCrypt)
             var hashedPassword = BCrypt.Net.BCrypt.HashPassword(dto.Password);
 
-            // Create User entity (MATCHES User.cs EXACTLY)
+            // Create User entity 
             var user = new User
             {
                 Name = dto.Name,
                 Email = dto.Email,
                 Phone = dto.Phone,
-
-                // Enum-based role (stored as string via DbContext conversion)
                 Role = UserRole.Applicant,
-
                 Status = true,
-
                 // REQUIRED because User.Password is [Required]
                 Password = hashedPassword,
 
                 CreatedAt = DateTime.UtcNow
             };
-
             // 5. Save user
             await _userRepository.AddUserAsync(user);
         }

@@ -1,24 +1,38 @@
-using Microsoft.AspNetCore.Http;
 using GrantTrack.Dto.User;
 using GrantTrack.Service.Interfaces;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GrantTrack.Controllers
 {
     [ApiController]
-    [Route("api/v1/user")]
+    [Route("api/v1/[controller]")]
     public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
-
         public UserController(IUserService userService)
         {
             _userService = userService;
         }
 
+        /// <summary>
+        /// Registers a new user with the default Applicant role.
+        /// </summary>
+        /// <param name="dto">User registration details.</param>
+        /// <returns>Returns success status after user creation.</re
+
         [HttpPost("registeruser")]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> RegisterUser([FromBody] RegisterUserDto dto)
         {
+            // Model validation
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
             try
             {
                 await _userService.RegisterUserAsync(dto);
@@ -32,9 +46,12 @@ namespace GrantTrack.Controllers
             {
                 return Conflict(ex.Message);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                return StatusCode(500, ex.Message);
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError,
+                    "An unexpected error occurred"
+                );
             }
         }
     }

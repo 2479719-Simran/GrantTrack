@@ -13,9 +13,9 @@ namespace GrantTrack.Repository
             _context = context;
         }
 
-        public async Task<bool> UserExistsAsync(string email)
+        public async Task<bool> ActiveUserExistsAsync(string email)
         {
-            return await _context.Users.AnyAsync(u => u.Email == email);
+            return await _context.Users.AnyAsync(u => u.Email == email && u.Status == true);
         }
 
         public async Task AddUserAsync(User user)
