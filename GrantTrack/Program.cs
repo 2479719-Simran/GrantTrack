@@ -5,6 +5,8 @@ using GrantTrack.Service.UserServices;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
+// using Microsoft.OpenApi.Models; // Change this
+// using Microsoft.AspNetCore.Authentication.JwtBearer; // Ensure this is present
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,7 +17,8 @@ builder.Services.AddControllers();
 builder.Services.AddScoped<IUserService,UserService>();
 
 builder.Services.AddDbContext<GrantTrackDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
+);
 
 builder.Services.AddSwaggerGen(options =>
 {
@@ -50,16 +53,15 @@ builder.Services.AddAuthentication("Bearer").AddJwtBearer(options =>
     };
 });
 var app = builder.Build();
-
+app.UseSwagger();
+app.UseSwaggerUI();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
-app.UseSwagger();
-app.UseSwaggerUI();
-app.UseRouting();
-app.MapControllers();
+app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
+app.MapControllers();
 app.Run();
