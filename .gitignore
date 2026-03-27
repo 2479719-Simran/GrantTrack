@@ -63,3 +63,10 @@ coverage/
 # Others
 Thumbs.db
 Desktop.ini
+
+#migrations
+GrantTrack.Domain/Migrations/
+
+#connection string
+GrantTrack/appsettings.json
+GrantTrack/appsettings.Development.json

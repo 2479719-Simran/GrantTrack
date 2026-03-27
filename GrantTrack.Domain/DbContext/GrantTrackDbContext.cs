@@ -25,7 +25,6 @@ public class GrantTrackDbContext : DbContext
     public DbSet<RequiredDocument> RequiredDocuments { get; set; } 
     public DbSet<Operation> Operations { get; set; }
     public DbSet<AuditLog> AuditLogs { get; set; }
-    public DbSet<Role> Roles { get; set; }
     public DbSet<Review>Reviews{get; set;}
     public DbSet<Recommendation>Recommendations{get; set;}
     public DbSet<User> Users { get; set; }
@@ -33,8 +32,10 @@ public class GrantTrackDbContext : DbContext
     public DbSet <GrantReport> GrantReports{get; set;}
     public DbSet<Report> Reports{get; set;}
     public DbSet <Notification>notifications { get; set; }
+    
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        
         modelBuilder.Entity<Application>()
         .HasOne(q => q.ApplicantIDNavigation)
         .WithMany(q => q.Applications)
@@ -63,12 +64,12 @@ public class GrantTrackDbContext : DbContext
         .HasOne(q => q.ApplicationIDNavigation)
         .WithMany(q => q.Reviews) 
         .HasForeignKey(q => q.ApplicationId)
-        .OnDelete(DeleteBehavior.Cascade); 
+        .OnDelete(DeleteBehavior.NoAction); 
 
         modelBuilder.Entity<Review>()
         .HasOne(q => q.ReviewerIDNavigation)
         .WithMany(q => q.Reviews) 
-        .OnDelete(DeleteBehavior.NoAction);  
+        .OnDelete(DeleteBehavior.Cascade);  
 
         modelBuilder.Entity<Decision>()
         .HasOne( q => q.Application) 
@@ -92,6 +93,11 @@ public class GrantTrackDbContext : DbContext
         .HasOne( q => q.UserIdNavigation)
         .WithMany(q => q.Notifications)
         .HasForeignKey( q => q.UserId)
-        .OnDelete(DeleteBehavior.NoAction);    
+        .OnDelete(DeleteBehavior.NoAction);  
+        
+        modelBuilder.Entity<User>()
+        .Property(u => u.Role)
+        .HasConversion<string>();
+  
     }
 }

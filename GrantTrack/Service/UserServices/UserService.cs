@@ -17,35 +17,41 @@ namespace GrantTrack.Service
 
         public async Task RegisterUserAsync(RegisterUserDto dto)
         {
-            // Password validation
+            // Validate password rules
             if (!PasswordValidator.IsValid(dto.Password))
             {
                 throw new ArgumentException(
                     "Password must be at least 8 characters and contain one uppercase letter and one number");
             }
 
-            // Email uniqueness
+            // Check duplicate email
             if (await _userRepository.UserExistsAsync(dto.Email))
             {
                 throw new InvalidOperationException("User already exists");
             }
 
-            // BCrypt handles salt internally, but since you store it separately:
-            var salt = BCrypt.Net.BCrypt.GenerateSalt();
-            var hash = BCrypt.Net.BCrypt.HashPassword(dto.Password, salt);
+            // Hash password (BCrypt)
+            var hashedPassword = BCrypt.Net.BCrypt.HashPassword(dto.Password);
 
+            // Create User entity (MATCHES User.cs EXACTLY)
             var user = new User
             {
                 Name = dto.Name,
                 Email = dto.Email,
                 Phone = dto.Phone,
-                RoleId = 1,               //  Applicant role (configure in DB)
-                Status = true,            //  Active user
-                PasswordHash = hash,
-                PasswordSalt = salt,
+
+                // Enum-based role (stored as string via DbContext conversion)
+                Role = UserRole.Applicant,
+
+                Status = true,
+
+                // REQUIRED because User.Password is [Required]
+                Password = hashedPassword,
+
                 CreatedAt = DateTime.UtcNow
             };
 
+            // 5. Save user
             await _userRepository.AddUserAsync(user);
         }
     }

@@ -10,6 +10,12 @@
     <PackageReference Include="BCrypt.Net-Next" Version="4.1.0" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.5" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="10.1.7" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.5" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.5" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.5">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
   </ItemGroup>
 
   <ItemGroup>
@@ -17,9 +23,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Dto\User\" />
-    <Folder Include="Repository\Interface\" />
-    <Folder Include="Service\Interface\" />
+    <Folder Include="Dto\LoginDtos\" />
+    <Folder Include="Service\UserServices\" />
   </ItemGroup>
 
 </Project>
