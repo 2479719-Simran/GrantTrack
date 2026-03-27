@@ -14,4 +14,8 @@
     <ProjectReference Include="..\GrantTrack.Domain\GrantTrack.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Dto\UserDTOs\" />
+  </ItemGroup>
+
 </Project>
