@@ -67,6 +67,4 @@ Desktop.ini
 #Migrations 
 GrantTrack.Domain/Migrations 
 
-#appsettings 
-GrantTrack/appsettings.json
-GrantTrack/appsettings.Development.json
+
