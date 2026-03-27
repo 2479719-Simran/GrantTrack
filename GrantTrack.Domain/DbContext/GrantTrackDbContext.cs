@@ -5,6 +5,10 @@ namespace GrantTrack.Domain.Entities;
 
 public class GrantTrackDbContext : DbContext 
 {
+    public GrantTrackDbContext(DbContextOptions<GrantTrackDbContext> options) : base(options)
+    {
+        
+    }
     public DbSet<Application> Applications {get; set;}
 
     public DbSet<ApplicationValidation> ApplicationValidations { get; set; } 
@@ -30,7 +34,7 @@ public class GrantTrackDbContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        optionsBuilder.UseSqlServer("Server=LTIN718805\\SQLEXPRESS;Database=GrantTrack;Trusted_Connection=True;TrustServerCertificate=True");
+        optionsBuilder.UseSqlServer("Server=LTIN718866\\SQLEXPRESS;Database=GrantTrack;Trusted_Connection=True;TrustServerCertificate=True");
 
     }
     protected override void OnModelCreating(ModelBuilder modelBuilder)

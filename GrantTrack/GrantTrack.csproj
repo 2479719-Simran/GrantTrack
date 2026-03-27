@@ -7,7 +7,19 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Remove="appsettings.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="appsettings.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BCrypt.Net-Next" Version="4.1.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.5" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.5" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="10.1.7" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.17.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -15,14 +27,11 @@
   </ItemGroup>
 
   <ItemGroup>
-<<<<<<< HEAD
     <Folder Include="Dto\UserDTOs\" />
-=======
     <Folder Include="Dto\LoginDtos\" />
     <Folder Include="Dto\UserDtos\" />
     <Folder Include="Repository\UserRepositories\" />
     <Folder Include="Service\UserServices\" />
->>>>>>> 2fe72ed28df50f79d4f75754801bdbd2995182c5
   </ItemGroup>
 
 </Project>

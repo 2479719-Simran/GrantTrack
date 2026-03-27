@@ -8,5 +8,5 @@ public class ViewUserDto
     public string? Name { get; set; }
     public string? Email { get; set; }
     public bool Status { get; set; }
-    public string? RoleName { get; set; }
+    public string? Role { get; set; }
 }
