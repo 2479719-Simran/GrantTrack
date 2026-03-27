@@ -1,4 +1,0 @@
-<Solution>
-  <Project Path="GrantTrack.Domain/GrantTrack.Domain.csproj" />
-  <Project Path="GrantTrack/GrantTrack.csproj" />
-</Solution>
