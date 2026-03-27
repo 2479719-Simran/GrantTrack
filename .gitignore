@@ -66,3 +66,4 @@ Desktop.ini
 
 #migrations
 GrantTrack.Domain/Migrations
+GrantTrack.Domain/Migrations/GrantTrackDbContextModelSnapshot
