@@ -1,4 +1,5 @@
 using GrantTrack.Dto.User;
+using GrantTrack.Dto.UserDtos;
 using GrantTrack.Service.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -52,6 +53,28 @@ namespace GrantTrack.Controllers
                     StatusCodes.Status500InternalServerError,
                     "An unexpected error occurred"
                 );
+            }
+        }
+        [HttpPost]
+        [Route("{id:int}")] 
+        public async Task<IActionResult> UpdateUser([FromRoute] int id , [FromBody] UpdateUserRequestDto request)
+        {
+            if(request == null)
+            {
+                return BadRequest("Request cannot be null");
+            }
+            try
+            {
+                var res = await _userService.UpdateUser(id , request);
+                if(res == null)
+                {
+                    return NotFound("User not found");
+                }
+                return Ok(res);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
             }
         }
     }

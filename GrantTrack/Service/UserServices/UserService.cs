@@ -1,8 +1,10 @@
 using GrantTrack.Domain.Entities;
 using GrantTrack.Dto.User;
+using GrantTrack.Dto.UserDtos;
 using GrantTrack.Repository.Interface;
 using GrantTrack.Service.Interfaces;
 using GrantTrack.Utility;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace GrantTrack.Service
 {
@@ -47,6 +49,18 @@ namespace GrantTrack.Service
             };
             // 5. Save user
             await _userRepository.AddUserAsync(user);
+        }
+
+        public async Task<UpdateUserResponseDto> UpdateUser(int id, UpdateUserRequestDto request)
+        {
+            if (!System.Text.RegularExpressions.Regex.IsMatch(request.Phone, @"^[6-9]\d{9}$"))
+            {
+                throw new Exception("Password should start wit 6,7,8,9 and has 10 digits only"); 
+            }
+
+            var res = await _userRepository.UpdateUser(id , request); 
+
+            return res;
         }
     }
 }

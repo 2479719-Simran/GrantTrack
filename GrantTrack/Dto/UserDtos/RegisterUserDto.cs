@@ -9,5 +9,7 @@ public class RegisterUserDto
     [Required]
     [RegularExpression(@"^\d{10}$",
         ErrorMessage = "Mobile number must be exactly 10 digits.")]
-    public string Phone { get; set; } = null!;
+    public string Phone { get; set; } = null!; 
+
+    
 }

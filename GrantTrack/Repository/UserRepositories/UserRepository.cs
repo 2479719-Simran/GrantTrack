@@ -1,4 +1,5 @@
 using GrantTrack.Domain.Entities;
+using GrantTrack.Dto.UserDtos;
 using GrantTrack.Repository.Interface;
 using Microsoft.EntityFrameworkCore;
 
@@ -22,6 +23,23 @@ namespace GrantTrack.Repository
         {
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
+        }
+
+        public async Task<UpdateUserResponseDto?> UpdateUser(int id, UpdateUserRequestDto request)
+        {   
+            var user = await _context.Users.FindAsync(id);
+            if(user == null)
+            {
+                return null; 
+            }
+            user.Name = request.Name;
+            user.Phone = request.Phone; 
+            await _context.SaveChangesAsync(); 
+            return new UpdateUserResponseDto
+            {
+                Name = user.Name,
+                Phone = user.Phone 
+            };
         }
     }
 }
