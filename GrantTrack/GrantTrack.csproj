@@ -15,7 +15,14 @@
   </ItemGroup>
 
   <ItemGroup>
+<<<<<<< HEAD
     <Folder Include="Dto\UserDTOs\" />
+=======
+    <Folder Include="Dto\LoginDtos\" />
+    <Folder Include="Dto\UserDtos\" />
+    <Folder Include="Repository\UserRepositories\" />
+    <Folder Include="Service\UserServices\" />
+>>>>>>> 2fe72ed28df50f79d4f75754801bdbd2995182c5
   </ItemGroup>
 
 </Project>

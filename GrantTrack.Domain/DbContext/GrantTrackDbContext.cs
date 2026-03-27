@@ -19,7 +19,6 @@ public class GrantTrackDbContext : DbContext
     public DbSet<RequiredDocument> RequiredDocuments { get; set; } 
     public DbSet<Operation> Operations { get; set; }
     public DbSet<AuditLog> AuditLogs { get; set; }
-    public DbSet<Role> Roles { get; set; }
     public DbSet<Review>Reviews{get; set;}
     public DbSet<Recommendation>Recommendations{get; set;}
     public DbSet<User> Users { get; set; }
@@ -31,7 +30,7 @@ public class GrantTrackDbContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        optionsBuilder.UseSqlServer("Server=LTIN718615\\SQLEXPRESS;Database=GrantTrack;Trusted_Connection=True;TrustServerCertificate=True");
+        optionsBuilder.UseSqlServer("Server=LTIN718805\\SQLEXPRESS;Database=GrantTrack;Trusted_Connection=True;TrustServerCertificate=True");
 
     }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -64,12 +63,12 @@ public class GrantTrackDbContext : DbContext
         .HasOne(q => q.ApplicationIDNavigation)
         .WithMany(q => q.Reviews) 
         .HasForeignKey(q => q.ApplicationId)
-        .OnDelete(DeleteBehavior.Cascade); 
+        .OnDelete(DeleteBehavior.NoAction); 
 
         modelBuilder.Entity<Review>()
         .HasOne(q => q.ReviewerIDNavigation)
         .WithMany(q => q.Reviews) 
-        .OnDelete(DeleteBehavior.NoAction);  
+        .OnDelete(DeleteBehavior.Cascade);  
 
         modelBuilder.Entity<Decision>()
         .HasOne( q => q.Application) 
