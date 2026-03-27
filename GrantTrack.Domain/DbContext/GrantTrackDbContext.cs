@@ -31,11 +31,6 @@ public class GrantTrackDbContext : DbContext
     public DbSet<Report> Reports{get; set;}
     public DbSet <Notification>notifications { get; set; }
     
-
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    {
-        optionsBuilder.UseSqlServer("Server=LTIN718866\\SQLEXPRESS;Database=GrantTrack;Trusted_Connection=True;TrustServerCertificate=True");
-    }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Application>()
