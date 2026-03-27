@@ -5,6 +5,5 @@ namespace GrantTrack.Repository.UserRepositories;
 
 public interface IUserRepository
 {
-    Task<User?> GetUserByEmailAsync(string email);
 
 }

@@ -7,6 +7,5 @@ namespace GrantTrack.Service.UserServices;
 
 public interface IUserService
 {
-    Task<LoginResponseDto> LoginAsync(LoginRequestDto loginRequestDto, GrantTrackDbContext _context,IConfiguration _config);
-    
+    Task<LoginResponseDto> LoginAsync(LoginRequestDto loginRequestDto, GrantTrackDbContext _context, IConfiguration _config);
 }
