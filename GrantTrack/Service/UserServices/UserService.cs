@@ -15,6 +15,45 @@ namespace GrantTrack.Service.UserServices;
 
 public class UserService : IUserService
 {
+     public async Task<LoginResponseDto> LoginAsync(LoginRequestDto loginRequestDto, GrantTrackDbContext _context, IConfiguration _config)
+    {
+        // Validate input
+        if (string.IsNullOrWhiteSpace(loginRequestDto.Email) || string.IsNullOrWhiteSpace(loginRequestDto.Password))
+        {
+            return new LoginResponseDto
+            {
+                Success = false,
+                ErrorMessage = "Email or Password cannot be mmpty"
+            };
+        }
+        // Check if user exists and is active
+        User? user = await _context.Users.FirstOrDefaultAsync(u => u.Email == loginRequestDto.Email);
+        if (user == null || !user.Status)
+        {
+            return new LoginResponseDto
+            {
+                Success = false,
+                ErrorMessage = "No active account found with the provided email address"
+            };
+        }
+        // Verify password
+        var isPassword = BCrypt.Net.BCrypt.Verify(loginRequestDto.Password, user.Password);
+        if (!isPassword)
+        {
+            return new LoginResponseDto
+            {
+                Success = false,
+                ErrorMessage = "Invalid Password"
+            };
+        }
+        // Generate JWT token
+        var token = await GenerateJwtTokenServiceAsync(user, _config);
+        return new LoginResponseDto
+        {
+            Success = true,
+            AccessToken = token
+        };
+    }
     private async Task<string> GenerateJwtTokenServiceAsync(GrantTrack.Domain.Entities.User user, IConfiguration config)
     {
         // Retrieve JWT settings from configuration
@@ -47,43 +86,5 @@ public class UserService : IUserService
         );
         return await Task.FromResult(new JwtSecurityTokenHandler().WriteToken(Token));
     }
-    public async Task<LoginResponseDto> LoginAsync(LoginRequestDto loginRequestDto, GrantTrackDbContext _context, IConfiguration _config)
-    {
-        // Validate input
-        if (string.IsNullOrWhiteSpace(loginRequestDto.Email) || string.IsNullOrWhiteSpace(loginRequestDto.Password))
-        {
-            return new LoginResponseDto
-            {
-                Success = false,
-                ErrorMessage = "Email or Password cannot be mmpty"
-            };
-        }
-        // Check if user exists and is active
-        var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == loginRequestDto.Email);
-        if (user == null || !user.Status)
-        {
-            return new LoginResponseDto
-            {
-                Success = false,
-                ErrorMessage = "No active account found with the provided email address"
-            };
-        }
-        // Verify password
-        var isPassword = BCrypt.Net.BCrypt.Verify(loginRequestDto.Password, user.Password);
-        if (!isPassword)
-        {
-            return new LoginResponseDto
-            {
-                Success = false,
-                ErrorMessage = "Invalid Password"
-            };
-        }
-        // Generate JWT token
-        var token = await GenerateJwtTokenServiceAsync(user, _config);
-        return new LoginResponseDto
-        {
-            Success = true,
-            AccessToken = token
-        };
-    }
+   
 }
