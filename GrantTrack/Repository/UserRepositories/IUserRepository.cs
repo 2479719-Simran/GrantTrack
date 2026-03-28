@@ -8,5 +8,7 @@ namespace GrantTrack.Repository.Interface
     Task<bool> ActiveUserExistsAsync(string email);
     Task AddUserAsync(User user);
     Task<UpdateUserResponseDto?> UpdateUser(int id , UpdateUserRequestDto request); 
+     Task<User?> GetUserByEmailAsync(string email);
+    Task UpdateUserAsync(User user);
 }
 }

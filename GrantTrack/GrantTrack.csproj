@@ -24,6 +24,7 @@
 
   <ItemGroup>
     <Folder Include="Dto\LoginDtos\" />
+    <Folder Include="Service\AuthServices\" />
     <Folder Include="Service\UserServices\" />
   </ItemGroup>
 

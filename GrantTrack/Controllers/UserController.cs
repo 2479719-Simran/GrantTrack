@@ -1,6 +1,8 @@
 using GrantTrack.Dto.User;
 using GrantTrack.Dto.UserDtos;
+using GrantTrack.Service.AuthServices;
 using GrantTrack.Service.Interfaces;
+using GrantTrack.Utility;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,10 +12,12 @@ namespace GrantTrack.Controllers
     [Route("api/v1/[controller]")]
     public class UserController : ControllerBase
     {
+         private readonly IAuthService _authService;
         private readonly IUserService _userService;
-        public UserController(IUserService userService)
+        public UserController(IUserService userService , IAuthService authService)
         {
             _userService = userService;
+            _authService = authService;
         }
 
         /// <summary>
@@ -76,6 +80,25 @@ namespace GrantTrack.Controllers
             {
                 return BadRequest(ex.Message);
             }
+        }
+         /// <summary>
+        /// Forgot password — POST /api/v1/user/forgotpassword
+        /// </summary>
+        [HttpPost("forgotpassword")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> UserForgotPassword([FromBody] ForgotPasswordDto model)
+        {
+            if(model == null)
+                return BadRequest(Messages.InvalidRequest);
+        
+            var(success,message) = await _authService.ForgotPasswordAsync(model);
+    
+            if(!success)
+                return BadRequest(message);
+        
+            return Ok(new {message});
         }
     }
 }

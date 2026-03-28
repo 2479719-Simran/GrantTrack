@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using GrantTrack.Repository.Interface;
 using GrantTrack.Service;
 using GrantTrack.Service.Interfaces;
+using GrantTrack.Service.AuthServices;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
@@ -15,6 +16,7 @@ builder.Services.AddOpenApi();
 
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 
 builder.Services.AddSwaggerGen();
 
@@ -31,8 +33,4 @@ app.UseSwagger();
 app.UseSwaggerUI();
 
 //app.UseHttpsRedirection();
-
-
-
-
 app.Run();
