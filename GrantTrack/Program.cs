@@ -44,7 +44,7 @@ builder.Services.AddAuthentication("Bearer").AddJwtBearer(options =>
     options.TokenValidationParameters=new Microsoft.IdentityModel.Tokens.TokenValidationParameters
     {
         ValidateAudience=true,
-        ValidateIssuer=true,
+        ValidateIssuer=false,
         ValidateLifetime=true,
         ValidateIssuerSigningKey=true,
         ValidIssuer=jwtSettings["Issuer"],
