@@ -1,34 +1,41 @@
 using System.Net;
 using GrantTrack.Domain.Entities;
 using GrantTrack.Dto.LoginDtos;
-using GrantTrack.Dto.UserDTOs; // Added to recognize your ViewUserDto
-using GrantTrack.Service.UserServices;
+using GrantTrack.Dto.User;
+using GrantTrack.Dto.UserDtos;
+using GrantTrack.Dto.UserDTOs;
+using GrantTrack.Service.AuthServices;
+using GrantTrack.Service.Interfaces;
+using GrantTrack.Utility;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization; // Added for Admin restriction
 
 namespace GrantTrack.Controllers
 {
-    [Route("/api/v1/[controller]")]
     [ApiController]
+    [Route("api/v1/[controller]")]
     public class UserController : ControllerBase
     {
+         private readonly IAuthService _authService;
         private readonly IUserService _userService;
         private readonly GrantTrackDbContext _context;
         private readonly IConfiguration _config;
         /// <summary>
-        ///purpose: to handle user related operations such as login and registration. 
+        /// purpose: The UserController is responsible for handling user-related operations such as authentication, registration, and profile updates. It provides endpoints for users to log in, register, and manage their accounts.
         /// </summary>
         /// <param name="userService">The user service instance</param>
-        /// <param name="context">The database context</param>
+        /// <param name="authService">The authentication service instance</param>
+        /// <param name="context">The database context instance</param>
         /// <param name="config">The configuration instance</param>
-        public UserController(IUserService userService, GrantTrackDbContext context, IConfiguration config)
+        public UserController(IUserService userService , IAuthService authService ,GrantTrackDbContext context,IConfiguration config)
         {
             _userService = userService;
-            _context = context;
-            _config = config;
+            _authService = authService;
+            _context=context;
+            _config=config;
         }
+
         /// <summary>
         /// purpose: to authenticate users and provide them with a JWT token for subsequent requests.
         /// </summary>
@@ -49,11 +56,91 @@ namespace GrantTrack.Controllers
             return Ok(loginResponse.AccessToken);
         }
 
-  
         /// <summary>
+        /// Registers a new user with the default Applicant role.
+        /// </summary>
+        /// <param name="dto">User registration details.</param>
+        /// <returns>Returns success status after user creation.</re
+
+        [HttpPost("registeruser")]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> RegisterUser([FromBody] RegisterUserDto dto)
+        {
+            // Model validation
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            try
+            {
+                await _userService.RegisterUserAsync(dto);
+                return StatusCode(StatusCodes.Status201Created, "User created successfully");
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Conflict(ex.Message);
+            }
+            catch (Exception)
+            {
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError,
+                    "An unexpected error occurred"
+                );
+            }
+        }
+        [HttpPost]
+        [Route("{id:int}")] 
+        public async Task<IActionResult> UpdateUser([FromRoute] int id , [FromBody] UpdateUserRequestDto request)
+        {
+            if(request == null)
+            {
+                return BadRequest("Request cannot be null");
+            }
+            try
+            {
+                var res = await _userService.UpdateUser(id , request);
+                if(res == null)
+                {
+                    return NotFound("User not found");
+                }
+                return Ok(res);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+         /// <summary>
+        /// Forgot password — POST /api/v1/user/forgotpassword
+        /// </summary>
+        [HttpPost("forgotpassword")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> UserForgotPassword([FromBody] ForgotPasswordDto model)
+        {
+            if(model == null)
+                return BadRequest(Messages.InvalidRequest);
+        
+            var(success,message) = await _authService.ForgotPasswordAsync(model);
+    
+            if(!success)
+                return BadRequest(message);
+        
+            return Ok(new {message});
+        }
+
+         /// <summary>
         /// Retrieves all users for administrative review. Restricted to Admins.
         /// </summary>
-        [HttpGet("GetAll")]
+        [HttpGet]
         [Authorize(Roles = "Admin")]
         public async Task<ActionResult<IEnumerable<ViewUserDto>>> GetAll()
         {
@@ -68,6 +155,5 @@ namespace GrantTrack.Controllers
                     "An error occurred while retrieving the user list.");
             }
         }
-       
     }
 }
