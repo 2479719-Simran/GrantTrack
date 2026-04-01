@@ -1,44 +1,69 @@
-using System;
 using GrantTrack.Domain.Entities;
-using GrantTrack.Dto;
+using GrantTrack.Dto.UserDtos;
+using GrantTrack.Repository.Interface;
+using Microsoft.EntityFrameworkCore;
 
-namespace GrantTrack.Repository.UserRepositories;
-
-public class UserRepository : IUserRepository
-{   private readonly GrantTrackDbContext _context;
-
-    public UserRepository(GrantTrackDbContext _context)
+namespace GrantTrack.Repository
+{
+    public class UserRepository : IUserRepository
     {
-        this._context = _context; 
-    }
-    public async Task<UserUpdateResponseDto> UpdateUser(int id, UserUpdateRequestDto userUpdateRequestDto)
-    {
-        var user = await _context.Users.FindAsync(id); 
-        if(user == null)
+        private readonly GrantTrackDbContext _context;
+
+        public UserRepository(GrantTrackDbContext context)
         {
-            return null; 
-        } 
+            _context = context;
+        }
 
-        user.Name = userUpdateRequestDto.Name; 
-        user.Email = userUpdateRequestDto.Email; 
-        user.Phone = userUpdateRequestDto.Phone; 
-        user.Status = userUpdateRequestDto.Status; 
-        user.Password = userUpdateRequestDto.Password; 
-
-        await _context.SaveChangesAsync(); 
-
-        return new UserUpdateResponseDto
+        public async Task<bool> ActiveUserExistsAsync(string email)
         {
-            Name = user.Name,
-            Email = user.Email,
-            Phone = user.Phone,
-            Password = user.Password,
-            Status = user.Status
-        }; 
+            return await _context.Users.AnyAsync(u => u.Email == email && u.Status == true);
+        }
 
+        public async Task AddUserAsync(User user)
+        {
+            _context.Users.Add(user);
+            await _context.SaveChangesAsync();
+        }
 
-        
+        public async Task<UpdateUserResponseDto?> UpdateUser(int id, UpdateUserRequestDto request)
+        {
+            var user = await _context.Users.FindAsync(id);
+            if (user == null)
+            {
+                return null;
+            }
+            user.Name = request.Name;
+            user.Phone = request.Phone;
+            // Finding User 
+            UserRole role = (UserRole)Enum.Parse(typeof(UserRole), request.Role, ignoreCase: true);
+            user.Role = role; 
+            user.Status = request.Status; 
+            await _context.SaveChangesAsync();
+            return new UpdateUserResponseDto
+            {
+                Name = user.Name,
+                Phone = user.Phone,
+                Role = request.Role,
+                Status = request.Status
+            };
+        }
+        public async Task<User?> GetUserByEmailAsync(string email)
+        {
+            return await _context.Users
+                .FirstOrDefaultAsync(u => u.Email.ToLower() == email.ToLower().Trim());
+        }
+        public async Task UpdateUserAsync(User user)
+        {
+            _context.Users.Update(user);
+            await _context.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// Retrieves all users for your Admin View part.
+        /// </summary>
+        public async Task<IEnumerable<User>> GetAllUsersAsync()
+        {
+            return await _context.Users.AsNoTracking().ToListAsync();
+        }
     }
-
-    
 }

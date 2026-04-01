@@ -4,28 +4,40 @@ using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
 namespace GrantTrack.Domain.Entities;
+public enum UserRole
+{
+    Admin ,
+    Applicant ,
+    Reviewer ,
+    Approver ,
+    FinanceOfficer ,
+    ComplianceOfficer     
+};
 [Table("User")]
 [PrimaryKey("UserId")]
 public class User
-{
+{   
     [Key]
     public int UserId { get; set; }
     [Required]
     public string? Name { get; set; }
-    [ForeignKey("RoleId")]
+    [Column(TypeName = "VARCHAR(20)")]
     [Required]
-    public int RoleId { get; set; }
+    public UserRole Role { get; set; }//enum UserRole will be used here
+
+    [Column(TypeName = "VARCHAR(50)")]
+    [Required, RegularExpression(@"^[^@\s]+@[^@\s]+\.[^@\s]+$",
+    ErrorMessage = "Invalid email address format.")]
     public string? Email { get; set; }
-    public int Phone { get; set; }
+    [Column(TypeName = "VARCHAR(10)")]
+    [Required, RegularExpression(@"^\d{10}$", ErrorMessage = "Phone must be exactly 10 digits.")]
+    public string? Phone { get; set; }
     public bool Status { get; set; }
     [Required]
     [Column(TypeName = "varchar(max)")]
-    public string PasswordHash{get; set;} 
-    [Required]
-    [Column(TypeName = "varchar(max)")]
-    public string PasswordSalt{get; set;}
+    public string Password{get; set;} 
+    public DateTime CreatedAt { get; set; }
     //-------------------PrimaryKey---------------------//
-
     public List<Recommendation> Recommendations { get; set; }
     public List<Application> Applications { get; set; } = new List<Application>();
     public List<Review> Reviews { get; set; } = new List<Review>(); 
@@ -33,9 +45,9 @@ public class User
     public List<Decision> Decisions { get; set; } = new List<Decision>();
     // public virtual ICollection<User> Users{get; set;}=new List<User>(); 
     //-------------------ForeignKey---------------------//
-    public virtual Role ? RoleIDNavigation {get; set;}
+    
     public List<AuditLog> AuditLogs { get; set; } = new List<AuditLog>(); 
     public List<Notification> Notifications { get; set; }  = new List<Notification>(); 
 
-    public List<Report> Reports { get; set; } = new List<Report>(); 
+    public List<Report> Reports { get; set; } = new List<Report>();
 }

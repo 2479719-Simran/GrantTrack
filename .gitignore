@@ -62,4 +62,8 @@ coverage/
 
 # Others
 Thumbs.db
-Desktop.ini
+Desktop.ini 
+
+#Migrations 
+GrantTrack.Domain/Migrations 
+
