@@ -1,5 +1,6 @@
 using System;
 using GrantTrack.Domain.Entities;
+using GrantTrack.Dto;
 using GrantTrack.Dto.UserDtos;
 namespace GrantTrack.Repository.Interface
 {

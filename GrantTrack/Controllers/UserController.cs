@@ -1,5 +1,6 @@
 using System.Net;
 using GrantTrack.Domain.Entities;
+using GrantTrack.Dto;
 using GrantTrack.Dto.LoginDtos;
 using GrantTrack.Dto.User;
 using GrantTrack.Dto.UserDtos;
@@ -99,9 +100,9 @@ namespace GrantTrack.Controllers
                 );
             }
         }
-        [HttpPost]
-        [Route("{id:int}")]
-        public async Task<IActionResult> UpdateUser([FromRoute] int id, [FromBody] UpdateUserRequestDto request)
+        [HttpPost("update/{id:int}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> UpdateUser([FromRoute] int id , [FromBody] UpdateUserRequestDto request)
         {
             if (request == null)
             {
@@ -112,7 +113,7 @@ namespace GrantTrack.Controllers
                 var res = await _userService.UpdateUser(id, request);
                 if (res == null)
                 {
-                    return NotFound("User not found");
+                    return NotFound("UserId doest not exist");
                 }
                 return Ok(res);
             }
@@ -145,8 +146,7 @@ namespace GrantTrack.Controllers
         /// Retrieves all users for administrative review. Restricted to Admins.
         /// </summary>
         [HttpGet]
-        [Route("GetAll")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")] 
         public async Task<ActionResult<IEnumerable<ViewUserDto>>> GetAll()
         {
             try

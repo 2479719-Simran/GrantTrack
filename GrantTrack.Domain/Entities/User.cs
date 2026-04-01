@@ -11,7 +11,7 @@ public enum UserRole
     Reviewer ,
     Approver ,
     FinanceOfficer ,
-    ComplianceOfficer 
+    ComplianceOfficer     
 };
 [Table("User")]
 [PrimaryKey("UserId")]

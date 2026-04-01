@@ -12,6 +12,7 @@ using GrantTrack.Utility;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.IdentityModel.Tokens;
 using GrantTrack.Dto.UserDTOs;
+using GrantTrack.Dto;
 
 namespace GrantTrack.Service
 {
@@ -82,11 +83,11 @@ namespace GrantTrack.Service
             {
             new Claim(JwtRegisteredClaimNames.Sub,user.UserId.ToString()),
             new Claim(JwtRegisteredClaimNames.Email,user.Email),
-            new Claim(ClaimTypes.Role,user.Role.ToString()),
+            new Claim(ClaimTypes.Role,user.Role.ToString()),    
             new Claim(JwtRegisteredClaimNames.Jti,Guid.NewGuid().ToString())
         };
             var Token = new JwtSecurityToken
-            (
+            (                                       
                 issuer: issuer,
                 audience: audience,
                 claims: claims,
@@ -132,14 +133,25 @@ namespace GrantTrack.Service
 
         public async Task<UpdateUserResponseDto> UpdateUser(int id, UpdateUserRequestDto request)
         {
-            if (!System.Text.RegularExpressions.Regex.IsMatch(request.Phone, @"^[6-9]\d{9}$"))
-            {
-                throw new Exception("Password should start wit 6,7,8,9 and has 10 digits only");
+            if(request.Name == null || request.Name.Length == 0){
+                throw new Exception("Name cannot be null ");
             }
 
-            var res = await _userRepository.UpdateUser(id, request);
+            if (!PhoneNumberValidator.PhoneNumberValidation(request.Phone))
+            {
+                throw new Exception("Phone Number has 10 digits only"); 
+            } 
 
-            return res;
+            if(!RoleValidator.RoleValidation(request.Role)) {
+                throw new Exception("Given Role is not a valid one");
+            }
+            
+            if(request.Status != false && request.Status != true){
+                throw new Exception("Not a valid status keep it true or false ");
+            }
+            var res = await _userRepository.UpdateUser(id, request); 
+
+            return res;       
         }
 
         /// <summary>

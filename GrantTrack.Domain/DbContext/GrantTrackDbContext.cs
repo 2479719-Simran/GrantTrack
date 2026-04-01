@@ -31,6 +31,7 @@ public class GrantTrackDbContext : DbContext
     public DbSet<Report> Reports { get; set; }
     public DbSet<Notification> notifications { get; set; }
 
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
 
