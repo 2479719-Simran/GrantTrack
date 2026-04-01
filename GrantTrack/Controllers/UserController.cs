@@ -145,6 +145,7 @@ namespace GrantTrack.Controllers
         /// Retrieves all users for administrative review. Restricted to Admins.
         /// </summary>
         [HttpGet]
+        [Route("GetAll")]
         [Authorize(Roles = "Admin")]
         public async Task<ActionResult<IEnumerable<ViewUserDto>>> GetAll()
         {

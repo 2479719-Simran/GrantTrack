@@ -152,6 +152,7 @@ namespace GrantTrack.Service
                 .Select(user => new ViewUserDto
                 {
                     UserId = user.UserId,
+                    Name = user.Name,
                     Email = user.Email,
                     Role = user.Role.ToString(),
                     Status = user.Status
