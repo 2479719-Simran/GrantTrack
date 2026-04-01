@@ -1,5 +1,6 @@
 using GrantTrack.Dto.User;
 using GrantTrack.Service.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -26,6 +27,7 @@ namespace GrantTrack.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        // [Authorize(Roles = "Admin")] // Only Admin can register new users
         public async Task<IActionResult> RegisterUser([FromBody] RegisterUserDto dto)
         {
             // Model validation
