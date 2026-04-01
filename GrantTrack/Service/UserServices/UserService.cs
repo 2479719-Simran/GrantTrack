@@ -32,7 +32,7 @@ namespace GrantTrack.Service
                 return new LoginResponseDto
                 {
                     Success = false,
-                    ErrorMessage = "Email or Password cannot be mmpty"
+                    ErrorMessage = "Email or Password cannot be empty"
                 };
             }
             // Check if user exists and is active
@@ -152,6 +152,7 @@ namespace GrantTrack.Service
                 .Select(user => new ViewUserDto
                 {
                     UserId = user.UserId,
+                    Name = user.Name,
                     Email = user.Email,
                     Role = user.Role.ToString(),
                     Status = user.Status
