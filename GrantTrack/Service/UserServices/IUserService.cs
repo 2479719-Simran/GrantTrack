@@ -1,5 +1,6 @@
 using System;
 using GrantTrack.Domain.Entities;
+using GrantTrack.Dto;
 using GrantTrack.Dto.LoginDtos;
 using GrantTrack.Dto.User;
 using GrantTrack.Dto.UserDtos;

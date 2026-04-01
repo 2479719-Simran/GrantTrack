@@ -12,6 +12,7 @@ using GrantTrack.Utility;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.IdentityModel.Tokens;
 using GrantTrack.Dto.UserDTOs;
+using GrantTrack.Dto;
 
 namespace GrantTrack.Service
 {

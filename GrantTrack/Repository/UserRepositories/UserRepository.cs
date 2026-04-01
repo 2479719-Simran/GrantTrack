@@ -1,4 +1,5 @@
 using GrantTrack.Domain.Entities;
+using GrantTrack.Dto;
 using GrantTrack.Dto.UserDtos;
 using GrantTrack.Repository.Interface;
 using Microsoft.EntityFrameworkCore;
@@ -34,8 +35,11 @@ namespace GrantTrack.Repository
             }
             user.Name = request.Name;
             user.Phone = request.Phone;
-            // Finding User 
-            UserRole role = (UserRole)Enum.Parse(typeof(UserRole), request.Role, ignoreCase: true);
+            // Finding User role
+            if (!Enum.TryParse<UserRole>(request.Role, ignoreCase: true, out var role))
+            {
+                throw new ArgumentException($"Invalid role '{request.Role}'");
+            }
             user.Role = role; 
             user.Status = request.Status; 
             await _context.SaveChangesAsync();
@@ -43,7 +47,7 @@ namespace GrantTrack.Repository
             {
                 Name = user.Name,
                 Phone = user.Phone,
-                Role = request.Role,
+                Role = user.Role.ToString(),
                 Status = request.Status
             };
         }
