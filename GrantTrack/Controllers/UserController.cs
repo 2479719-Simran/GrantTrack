@@ -1,4 +1,11 @@
+using System.Net;
+using GrantTrack.Domain.Entities;
+using GrantTrack.Dto;
+using GrantTrack.Dto.LoginDtos;
 using GrantTrack.Dto.User;
+using GrantTrack.Dto.UserDtos;
+using GrantTrack.Dto.UserDTOs;
+using GrantTrack.Service.AuthServices;
 using GrantTrack.Service.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -10,10 +17,47 @@ namespace GrantTrack.Controllers
     [Route("api/v1/[controller]")]
     public class UserController : ControllerBase
     {
+        private readonly IAuthService _authService;
         private readonly IUserService _userService;
-        public UserController(IUserService userService)
+        private readonly GrantTrackDbContext _context;
+        private readonly IConfiguration _config;
+        /// <summary>
+        /// purpose: The UserController is responsible for handling user-related operations such as authentication, registration, and profile updates. It provides endpoints for users to log in, register, and manage their accounts.
+        /// </summary>
+        /// <param name="userService">The user service instance</param>
+        /// <param name="authService">The authentication service instance</param>
+        /// <param name="context">The database context instance</param>
+        /// <param name="config">The configuration instance</param>
+        public UserController(IUserService userService, IAuthService authService, GrantTrackDbContext context, IConfiguration config)
         {
             _userService = userService;
+            _authService = authService;
+            _context = context;
+            _config = config;
+        }
+
+        /// <summary>
+        /// purpose: to authenticate users and provide them with a JWT token for subsequent requests.
+        /// </summary>
+        /// <param name="loginRequest">The login request DTO</param>
+        /// <returns></returns>
+        [HttpPost("login")]
+        [ProducesResponseType((int)HttpStatusCode.OK)]
+        [ProducesResponseType((int)HttpStatusCode.BadRequest)]
+        public async Task<IActionResult> Login([FromBody] LoginRequestDto loginRequest)
+        {
+            var loginResponse = await _userService.LoginAsync(loginRequest, _context, _config);
+            // If login fails, return 401 Unauthorized with error message
+            if (!loginResponse.Success)
+            {
+                if (loginResponse.ErrorMessage == "Email or Password cannot be empty")
+                {
+                    return BadRequest(new { error = loginResponse.ErrorMessage }); //400 BadRequest
+                }
+                return Unauthorized(new { error = loginResponse.ErrorMessage }); //401 Unauthorized
+            }
+            // If login is successful, return 200 OK with the JWT token    
+            return Ok(loginResponse.AccessToken);
         }
 
         /// <summary>
@@ -54,6 +98,66 @@ namespace GrantTrack.Controllers
                     StatusCodes.Status500InternalServerError,
                     "An unexpected error occurred"
                 );
+            }
+        }
+        [HttpPost("update/{id:int}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> UpdateUser([FromRoute] int id , [FromBody] UpdateUserRequestDto request)
+        {
+            if (request == null)
+            {
+                return BadRequest("Request cannot be null");
+            }
+            try
+            {
+                var res = await _userService.UpdateUser(id, request);
+                if (res == null)
+                {
+                    return NotFound("UserId doest not exist");
+                }
+                return Ok(res);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+        /// <summary>
+        /// Forgot password — POST /api/v1/user/forgotpassword
+        /// </summary>
+        [HttpPost("forgotpassword")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> UserForgotPassword([FromBody] ForgotPasswordDto model)
+        {
+            if (model == null)
+                return BadRequest(Messages.InvalidRequest);
+
+            var (success, message) = await _authService.ForgotPasswordAsync(model);
+
+            if (!success)
+                return BadRequest(message);
+
+            return Ok(new { message });
+        }
+
+        /// <summary>
+        /// Retrieves all users for administrative review. Restricted to Admins.
+        /// </summary>
+        [HttpGet]
+        [Authorize(Roles = "Admin")] 
+        public async Task<ActionResult<IEnumerable<ViewUserDto>>> GetAll()
+        {
+            try
+            {
+                var users = await _userService.GetAllUsersAsync(_context);
+                return Ok(users);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    "An error occurred while retrieving the user list.");
             }
         }
     }

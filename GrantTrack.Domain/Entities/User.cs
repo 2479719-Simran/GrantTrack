@@ -11,7 +11,7 @@ public enum UserRole
     Reviewer ,
     Approver ,
     FinanceOfficer ,
-    ComplianceOfficer 
+    ComplianceOfficer     
 };
 [Table("User")]
 [PrimaryKey("UserId")]
@@ -24,6 +24,7 @@ public class User
     [Column(TypeName = "VARCHAR(20)")]
     [Required]
     public UserRole Role { get; set; }//enum UserRole will be used here
+
     [Column(TypeName = "VARCHAR(50)")]
     [Required, RegularExpression(@"^[^@\s]+@[^@\s]+\.[^@\s]+$",
     ErrorMessage = "Invalid email address format.")]
@@ -35,6 +36,7 @@ public class User
     [Required]
     [Column(TypeName = "varchar(max)")]
     public string Password{get; set;} 
+    public DateTime CreatedAt { get; set; }
     //-------------------PrimaryKey---------------------//
     public List<Recommendation> Recommendations { get; set; }
     public List<Application> Applications { get; set; } = new List<Application>();
@@ -48,5 +50,4 @@ public class User
     public List<Notification> Notifications { get; set; }  = new List<Notification>(); 
 
     public List<Report> Reports { get; set; } = new List<Report>();
-    public DateTime CreatedAt { get; set; }
 }
