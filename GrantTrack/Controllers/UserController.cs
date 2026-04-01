@@ -17,7 +17,7 @@ namespace GrantTrack.Controllers
     [Route("api/v1/[controller]")]
     public class UserController : ControllerBase
     {
-         private readonly IAuthService _authService;
+        private readonly IAuthService _authService;
         private readonly IUserService _userService;
         private readonly GrantTrackDbContext _context;
         private readonly IConfiguration _config;
@@ -28,12 +28,12 @@ namespace GrantTrack.Controllers
         /// <param name="authService">The authentication service instance</param>
         /// <param name="context">The database context instance</param>
         /// <param name="config">The configuration instance</param>
-        public UserController(IUserService userService , IAuthService authService ,GrantTrackDbContext context,IConfiguration config)
+        public UserController(IUserService userService, IAuthService authService, GrantTrackDbContext context, IConfiguration config)
         {
             _userService = userService;
             _authService = authService;
-            _context=context;
-            _config=config;
+            _context = context;
+            _config = config;
         }
 
         /// <summary>
@@ -50,7 +50,11 @@ namespace GrantTrack.Controllers
             // If login fails, return 401 Unauthorized with error message
             if (!loginResponse.Success)
             {
-                return Unauthorized(new { error = loginResponse.ErrorMessage });
+                if (loginResponse.ErrorMessage == "Email or Password cannot be empty")
+                {
+                    return BadRequest(new { error = loginResponse.ErrorMessage }); //400 BadRequest
+                }
+                return Unauthorized(new { error = loginResponse.ErrorMessage }); //401 Unauthorized
             }
             // If login is successful, return 200 OK with the JWT token    
             return Ok(loginResponse.AccessToken);
@@ -96,17 +100,17 @@ namespace GrantTrack.Controllers
             }
         }
         [HttpPost]
-        [Route("{id:int}")] 
-        public async Task<IActionResult> UpdateUser([FromRoute] int id , [FromBody] UpdateUserRequestDto request)
+        [Route("{id:int}")]
+        public async Task<IActionResult> UpdateUser([FromRoute] int id, [FromBody] UpdateUserRequestDto request)
         {
-            if(request == null)
+            if (request == null)
             {
                 return BadRequest("Request cannot be null");
             }
             try
             {
-                var res = await _userService.UpdateUser(id , request);
-                if(res == null)
+                var res = await _userService.UpdateUser(id, request);
+                if (res == null)
                 {
                     return NotFound("User not found");
                 }
@@ -117,7 +121,7 @@ namespace GrantTrack.Controllers
                 return BadRequest(ex.Message);
             }
         }
-         /// <summary>
+        /// <summary>
         /// Forgot password — POST /api/v1/user/forgotpassword
         /// </summary>
         [HttpPost("forgotpassword")]
@@ -126,18 +130,18 @@ namespace GrantTrack.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> UserForgotPassword([FromBody] ForgotPasswordDto model)
         {
-            if(model == null)
+            if (model == null)
                 return BadRequest(Messages.InvalidRequest);
-        
-            var(success,message) = await _authService.ForgotPasswordAsync(model);
-    
-            if(!success)
+
+            var (success, message) = await _authService.ForgotPasswordAsync(model);
+
+            if (!success)
                 return BadRequest(message);
-        
-            return Ok(new {message});
+
+            return Ok(new { message });
         }
 
-         /// <summary>
+        /// <summary>
         /// Retrieves all users for administrative review. Restricted to Admins.
         /// </summary>
         [HttpGet]
@@ -151,7 +155,7 @@ namespace GrantTrack.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, 
+                return StatusCode(StatusCodes.Status500InternalServerError,
                     "An error occurred while retrieving the user list.");
             }
         }
