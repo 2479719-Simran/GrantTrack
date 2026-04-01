@@ -137,7 +137,7 @@ namespace GrantTrack.Service
                 throw new Exception("Name cannot be null ");
             }
 
-            if (!PhonenumberValidator.PhoneNumberValidation(request.Phone))
+            if (!PhoneNumberValidator.PhoneNumberValidation(request.Phone))
             {
                 throw new Exception("Phone Number has 10 digits only"); 
             } 

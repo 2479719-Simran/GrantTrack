@@ -3,7 +3,7 @@ using System.Text.RegularExpressions;
 
 namespace GrantTrack.Utility;
 
-public class PhonenumberValidator
+public class PhoneNumberValidator
 {
     public static bool PhoneNumberValidation(string phone)
     {
