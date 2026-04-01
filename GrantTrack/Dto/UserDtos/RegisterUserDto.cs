@@ -4,6 +4,11 @@ namespace GrantTrack.Dto.User;
 public class RegisterUserDto
 {
     public string Name { get; set; } = null!;
+    
+    [Required]
+    [RegularExpression(
+    @"^[^@\s]+@[^@\s]+\.[^@\s]+$",
+    ErrorMessage = "Invalid email format")]
     public string Email { get; set; } = null!;
     public string Password { get; set; } = null!;
     [Required]

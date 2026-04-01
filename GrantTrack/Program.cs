@@ -9,7 +9,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 
 builder.Services.AddDbContext<GrantTrackDbContext>(options => options.UseSqlServer(
-builder.Configuration.GetConnectionString("GrantTrackConnectionString")));
+builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddOpenApi();
 

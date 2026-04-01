@@ -19,7 +19,7 @@ namespace GrantTrack.Controllers
         /// Registers a new user with the default Applicant role.
         /// </summary>
         /// <param name="dto">User registration details.</param>
-        /// <returns>Returns success status after user creation.</re
+        /// <returns>Returns success status after user creation.</returns>
 
         [HttpPost("registeruser")]
         [ProducesResponseType(StatusCodes.Status201Created)]
