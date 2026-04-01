@@ -12,6 +12,10 @@ using Microsoft.OpenApi;
 // using Microsoft.AspNetCore.Authentication.JwtBearer; // Ensure this is present
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddControllers();
+
+builder.Services.AddDbContext<GrantTrackDbContext>(options => options.UseSqlServer(
+builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddOpenApi();
 builder.Services.AddControllers();
