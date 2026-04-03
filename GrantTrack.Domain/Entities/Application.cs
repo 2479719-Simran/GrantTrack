@@ -2,6 +2,13 @@ using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 namespace GrantTrack.Domain.Entities;
+public enum ApplicationStatus
+{
+    Submitted,
+    UnderReview,
+    Approved,
+    Rejected
+}
 public class Application
 {
     [Key]
@@ -17,7 +24,7 @@ public class Application
     [Required]
     public DateTime SubmittedDate { get; set; }
     [Required]
-    public bool Status { get; set; }
+    public ApplicationStatus Status { get; set; }
     public List<Document> Documents { get; set; } = new List<Document>();
     public List<ApplicationValidation> ApplicationValidations { get; set; } = new List<ApplicationValidation>(); 
     public List<Recommendation> Recommendations { get; set; } = new List<Recommendation>(); 
