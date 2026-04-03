@@ -187,21 +187,22 @@ namespace GrantTrack.Service
                 })
                 .ToListAsync();
         }
-        public async Task<UpdateUserResponseDto?> DeactivateUserAsync(UpdateUserStatusDto statusDto)
+
+        public async Task<string?> DeactivateUserByIdAsync(int id)
         {
             var users = await _userRepository.GetAllUsersAsync();
-            var user = users.FirstOrDefault(u => u.UserId == statusDto.UserID);
+            var user = users.FirstOrDefault(u => u.UserId == id);
 
             if (user == null) return null;
 
-            // 2. If already inactive, throw an exception with your custom message
-            if (!user.Status && !statusDto.Status)
+            // Check current status in DB
+            if (user.Status == false)
             {
-                throw new InvalidOperationException(Messages.UserAlreadyInactive);
+                return "ALREADY_INACTIVE";
             }
 
-            var result = await _userRepository.UpdateUserStatusAsync(statusDto.UserID, statusDto.Status);
-            return result;
+            await _userRepository.UpdateUserStatusAsync(id, false);
+            return "SUCCESS";
         }
     }
 }

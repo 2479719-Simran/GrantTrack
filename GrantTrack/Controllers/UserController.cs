@@ -163,36 +163,40 @@ namespace GrantTrack.Controllers
         }
 
         /// <summary>
-        /// As an admin, change the status to inactive for the user.
+        /// As an admin, change the status to inactive (Soft Delete) for a specific user ID.
+        /// Route: PATCH /api/v1/user/delete-user/5
         /// </summary>
-        [HttpPatch("change-status")]
+        [HttpPatch("delete-user/{id:int}")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> ChangeStatus([FromBody] UpdateUserStatusDto statusDto)
+        public async Task<IActionResult> SoftDeleteUser([FromRoute] int id)
         {
             try
             {
-                var result = await _userService.DeactivateUserAsync(statusDto);
+                var result = await _userService.DeactivateUserByIdAsync(id);
 
+                // 1. Check for Not Found first
                 if (result == null)
                 {
                     return NotFound(new { message = Messages.UserNotFoundById });
                 }
 
-                // Returns the custom success message from your Utility
+                // 2. Check if ALREADY deactivated 
+                // If the service returned the "ALREADY_INACTIVE" string, return BadRequest (400)
+                if (result == "ALREADY_INACTIVE")
+                {
+                    return BadRequest(new { message = Messages.UserAlreadyInactive });
+                }
+
+                // 3. Handle Success (Only if result was "SUCCESS" or equivalent)
                 return Ok(new
                 {
-                    message = Messages.UserDeactivated,
-                    data = result
+                    message = Messages.UserDeactivated
                 });
             }
-            catch (InvalidOperationException ex)
+            catch (Exception)
             {
-                // This will catch the "Already Inactive" message
-                return BadRequest(new { message = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { error = ex.Message });
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    new { message = Messages.SomethingWentWrong });
             }
         }
 
