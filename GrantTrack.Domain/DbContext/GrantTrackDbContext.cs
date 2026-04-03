@@ -82,6 +82,10 @@ public class GrantTrackDbContext : DbContext
         .HasForeignKey(q => q.UserId)
         .OnDelete(DeleteBehavior.NoAction);
 
+        modelBuilder.Entity<Decision>()
+        .Property(d => d.DecisionValue)
+        .HasConversion<string>();
+
         modelBuilder.Entity<Notification>()
         .HasOne(q => q.ApplicationIdNavigation)
         .WithMany(q => q.Notifications)

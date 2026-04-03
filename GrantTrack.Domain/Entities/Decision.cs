@@ -7,10 +7,10 @@ namespace GrantTrack.Domain.Entities;
 // 1. Define the Enum for the statuses
 public enum DecisionStatus
 {
-    Pending = 1,
-    Approved = 2,
-    Rejected = 3,
-    UnderReview = 4
+
+    Approved ,
+    Rejected 
+    
 }
 
 // 2. Define the Decision Entity
