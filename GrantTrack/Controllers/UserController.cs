@@ -10,6 +10,7 @@ using GrantTrack.Service.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using GrantTrack.Utility;
 
 namespace GrantTrack.Controllers
 {
@@ -102,7 +103,7 @@ namespace GrantTrack.Controllers
         }
         [HttpPost("update/{id:int}")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> UpdateUser([FromRoute] int id , [FromBody] UpdateUserRequestDto request)
+        public async Task<IActionResult> UpdateUser([FromRoute] int id, [FromBody] UpdateUserRequestDto request)
         {
             if (request == null)
             {
@@ -146,7 +147,7 @@ namespace GrantTrack.Controllers
         /// Retrieves all users for administrative review. Restricted to Admins.
         /// </summary>
         [HttpGet]
-        [Authorize(Roles = "Admin")] 
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<IEnumerable<ViewUserDto>>> GetAll()
         {
             try
@@ -160,5 +161,40 @@ namespace GrantTrack.Controllers
                     "An error occurred while retrieving the user list.");
             }
         }
+
+        /// <summary>
+        /// As an admin, change the status to inactive for the user.
+        /// </summary>
+        [HttpPatch("change-status")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> ChangeStatus([FromBody] UpdateUserStatusDto statusDto)
+        {
+            try
+            {
+                var result = await _userService.DeactivateUserAsync(statusDto);
+
+                if (result == null)
+                {
+                    return NotFound(new { message = Messages.UserNotFoundById });
+                }
+
+                // Returns the custom success message from your Utility
+                return Ok(new
+                {
+                    message = Messages.UserDeactivated,
+                    data = result
+                });
+            }
+            catch (InvalidOperationException ex)
+            {
+                // This will catch the "Already Inactive" message
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
     }
 }

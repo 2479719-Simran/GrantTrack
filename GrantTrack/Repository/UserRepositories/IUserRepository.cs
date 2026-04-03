@@ -13,5 +13,6 @@ namespace GrantTrack.Repository.Interface
         Task UpdateUserAsync(User user);
         // For your Admin View part
         Task<IEnumerable<User>> GetAllUsersAsync();
+        Task<UpdateUserResponseDto?> UpdateUserStatusAsync(int id, bool status);
     }
 }

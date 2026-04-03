@@ -83,11 +83,11 @@ namespace GrantTrack.Service
             {
             new Claim(JwtRegisteredClaimNames.Sub,user.UserId.ToString()),
             new Claim(JwtRegisteredClaimNames.Email,user.Email),
-            new Claim(ClaimTypes.Role,user.Role.ToString()),    
+            new Claim(ClaimTypes.Role,user.Role.ToString()),
             new Claim(JwtRegisteredClaimNames.Jti,Guid.NewGuid().ToString())
         };
             var Token = new JwtSecurityToken
-            (                                       
+            (
                 issuer: issuer,
                 audience: audience,
                 claims: claims,
@@ -146,25 +146,28 @@ namespace GrantTrack.Service
 
         public async Task<UpdateUserResponseDto> UpdateUser(int id, UpdateUserRequestDto request)
         {
-            if(request.Name == null || request.Name.Length == 0){
+            if (request.Name == null || request.Name.Length == 0)
+            {
                 throw new Exception("Name cannot be null ");
             }
 
             if (!PhoneNumberValidator.PhoneNumberValidation(request.Phone))
             {
-                throw new Exception("Phone Number has 10 digits only"); 
-            } 
+                throw new Exception("Phone Number has 10 digits only");
+            }
 
-            if(!RoleValidator.RoleValidation(request.Role)) {
+            if (!RoleValidator.RoleValidation(request.Role))
+            {
                 throw new Exception("Given Role is not a valid one");
             }
-            
-            if(request.Status != false && request.Status != true){
+
+            if (request.Status != false && request.Status != true)
+            {
                 throw new Exception("Not a valid status keep it true or false ");
             }
-            var res = await _userRepository.UpdateUser(id, request); 
+            var res = await _userRepository.UpdateUser(id, request);
 
-            return res;       
+            return res;
         }
 
         /// <summary>
@@ -183,6 +186,22 @@ namespace GrantTrack.Service
                     Status = user.Status
                 })
                 .ToListAsync();
+        }
+        public async Task<UpdateUserResponseDto?> DeactivateUserAsync(UpdateUserStatusDto statusDto)
+        {
+            var users = await _userRepository.GetAllUsersAsync();
+            var user = users.FirstOrDefault(u => u.UserId == statusDto.UserID);
+
+            if (user == null) return null;
+
+            // 2. If already inactive, throw an exception with your custom message
+            if (!user.Status && !statusDto.Status)
+            {
+                throw new InvalidOperationException(Messages.UserAlreadyInactive);
+            }
+
+            var result = await _userRepository.UpdateUserStatusAsync(statusDto.UserID, statusDto.Status);
+            return result;
         }
     }
 }
