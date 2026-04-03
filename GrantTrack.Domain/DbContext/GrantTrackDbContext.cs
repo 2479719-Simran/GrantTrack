@@ -73,7 +73,7 @@ public class GrantTrackDbContext : DbContext
         modelBuilder.Entity<Decision>()
         .HasOne(q => q.Application)
         .WithMany(q => q.Decisions)
-        .HasForeignKey(q => q.ApplicationID)
+        .HasForeignKey(q => q.ApplicationId)
         .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<Decision>()
