@@ -2,6 +2,7 @@ using System;
 using System.ComponentModel.DataAnnotations;
 using GrantTrack.Domain.Entities;
 namespace GrantTrack.Dto.User;
+
 public class RegisterUserDto
 {
     public string Name { get; set; } = null!;
@@ -14,8 +15,8 @@ public class RegisterUserDto
     public string Password { get; set; } = null!;
     [Required]
     [RegularExpression(@"^\d{10}$",
-        ErrorMessage = "Mobile number must be exactly 10 digits.")]
+    ErrorMessage = "Mobile number must be exactly 10 digits.")]
     public string Phone { get; set; } = null!;
 
-    public UserRole? Role { get; set; }
+
 }
