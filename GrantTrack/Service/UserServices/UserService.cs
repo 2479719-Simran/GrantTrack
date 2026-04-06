@@ -114,13 +114,26 @@ namespace GrantTrack.Service
             // Hash password (BCrypt)
             var hashedPassword = BCrypt.Net.BCrypt.HashPassword(dto.Password);
 
+            var roleToAssign = UserRole.Applicant; // Default
+
+            if (dto.Role.HasValue)
+            {
+                // BLOCK ADMIN EXPLICITLY
+                if (dto.Role.Value == UserRole.Admin)
+                {
+                    throw new ArgumentException("Admin role cannot be assigned during registration");
+                }
+
+                //  Allow only safe roles
+                roleToAssign = dto.Role.Value;
+            }
             // Create User entity 
             var user = new User
             {
                 Name = dto.Name,
+                Role = roleToAssign, // Convert enum to string
                 Email = dto.Email,
                 Phone = dto.Phone,
-                Role = UserRole.Applicant,
                 Status = true,
                 // REQUIRED because User.Password is [Required]
                 Password = hashedPassword,

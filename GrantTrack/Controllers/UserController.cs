@@ -7,7 +7,6 @@ using GrantTrack.Dto.UserDtos;
 using GrantTrack.Dto.UserDTOs;
 using GrantTrack.Service.AuthServices;
 using GrantTrack.Service.Interfaces;
-using GrantTrack.Utility;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -65,13 +64,14 @@ namespace GrantTrack.Controllers
         /// Registers a new user with the default Applicant role.
         /// </summary>
         /// <param name="dto">User registration details.</param>
-        /// <returns>Returns success status after user creation.</re
+        /// <returns>Returns success status after user creation.</returns>
 
         [HttpPost("registeruser")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        // [Authorize(Roles = "Admin")] // Only Admin can register new users
         public async Task<IActionResult> RegisterUser([FromBody] RegisterUserDto dto)
         {
             // Model validation
