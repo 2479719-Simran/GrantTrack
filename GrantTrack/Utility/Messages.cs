@@ -18,5 +18,8 @@ public static class Messages
     public const string UserDeactivated = "User has been successfully deactivated.";
     public const string UserNotFoundById = "No account found with the provided ID.";
     public const string UserAlreadyInactive = "This user account is already inactive.";
+    public const string ApplicationNotFound = "Application not found.";
+    public const string ApplicationNotInDraft = "Only Draft applications can be submitted.";
+    public const string Forbidden = "You do not have permission to perform this action.";
 }
 
