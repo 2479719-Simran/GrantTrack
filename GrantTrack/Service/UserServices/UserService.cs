@@ -83,11 +83,11 @@ namespace GrantTrack.Service
             {
             new Claim(JwtRegisteredClaimNames.Sub,user.UserId.ToString()),
             new Claim(JwtRegisteredClaimNames.Email,user.Email),
-            new Claim(ClaimTypes.Role,user.Role.ToString()),    
+            new Claim(ClaimTypes.Role,user.Role.ToString()),
             new Claim(JwtRegisteredClaimNames.Jti,Guid.NewGuid().ToString())
         };
             var Token = new JwtSecurityToken
-            (                                       
+            (
                 issuer: issuer,
                 audience: audience,
                 claims: claims,
@@ -133,29 +133,32 @@ namespace GrantTrack.Service
 
         public async Task<UpdateUserResponseDto> UpdateUser(int id, UpdateUserRequestDto request)
         {
-            if(request.Name == null || request.Name.Length == 0){
+            if (request.Name == null || request.Name.Length == 0)
+            {
                 throw new Exception("Name cannot be null ");
             }
 
             if (!PhonenumberValidator.PhonenumberValidation(request.Phone))
             {
-                throw new Exception("Phone Number should have only ten numbers only."); 
-            } 
+                throw new Exception("Phone Number should have only ten numbers only.");
+            }
 
-            if(!RoleValidator.RoleValidation(request.Role)) {
+            if (!RoleValidator.RoleValidation(request.Role))
+            {
                 throw new Exception("Given Role is not a valid one.");
             }
-            
-            if(request.Status != false && request.Status != true){
+
+            if (request.Status != false && request.Status != true)
+            {
                 throw new Exception("Not a valid status keep it true or false.");
             }
             if (!UpdateEmailValidator.EmailValidation(request.Email))
             {
                 throw new Exception("Invalid email format. Please enter a valid email (e.g., user@example.com).");
             }
-            var res = await _userRepository.UpdateUser(id, request); 
+            var res = await _userRepository.UpdateUser(id, request);
 
-            return res;       
+            return res;
         }
 
         /// <summary>

@@ -40,8 +40,8 @@ namespace GrantTrack.Repository
             {
                 throw new ArgumentException($"Invalid role '{request.Role}'");
             }
-            user.Role = role; 
-            user.Status = request.Status; 
+            user.Role = role;
+            user.Status = request.Status;
             user.Email = request.Email;
             await _context.SaveChangesAsync();
             return new UpdateUserResponseDto
