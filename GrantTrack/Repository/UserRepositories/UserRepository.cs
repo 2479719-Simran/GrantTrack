@@ -40,15 +40,17 @@ namespace GrantTrack.Repository
             {
                 throw new ArgumentException($"Invalid role '{request.Role}'");
             }
-            user.Role = role; 
-            user.Status = request.Status; 
+            user.Role = role;
+            user.Status = request.Status;
+            user.Email = request.Email;
             await _context.SaveChangesAsync();
             return new UpdateUserResponseDto
             {
                 Name = user.Name,
                 Phone = user.Phone,
                 Role = user.Role.ToString(),
-                Status = request.Status
+                Status = request.Status,
+                Email = user.Email
             };
         }
         public async Task<User?> GetUserByEmailAsync(string email)

@@ -4,6 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
 namespace GrantTrack.Domain.Entities;
+
 [Table("GrantReport")]
 [PrimaryKey("GrantReportId")]
 public class GrantReport
@@ -20,6 +21,6 @@ public class GrantReport
     public bool Status { get; set; }
 
     //------------------ForeignKey-------------------//
-    public virtual Application ? ApplicationIdNavigation { get; set; }
+    public virtual Application? ApplicationIdNavigation { get; set; }
 
 }

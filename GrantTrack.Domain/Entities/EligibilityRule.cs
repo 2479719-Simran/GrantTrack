@@ -2,6 +2,7 @@ using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 namespace GrantTrack.Domain.Entities;
+
 public class EligibilityRule
 {
     [Key]
@@ -10,6 +11,6 @@ public class EligibilityRule
     public int ProgramId { get; set; }
     public string RuleDescription { get; set; }
     [Column(TypeName = "VARCHAR(MAX)")]
-    public string RuleExpression { get; set; } 
+    public string RuleExpression { get; set; }
     public virtual Program? programIDNavigation { get; set; }
 }

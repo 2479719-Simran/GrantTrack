@@ -15,7 +15,7 @@ public class Payment
         [Column(TypeName = "date")]
         public DateTime Date { get; set; }
         [MaxLength(50)]
-        public string? Method { get; set; } 
+        public string? Method { get; set; }
         public bool Status { get; set; }
         public virtual Disbursement? DisbursementIDNavigation { get; set; }
 }

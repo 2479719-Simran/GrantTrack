@@ -3,9 +3,9 @@ using System.Text.RegularExpressions;
 
 namespace GrantTrack.Utility;
 
-public class PhoneNumberValidator
+public class PhonenumberValidator
 {
-    public static bool PhoneNumberValidation(string phone)
+    public static bool PhonenumberValidation(string phone)
     {
         bool isValid = Regex.IsMatch(phone, @"^\d{10}$");
         return isValid;

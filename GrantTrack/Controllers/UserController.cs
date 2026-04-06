@@ -102,7 +102,7 @@ namespace GrantTrack.Controllers
         }
         [HttpPost("update/{id:int}")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> UpdateUser([FromRoute] int id , [FromBody] UpdateUserRequestDto request)
+        public async Task<IActionResult> UpdateUser([FromRoute] int id, [FromBody] UpdateUserRequestDto request)
         {
             if (request == null)
             {
@@ -146,7 +146,7 @@ namespace GrantTrack.Controllers
         /// Retrieves all users for administrative review. Restricted to Admins.
         /// </summary>
         [HttpGet]
-        [Authorize(Roles = "Admin")] 
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<IEnumerable<ViewUserDto>>> GetAll()
         {
             try
