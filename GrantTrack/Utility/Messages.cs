@@ -15,5 +15,8 @@ public static class Messages
     public const string EmailInvalid = "Invalid email format.";
     public const string NewPasswordRequired = "New password is required.";
     public const string ConfirmPasswordRequired = "Confirm password is required.";
+    public const string UserDeactivated = "User has been successfully deactivated.";
+    public const string UserNotFoundById = "No account found with the provided ID.";
+    public const string UserAlreadyInactive = "This user account is already inactive.";
 }
 

@@ -191,5 +191,21 @@ namespace GrantTrack.Service
                 })
                 .ToListAsync();
         }
+
+        public async Task<string?> DeactivateUserByIdAsync(int id)
+        {
+            var users = await _userRepository.GetAllUsersAsync();
+            var user = users.FirstOrDefault(u => u.UserId == id);
+
+            if (user == null) return null;
+
+            if (user.Status == false)
+            {
+                return "ALREADY_INACTIVE";
+            }
+
+            await _userRepository.UpdateUserStatusAsync(id, false);
+            return "SUCCESS";
+        }
     }
 }

@@ -10,6 +10,7 @@ using GrantTrack.Service.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using GrantTrack.Utility;
 
 namespace GrantTrack.Controllers
 {
@@ -160,5 +161,38 @@ namespace GrantTrack.Controllers
                     "An error occurred while retrieving the user list.");
             }
         }
+
+        /// <summary>
+        /// As an admin, change the status to inactive (Soft Delete) for a specific user ID.
+        /// Route: PATCH /api/v1/user/delete-user/5
+        /// </summary>
+        [HttpPatch("delete-user/{id:int}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> SoftDeleteUser([FromRoute] int id)
+        {
+            try
+            {
+                var result = await _userService.DeactivateUserByIdAsync(id);
+                if (result == null)
+                {
+                    return NotFound(new { message = Messages.UserNotFoundById });
+                }
+
+                if (result == "ALREADY_INACTIVE")
+                {
+                    return BadRequest(new { message = Messages.UserAlreadyInactive });
+                }
+                return Ok(new
+                {
+                    message = Messages.UserDeactivated
+                });
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    new { message = Messages.SomethingWentWrong });
+            }
+        }
+
     }
 }
