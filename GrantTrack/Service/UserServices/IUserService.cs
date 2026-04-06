@@ -12,7 +12,7 @@ namespace GrantTrack.Service.Interfaces
         Task<LoginResponseDto> LoginAsync(LoginRequestDto loginRequestDto, GrantTrackDbContext _context, IConfiguration _config);
         Task RegisterUserAsync(RegisterUserDto dto);
         Task<UpdateUserResponseDto> UpdateUser(int id, UpdateUserRequestDto request);
-        // Matches your UserController's call
+        // Matches your UserController's call  
         Task<IEnumerable<ViewUserDto>> GetAllUsersAsync(GrantTrackDbContext context);
     }
 }

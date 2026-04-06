@@ -12,5 +12,5 @@ public class EligibilityRule
     public string RuleDescription { get; set; }
     [Column(TypeName = "VARCHAR(MAX)")]
     public string RuleExpression { get; set; }
-    public virtual Program? programIDNavigation { get; set; }
+    public virtual GrantProgram? programIDNavigation { get; set; }
 }
