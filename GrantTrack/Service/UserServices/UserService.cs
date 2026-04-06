@@ -116,6 +116,7 @@ namespace GrantTrack.Service
 
             var roleToAssign = UserRole.Applicant; // Default
 
+
             if (dto.Role.HasValue)
             {
                 // BLOCK ADMIN EXPLICITLY
