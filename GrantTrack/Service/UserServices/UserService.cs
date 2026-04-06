@@ -195,7 +195,6 @@ namespace GrantTrack.Service
 
             if (user == null) return null;
 
-            // Check current status in DB
             if (user.Status == false)
             {
                 return "ALREADY_INACTIVE";

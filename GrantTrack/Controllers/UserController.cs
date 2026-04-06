@@ -173,21 +173,15 @@ namespace GrantTrack.Controllers
             try
             {
                 var result = await _userService.DeactivateUserByIdAsync(id);
-
-                // 1. Check for Not Found first
                 if (result == null)
                 {
                     return NotFound(new { message = Messages.UserNotFoundById });
                 }
 
-                // 2. Check if ALREADY deactivated 
-                // If the service returned the "ALREADY_INACTIVE" string, return BadRequest (400)
                 if (result == "ALREADY_INACTIVE")
                 {
                     return BadRequest(new { message = Messages.UserAlreadyInactive });
                 }
-
-                // 3. Handle Success (Only if result was "SUCCESS" or equivalent)
                 return Ok(new
                 {
                     message = Messages.UserDeactivated
