@@ -7,26 +7,32 @@ using GrantTrack.Utility;
 
 namespace GrantTrack.Service.ApplicationServices;
 
-public class ApplicationService(
-    IApplicationRepository repo,
-    IEventPublisher eventPublisher) : IApplicationService
+public class ApplicationService : IApplicationService
 {
+    private readonly IApplicationRepository _ApplicationRepo;
+    private readonly IEventPublisher _eventPublisher;
+    public ApplicationService(IApplicationRepository repo, IEventPublisher eventPublisher)
+    {
+        _ApplicationRepo = repo;
+        _eventPublisher = eventPublisher;
+    }
+
     public async Task<ApplicationResponseDto> CreateDraftAsync(CreateApplicationDto dto, int applicantId)
     {
         var application = new Application
         {
             ProgramId = dto.ProgramId,
             ApplicantId = applicantId,
-            Status = ApplicationStatus.Draft
+            Status = ApplicationStatus.Draft,
         };
 
-        var created = await repo.CreateAsync(application);
+        var created = await _ApplicationRepo.CreateAsync(application);
         return ToDto(created);
     }
 
     public async Task<ApplicationResponseDto> SubmitAsync(int applicationId, int applicantId)
     {
-        var application = await repo.GetByIdAsync(applicationId)
+        var application = await _ApplicationRepo.GetByIdAsync(applicationId)
             ?? throw new KeyNotFoundException(Messages.ApplicationNotFound);
 
         if (application.ApplicantId != applicantId)
@@ -37,18 +43,15 @@ public class ApplicationService(
 
         application.Status = ApplicationStatus.Submitted;
         application.SubmittedDate = DateTime.UtcNow;
-
-        var updated = await repo.UpdateAsync(application);
-
+        var updated = await _ApplicationRepo.UpdateAsync(application);
         // Emit Application.Submitted event
-        await eventPublisher.PublishAsync(new ApplicationSubmittedEvent
+        await _eventPublisher.PublishAsync(new ApplicationSubmittedEvent
         {
             ApplicationId = updated.ApplicationId,
             ProgramId = updated.ProgramId,
             ApplicantId = updated.ApplicantId,
             SubmittedAt = updated.SubmittedDate
         });
-
         return ToDto(updated);
     }
 

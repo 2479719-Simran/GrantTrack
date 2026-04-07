@@ -8,4 +8,5 @@ public interface IApplicationRepository
     Task<Application> CreateAsync(Application application);
     Task<Application?> GetByIdAsync(int id);
     Task<Application> UpdateAsync(Application application);
+  
 }
