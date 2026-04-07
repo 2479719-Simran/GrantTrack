@@ -8,17 +8,21 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace GrantTrack.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/v1/[controller]")]
     [ApiController]
-   public class ReviewsController : ControllerBase
+    public class ReviewsController : ControllerBase
     {
         private readonly IReviewService _reviewService;
         public ReviewsController(IReviewService reviewService)
         {
             _reviewService = reviewService;
         }
-
-        [HttpPost("assignment")]
+        //<summary>
+        //purpose: The ReviewsController is responsible for handling requests related to reviews, including bulk assignment of reviewers.
+        /// Initializes a new instance of the <see cref="ReviewsController"/> class.
+        /// </summary>
+        /// <param name="reviewService">The review service.</param>
+        [HttpPost("assignments/bulk")]
         public async Task<IActionResult> BulkAssign([FromBody] BulkAssignmentDto dto)
         {
             // validation

@@ -19,7 +19,7 @@ public class ReviewFilterService : IReviewFilterService
             .Where(r => r.ReviewerId == filter.ReviewerId)
             .AsQueryable();
 
-        // Skip and Take logic
+
         var pagedData = await query
             .Skip((filter.PageNumber - 1) * filter.PageSize)
             .Take(filter.PageSize)

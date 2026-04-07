@@ -16,7 +16,7 @@ public class ReviewService : IReviewService
 
     public async Task<bool> BulkAssignReviewersAsync(BulkAssignmentDto dto)
     {
-        // Transaction start panrom - All or Nothing!
+        // Transaction start - All or Nothing!
 
         using var transaction = await _context.Database.BeginTransactionAsync();
 
@@ -24,7 +24,7 @@ public class ReviewService : IReviewService
         {
             foreach (var item in dto.Assignments)
             {
-                //it will check weather reviewer has less then 5 records in his pending list
+                //it will check weather reviewer has less then 5 records in pending list
                 int pendingCount = await _context.Reviews.CountAsync(r => r.ReviewerId == item.ReviewerId && r.Score == 0);
 
                 //if there is less then 5 then it will continue the process
@@ -44,7 +44,7 @@ public class ReviewService : IReviewService
                         ReviewerId = item.ReviewerId,
                         Date = DateTime.Now,
                         Comments = item.Comments,
-                        Score=item.Score
+                        Score = item.Score
                     };
                     _context.Reviews.Add(newReview);
                 }

@@ -12,6 +12,7 @@ using GrantTrack.Utility;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.IdentityModel.Tokens;
 using GrantTrack.Dto.UserDTOs;
+using GrantTrack.Dto;
 
 namespace GrantTrack.Service
 {
@@ -113,13 +114,26 @@ namespace GrantTrack.Service
             // Hash password (BCrypt)
             var hashedPassword = BCrypt.Net.BCrypt.HashPassword(dto.Password);
 
+            var roleToAssign = UserRole.Applicant; // Default
+
+            if (dto.Role.HasValue)
+            {
+                // BLOCK ADMIN EXPLICITLY
+                if (dto.Role.Value == UserRole.Admin)
+                {
+                    throw new ArgumentException("Admin role cannot be assigned during registration");
+                }
+
+                //  Allow only safe roles
+                roleToAssign = dto.Role.Value;
+            }
             // Create User entity 
             var user = new User
             {
                 Name = dto.Name,
+                Role = roleToAssign, // Convert enum to string
                 Email = dto.Email,
                 Phone = dto.Phone,
-                Role = UserRole.Applicant,
                 Status = true,
                 // REQUIRED because User.Password is [Required]
                 Password = hashedPassword,
@@ -132,11 +146,29 @@ namespace GrantTrack.Service
 
         public async Task<UpdateUserResponseDto> UpdateUser(int id, UpdateUserRequestDto request)
         {
-            if (!System.Text.RegularExpressions.Regex.IsMatch(request.Phone, @"^[6-9]\d{9}$"))
+            if (request.Name == null || request.Name.Length == 0)
             {
-                throw new Exception("Password should start wit 6,7,8,9 and has 10 digits only");
+                throw new Exception("Name cannot be null ");
             }
 
+            if (!PhonenumberValidator.PhonenumberValidation(request.Phone))
+            {
+                throw new Exception("Phone Number should have only ten numbers only.");
+            }
+
+            if (!RoleValidator.RoleValidation(request.Role))
+            {
+                throw new Exception("Given Role is not a valid one.");
+            }
+
+            if (request.Status != false && request.Status != true)
+            {
+                throw new Exception("Not a valid status keep it true or false.");
+            }
+            if (!UpdateEmailValidator.EmailValidation(request.Email))
+            {
+                throw new Exception("Invalid email format. Please enter a valid email (e.g., user@example.com).");
+            }
             var res = await _userRepository.UpdateUser(id, request);
 
             return res;
@@ -152,11 +184,28 @@ namespace GrantTrack.Service
                 .Select(user => new ViewUserDto
                 {
                     UserId = user.UserId,
+                    Name = user.Name,
                     Email = user.Email,
                     Role = user.Role.ToString(),
                     Status = user.Status
                 })
                 .ToListAsync();
+        }
+
+        public async Task<string?> DeactivateUserByIdAsync(int id)
+        {
+            var users = await _userRepository.GetAllUsersAsync();
+            var user = users.FirstOrDefault(u => u.UserId == id);
+
+            if (user == null) return null;
+
+            if (user.Status == false)
+            {
+                return "ALREADY_INACTIVE";
+            }
+
+            await _userRepository.UpdateUserStatusAsync(id, false);
+            return "SUCCESS";
         }
     }
 }

@@ -1,5 +1,6 @@
 using System;
 using GrantTrack.Domain.Entities;
+using GrantTrack.Dto;
 using GrantTrack.Dto.UserDtos;
 namespace GrantTrack.Repository.Interface
 {
@@ -12,5 +13,6 @@ namespace GrantTrack.Repository.Interface
         Task UpdateUserAsync(User user);
         // For your Admin View part
         Task<IEnumerable<User>> GetAllUsersAsync();
+        Task<UpdateUserResponseDto?> UpdateUserStatusAsync(int id, bool status);
     }
 }

@@ -1,4 +1,5 @@
 using GrantTrack.Domain.Entities;
+using GrantTrack.Dto;
 using GrantTrack.Dto.UserDtos;
 using GrantTrack.Repository.Interface;
 using Microsoft.EntityFrameworkCore;
@@ -34,11 +35,22 @@ namespace GrantTrack.Repository
             }
             user.Name = request.Name;
             user.Phone = request.Phone;
+            // Finding User role
+            if (!Enum.TryParse<UserRole>(request.Role, ignoreCase: true, out var role))
+            {
+                throw new ArgumentException($"Invalid role '{request.Role}'");
+            }
+            user.Role = role;
+            user.Status = request.Status;
+            user.Email = request.Email;
             await _context.SaveChangesAsync();
             return new UpdateUserResponseDto
             {
                 Name = user.Name,
-                Phone = user.Phone
+                Phone = user.Phone,
+                Role = user.Role.ToString(),
+                Status = request.Status,
+                Email = user.Email
             };
         }
         public async Task<User?> GetUserByEmailAsync(string email)
@@ -58,6 +70,21 @@ namespace GrantTrack.Repository
         public async Task<IEnumerable<User>> GetAllUsersAsync()
         {
             return await _context.Users.AsNoTracking().ToListAsync();
+        }
+
+        public async Task<UpdateUserResponseDto?> UpdateUserStatusAsync(int id, bool status)
+        {
+            var user = await _context.Users.FindAsync(id);
+            if (user == null) return null;
+            user.Status = status; 
+            await _context.SaveChangesAsync();
+            return new UpdateUserResponseDto
+            {
+                Name = user.Name,
+                Phone = user.Phone,
+                Role = user.Role.ToString(),
+                Status = user.Status
+            };
         }
     }
 }

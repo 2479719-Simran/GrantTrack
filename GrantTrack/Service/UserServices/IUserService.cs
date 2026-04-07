@@ -1,5 +1,6 @@
 using System;
 using GrantTrack.Domain.Entities;
+using GrantTrack.Dto;
 using GrantTrack.Dto.LoginDtos;
 using GrantTrack.Dto.User;
 using GrantTrack.Dto.UserDtos;
@@ -13,6 +14,7 @@ namespace GrantTrack.Service.Interfaces
         Task<UpdateUserResponseDto> UpdateUser(int id, UpdateUserRequestDto request);
         // Matches your UserController's call
         Task<IEnumerable<ViewUserDto>> GetAllUsersAsync(GrantTrackDbContext context);
+        Task<string> DeactivateUserByIdAsync(int id);
     }
 }
 

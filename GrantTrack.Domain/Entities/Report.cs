@@ -9,13 +9,13 @@ namespace GrantTrack.Domain.Entities;
 public class Report
 {
     [Key]
-    public int ReportId { get; set; } 
+    public int ReportId { get; set; }
     [ForeignKey("UserId")]
     public int UserId { get; set; }
     [Column(TypeName = "VARCHAR(200)")]
-    public string Scope { get; set; }  
+    public string Scope { get; set; }
     public string Metrix { get; set; }
     public DateTime GeneratedDate { get; set; }
-    public virtual User ? UserIdNavigation { get; set; }
+    public virtual User? UserIdNavigation { get; set; }
 
 }

@@ -5,7 +5,7 @@ namespace GrantTrack.Domain.Entities;
 
 public class Disbursement
 {
-        [Key]      
+        [Key]
         public int DisbursementId { get; set; }
 
         // Foreign Key to the Application table
@@ -19,13 +19,13 @@ public class Disbursement
         public DateTime? ActualDate { get; set; }
         [MaxLength(50)]
         public bool Status { get; set; } // e.g., Scheduled/Paid/Partially Paid/Cancelled 
-        // I think we need to keep status as bool 
+                                         // I think we need to keep status as bool 
 
-        
-         [ForeignKey("ApplicationId")]
-         public virtual Application Application { get; set; }
 
-        public virtual ICollection<Payment> Payments { get; set; } = new List<Payment>(); 
+        [ForeignKey("ApplicationId")]
+        public virtual Application Application { get; set; }
 
-        
+        public virtual ICollection<Payment> Payments { get; set; } = new List<Payment>();
+
+
 }

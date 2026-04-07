@@ -21,31 +21,27 @@ public class RecommendationService : IRecommendationService
 
         try
         {
-            // 1. Review fetch - FindAsync badhula explicit-a ReviewId column vechu thedurom
             var review = await _context.Reviews
                 .FirstOrDefaultAsync(r => r.ReviewId == ReviewId);
 
             if (review == null)
             {
-                // Inga fail aana: ReviewId 7 database-la illa nu artham
                 return false;
             }
 
-            // 2. SECURITY CHECK
+            // SECURITY CHECK
             if (review.ReviewerId != currentReviewerId)
             {
                 throw new UnauthorizedAccessException("ReviewerId and CurrentReviewerId are not matched");
             }
 
-            // 3. Related Recommendation fetch
-            // Check: Unge table-la ApplicationId and ReviewerId correct-a irukanum
+            // Related Recommendation fetch
             var recommendation = await _context.Recommendations
                 .FirstOrDefaultAsync(r => r.ApplicationId == review.ApplicationId
                                      && r.ReviewerId == review.ReviewerId);
 
             if (recommendation == null)
             {
-                // Record illana, automatic-a ingaye create panniduvom macha!
                 recommendation = new Recommendation
                 {
                     ApplicationId = review.ApplicationId,
@@ -58,20 +54,17 @@ public class RecommendationService : IRecommendationService
             }
             else
             {
-                // Record irundha, update pannuvom
                 recommendation.Decision = dto.Decision;
                 recommendation.Notes = dto.Notes;
                 recommendation.Date = DateTime.Now;
                 _context.Recommendations.Update(recommendation);
             }
-
-            // 4. Update Review Table (Idhu kandippa venum)
             review.Score = dto.Score;
             review.Comments = dto.Comments;
             review.Date = DateTime.Now;
             _context.Reviews.Update(review);
 
-            // 5. Save and Commit
+            // Save and Commit
             await _context.SaveChangesAsync();
             await transaction.CommitAsync();
 
@@ -80,7 +73,6 @@ public class RecommendationService : IRecommendationService
         catch (Exception ex)
         {
             await transaction.RollbackAsync();
-            // Console-la error-a paaka idhu help pannum
             Console.WriteLine($"Error: {ex.Message}");
             throw;
         }
