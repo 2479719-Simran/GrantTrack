@@ -18,5 +18,11 @@ public static class Messages
     public const string UserDeactivated = "User has been successfully deactivated.";
     public const string UserNotFoundById = "No account found with the provided ID.";
     public const string UserAlreadyInactive = "This user account is already inactive.";
+    public const string DisbursementCreated                 = "Disbursement tranche created successfully.";
+    public const string DisbursementUpdated                 = "Disbursement tranche updated successfully.";
+    public const string DisbursementNotFound                = "Disbursement not found.";
+    public const string DisbursementScheduledDateInPast     = "Scheduled date cannot be in the past.";
+    public const string DisbursementCannotBeModified        = "Disbursement cannot be modified once it is Paid or Cancelled.";
+    public const string DisbursementInvalidStatusTransition = "Cannot transition status from '{0}' to '{1}'.";
 }
 

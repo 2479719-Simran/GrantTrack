@@ -21,4 +21,10 @@
     <ProjectReference Include="..\GrantTrack.Domain\GrantTrack.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Dto\DisbursementDtos\" />
+    <Folder Include="Repository\DisbursementRepositories\" />
+    <Folder Include="Service\DisbursementServices\" />
+  </ItemGroup>
+
 </Project>
