@@ -3,6 +3,22 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 namespace GrantTrack.Domain.Entities;
 
+public enum PaymentStatus
+{
+    Pending,
+    Completed,
+    Failed,
+    Cancelled
+}
+
+public enum PaymentMethod
+{
+    BankTransfer,
+    Cheque,
+    Cash,
+    OnlineTransfer
+}
+
 [Table("Payment")]
 public class Payment
 {
@@ -15,7 +31,7 @@ public class Payment
         [Column(TypeName = "date")]
         public DateTime Date { get; set; }
         [MaxLength(50)]
-        public string? Method { get; set; } 
-        public bool Status { get; set; }
+        public PaymentMethod Method { get; set; }
+        public PaymentStatus Status { get; set; }
         public virtual Disbursement? DisbursementIDNavigation { get; set; }
 }
