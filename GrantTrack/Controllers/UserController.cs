@@ -125,7 +125,7 @@ namespace GrantTrack.Controllers
         /// <summary>
         /// Forgot password — POST /api/v1/user/forgotpassword
         /// </summary>
-        [HttpPost("forgotpassword")]
+       /* [HttpPost("forgotpassword")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -140,7 +140,7 @@ namespace GrantTrack.Controllers
                 return BadRequest(message);
 
             return Ok(new { message });
-        }
+        }*/
 
         /// <summary>
         /// Retrieves all users for administrative review. Restricted to Admins.
