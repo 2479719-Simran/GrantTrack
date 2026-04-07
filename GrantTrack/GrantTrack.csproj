@@ -17,4 +17,11 @@
     <ProjectReference Include="..\GrantTrack.Domain\GrantTrack.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Dto\RecommendationDto\" />
+    <Folder Include="Repository\AssignmentService\" />
+    <Folder Include="Service\RecommendationService\" />
+    <Folder Include="Service\ReviewFilterService\" />
+  </ItemGroup>
+
 </Project>

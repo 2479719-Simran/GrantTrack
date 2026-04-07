@@ -3,11 +3,14 @@ using GrantTrack.Domain.Entities;
 using GrantTrack.Repository;
 using GrantTrack.Repository.Interface;
 using GrantTrack.Service;
+using GrantTrack.Service.ReviewService;
 using GrantTrack.Service.AuthServices;
 using GrantTrack.Service.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
+using GrantTrack.Service.RecommendationService;
+using GrantTrack.Service.ReviewFilterService;
 // using Microsoft.OpenApi.Models; // Change this
 // using Microsoft.AspNetCore.Authentication.JwtBearer; // Ensure this is present
 
@@ -20,6 +23,9 @@ builder.Services.AddControllers();
 builder.Services.AddScoped<IUserService,UserService>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IReviewService, ReviewService>();
+builder.Services.AddScoped<IRecommendationService,RecommendationService>();
+builder.Services.AddScoped<IReviewFilterService,ReviewFilterService>();
 
 builder.Services.AddDbContext<GrantTrackDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
