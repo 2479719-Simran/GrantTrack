@@ -5,8 +5,8 @@ namespace GrantTrack.Service.ProgramServices;
 public interface IProgramService
 {
     Task<CreateProgramResponseDto> CreateProgram(CreateProgramRequestDto request); 
-    Task<GetProgramDto> GetPrograms(); 
+    Task<IEnumerable<GetProgramDto>> GetPrograms( bool? Status ,DateTime? StartDate ,DateTime? EndDate); 
     Task<GetProgramDto> GetProgramById(int id); 
     Task<UpdateProgramResponseDto> UpdateProgram(int id , UpdateProgramRequestDto request);
-    Task<DeleteProgramDto> DeleteProgram();
+    Task<DeleteProgramDto> DeleteProgram(int id);
 }

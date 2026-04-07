@@ -1,10 +1,12 @@
 using System.Text;
 using GrantTrack.Domain.Entities;
 using GrantTrack.Repository;
-using GrantTrack.Repository.Interface;                 
+using GrantTrack.Repository.Interface;
+using GrantTrack.Repository.ProgramRepository;
 using GrantTrack.Service;
 using GrantTrack.Service.AuthServices;
 using GrantTrack.Service.Interfaces;
+using GrantTrack.Service.ProgramServices;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
@@ -12,12 +14,18 @@ using Microsoft.OpenApi;
 // using Microsoft.AspNetCore.Authentication.JwtBearer; // Ensure this is present
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddControllers();
+
+builder.Services.AddDbContext<GrantTrackDbContext>(options => options.UseSqlServer(
+builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddOpenApi();
 builder.Services.AddControllers();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IProgramService, ProgramService>();
+builder.Services.AddScoped<IProgramRepository, ProgramRepository>();
 
 builder.Services.AddDbContext<GrantTrackDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))

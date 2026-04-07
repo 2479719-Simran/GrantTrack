@@ -14,6 +14,7 @@ namespace GrantTrack.Service.Interfaces
         Task<UpdateUserResponseDto> UpdateUser(int id, UpdateUserRequestDto request);
         // Matches your UserController's call  
         Task<IEnumerable<ViewUserDto>> GetAllUsersAsync(GrantTrackDbContext context);
+        Task<string> DeactivateUserByIdAsync(int id);
     }
 }
 

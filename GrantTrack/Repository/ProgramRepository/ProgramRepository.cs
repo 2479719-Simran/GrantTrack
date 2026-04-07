@@ -1,11 +1,12 @@
 using System;
 using GrantTrack.Domain.Entities;
 using GrantTrack.Dto.ProgramDtos;
+using Microsoft.AspNetCore.Mvc.TagHelpers;
 using Microsoft.EntityFrameworkCore;
 
 namespace GrantTrack.Repository.ProgramRepository;
 
-public class ProgramRepository : IProgramRepository 
+public class ProgramRepository : IProgramRepository
 {
     private readonly GrantTrackDbContext dbContext;
 
@@ -16,15 +17,28 @@ public class ProgramRepository : IProgramRepository
 
     public async Task<bool> ContainsName(string Name)
     {
-        var obj = await dbContext.GrantPrograms.FirstOrDefaultAsync(q => q.Name == Name);  
+        var obj = await dbContext.GrantPrograms.FirstOrDefaultAsync(q => q.Name == Name);
 
-        if(obj == null)
+        if (obj == null)
         {
             return false;
         }
         else
         {
-            return true; 
+            return true;
+        }
+    }
+    public async Task<bool> ContainsId(int id)
+    {
+        var obj = await dbContext.GrantPrograms.FindAsync(id);
+
+        if (obj == null)
+        {
+            return false;
+        }
+        else
+        {
+            return true;
         }
     }
 
@@ -38,9 +52,9 @@ public class ProgramRepository : IProgramRepository
             EndDate = request.EndDate,
             Budget = request.Budget,
             Status = request.Status
-        }; 
-        dbContext.Add(newProgram); 
-        await dbContext.SaveChangesAsync(); 
+        };
+        dbContext.Add(newProgram);
+        await dbContext.SaveChangesAsync();
 
         return new CreateProgramResponseDto
         {
@@ -53,9 +67,22 @@ public class ProgramRepository : IProgramRepository
         };
     }
 
-    public Task<DeleteProgramDto> DeleteProgram()
+    public async Task<DeleteProgramDto> DeleteProgram(int id)
     {
-        throw new NotImplementedException();
+        var obj = await dbContext.GrantPrograms.FindAsync(id);
+        obj.Status = false;
+        await dbContext.SaveChangesAsync();
+
+        return new DeleteProgramDto
+        {
+            ProgramId = obj.ProgramId,
+            Name = obj.Name,
+            Description = obj.Description,
+            Budget = obj.Budget,
+            EndDate = obj.EndDate,
+            StartDate = obj.StartDate,
+            Status = obj.Status
+        };
     }
 
     public Task<GetProgramDto> GetProgramById(int id)
@@ -63,13 +90,64 @@ public class ProgramRepository : IProgramRepository
         throw new NotImplementedException();
     }
 
-    public Task<GetProgramDto> GetPrograms()
+    public async Task<IEnumerable<GetProgramDto>> GetPrograms(bool? Status, DateTime? StartDate, DateTime? EndDate)
     {
-        throw new NotImplementedException();
+        var query = dbContext.GrantPrograms.AsQueryable();
+
+        if (Status.HasValue)
+        {
+            query = query.Where(q => q.Status == Status.Value);
+        }
+        if (StartDate.HasValue)
+        {
+            query = query.Where(q => StartDate <= q.StartDate);
+        }
+        if (EndDate.HasValue)
+        {
+            query = query.Where(q => EndDate >= q.EndDate);
+        }
+        var grantPrograms = await query.ToListAsync();
+        List<GetProgramDto> response = new List<GetProgramDto>();
+        foreach (var program in grantPrograms)
+        {
+            response.Add(new GetProgramDto
+            {
+                ProgramId = program.ProgramId,
+                Name = program.Name,
+                Budget = program.Budget,
+                StartDate = program.StartDate,
+                EndDate = program.EndDate,
+                Description = program.Description,
+                Status = program.Status
+
+            });
+        }
+        return response;
     }
 
-    public Task<UpdateProgramResponseDto> UpdateProgram(int id, UpdateProgramRequestDto request)
+    public async Task<UpdateProgramResponseDto> UpdateProgram(int id, UpdateProgramRequestDto request)
     {
-        throw new NotImplementedException();
+        var obj = await dbContext.GrantPrograms.FindAsync(id);
+
+        obj.Name = request.Name;
+        obj.Description = request.Description;
+        obj.Budget = request.Budget;
+        obj.StartDate = request.StartDate;
+        obj.EndDate = request.EndDate;
+        obj.Status = request.Status;
+
+        await dbContext.SaveChangesAsync();
+        return new UpdateProgramResponseDto
+        {
+            ProgramId = obj.ProgramId,
+            Name = obj.Name,
+            Description = obj.Description,
+            Budget = obj.Budget,
+            EndDate = obj.EndDate,
+            StartDate = obj.StartDate,
+            Status = obj.Status
+        };
+
+
     }
 }
