@@ -13,7 +13,7 @@ namespace GrantTrack.Controllers;
 /// All endpoints require authentication. Role-specific endpoints require the "Applicant" role.
 /// </summary>
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/v1/[controller]")]
 [Authorize]
 public class ApplicationsController : ControllerBase
 {
