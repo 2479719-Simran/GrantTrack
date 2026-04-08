@@ -21,4 +21,10 @@
     <ProjectReference Include="..\GrantTrack.Domain\GrantTrack.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Dto\ProgramDtos\" />
+    <Folder Include="Repository\ProgramRepository\" />
+    <Folder Include="Service\ProgramServices\" />
+  </ItemGroup>
+
 </Project>

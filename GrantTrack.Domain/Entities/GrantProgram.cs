@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Runtime.Serialization;
 namespace GrantTrack.Domain.Entities;
 
-public class Program
+public class GrantProgram
 {
     [Key]
     public int ProgramId { get; set; }
