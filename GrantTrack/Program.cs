@@ -2,11 +2,14 @@ using System.Text;
 using GrantTrack.Domain.Entities;
 using GrantTrack.Repository;
 using GrantTrack.Repository.DisbursementRepositories;
+using GrantTrack.Repository.ApplicationRepositories;
 using GrantTrack.Repository.Interface;
 using GrantTrack.Service;
+using GrantTrack.Service.ApplicationServices;
 using GrantTrack.Service.AuthServices;
 using GrantTrack.Service.DisbursementServices;
 using GrantTrack.Service.Interfaces;
+using GrantTrack.Utility;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
@@ -26,6 +29,11 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IDisbursementRepository, DisbursementRepository>();
 builder.Services.AddScoped<IDisbursementService, DisbursementService>();
+
+builder.Services.AddScoped<IApplicationRepository, ApplicationRepository>();
+builder.Services.AddScoped<IApplicationService, ApplicationService>();
+builder.Services.AddSingleton<IEventPublisher, InMemoryEventPublisher>();
+
 
 builder.Services.AddDbContext<GrantTrackDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
