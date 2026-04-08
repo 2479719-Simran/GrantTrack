@@ -5,13 +5,12 @@ namespace GrantTrack.Domain.Entities;
 
 public class GrantTrackDbContext : DbContext
 {
-
     public GrantTrackDbContext(DbContextOptions<GrantTrackDbContext> options)
         : base(options)
     {
-        
+
     }
-    
+
     public DbSet<Application> Applications { get; set; }
     public DbSet<Payment> payments { get; set; }
     public DbSet<Disbursement> Disbursements { get; set; }
@@ -96,15 +95,19 @@ public class GrantTrackDbContext : DbContext
 
         modelBuilder.Entity<User>()
         .Property(u => u.Role)
-        .HasConversion<string>(); 
+        .HasConversion<string>();
 
         modelBuilder.Entity<Application>()
         .Property(u => u.Status)
-        .HasConversion<string>(); 
+        .HasConversion<string>();
 
         modelBuilder.Entity<Decision>()
         .Property(u => u.DecisionValue)
-        .HasConversion<string>(); 
+        .HasConversion<string>();
+
+        modelBuilder.Entity<Recommendation>()
+        .Property(r => r.Decision)
+        .HasConversion<string>();
 
     }
 }

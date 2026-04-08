@@ -7,5 +7,4 @@ namespace GrantTrack.Service.ReviewFilterService;
 public interface IReviewFilterService
 {
     Task<List<Review>> GetPagedReviewsAsync(ReviewFilterDto filter);
-
 }

@@ -19,6 +19,12 @@ public class ReviewFilterService : IReviewFilterService
             .Where(r => r.ReviewerId == filter.ReviewerId)
             .AsQueryable();
 
+        //filter based on decision
+        if (filter.Decision.HasValue)
+        {
+            query = query.Where(r => _context.Recommendations
+                    .Any(rec => rec.ApplicationId == r.ApplicationId && rec.Decision == filter.Decision));
+        }
 
         var pagedData = await query
             .Skip((filter.PageNumber - 1) * filter.PageSize)
@@ -27,5 +33,4 @@ public class ReviewFilterService : IReviewFilterService
 
         return pagedData;
     }
-
 }
