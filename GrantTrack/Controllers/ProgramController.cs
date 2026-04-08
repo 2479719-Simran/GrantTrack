@@ -23,7 +23,7 @@ namespace GrantTrack.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        // [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> CreateProgram([FromBody] CreateProgramRequestDto request)
         {
             try
@@ -46,7 +46,7 @@ namespace GrantTrack.Controllers
 
         }
         [HttpGet("GetPrograms")]
-        // [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetPrograms([FromQuery] bool? Status, [FromQuery] DateTime? StartDate, [FromQuery] DateTime? EndDate)
         {
             try
@@ -67,13 +67,13 @@ namespace GrantTrack.Controllers
                 return StatusCode(500, "Internal Server error occured");
             }
         }
-        // [HttpGet("GetPrograms/{id}")] 
+        [HttpGet("GetPrograms/{id}")] 
         // public async Task<IActionResult> GetProgramById([FromRoute]int id )
         // {
 
         // } 
         [HttpPut("UpdateProgram/{id}")]
-        // [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> UpdateProgram([FromRoute] int id, [FromBody] UpdateProgramRequestDto request)
         {
             try
@@ -97,7 +97,7 @@ namespace GrantTrack.Controllers
 
         }
         [HttpDelete("DeleteProgram/{id}")]
-        // [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteProgram([FromRoute] int id)
         {
             try
