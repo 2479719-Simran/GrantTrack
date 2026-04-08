@@ -14,7 +14,7 @@ public class RequiredDocument
     [Required]
     public string? Name { get; set; }
     public bool Mandatory { get; set; }
-    public virtual Program? ProgramIDNavigation { get; set; }
+    public virtual GrantProgram? ProgramIDNavigation { get; set; }
 
 
 }
