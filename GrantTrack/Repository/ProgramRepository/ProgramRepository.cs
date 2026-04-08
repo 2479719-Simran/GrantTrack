@@ -42,6 +42,12 @@ public class ProgramRepository : IProgramRepository
         }
     }
 
+    public async  Task<GrantProgram> ProgramWithId(int id)
+    {
+        var obj = await dbContext.GrantPrograms.FindAsync(id);  
+
+        return obj; 
+    }
     public async Task<CreateProgramResponseDto> CreateProgram(CreateProgramRequestDto request)
     {
         var newProgram = new GrantProgram
@@ -85,29 +91,10 @@ public class ProgramRepository : IProgramRepository
         };
     }
 
-    public Task<GetProgramDto> GetProgramById(int id)
+    public async Task<IEnumerable<GetProgramDto>> GetPrograms()
     {
-        throw new NotImplementedException();
-    }
-
-    public async Task<IEnumerable<GetProgramDto>> GetPrograms(bool? Status, DateTime? StartDate, DateTime? EndDate)
-    {
-        var query = dbContext.GrantPrograms.AsQueryable();
-
-        if (Status.HasValue)
-        {
-            query = query.Where(q => q.Status == Status.Value);
-        }
-        if (StartDate.HasValue)
-        {
-            query = query.Where(q => StartDate <= q.StartDate);
-        }
-        if (EndDate.HasValue)
-        {
-            query = query.Where(q => EndDate >= q.EndDate);
-        }
-        var grantPrograms = await query.ToListAsync();
         List<GetProgramDto> response = new List<GetProgramDto>();
+        var grantPrograms = await dbContext.GrantPrograms.ToListAsync(); 
         foreach (var program in grantPrograms)
         {
             response.Add(new GetProgramDto
@@ -150,4 +137,41 @@ public class ProgramRepository : IProgramRepository
 
 
     }
+
+    public async Task<IEnumerable<GetProgramDto>> FilterPrograms(FilterProgramsDto request)
+    {
+        var query = dbContext.GrantPrograms.AsQueryable();
+
+        if (!string.IsNullOrEmpty(request.Status))
+        {
+            query = query.Where(q => q.Status == bool.Parse(request.Status.ToLower()));
+        }
+        if (request.StartDate.HasValue)
+        {
+            query = query.Where(q => request.StartDate <= q.StartDate);
+        }
+        if (request.EndDate.HasValue)
+        {
+            query = query.Where(q => request.EndDate >= q.EndDate);
+        }
+        var grantPrograms = await query.ToListAsync();
+        List<GetProgramDto> response = new List<GetProgramDto>(); 
+        foreach (var program in grantPrograms)
+        {
+            response.Add(new GetProgramDto
+            {
+                ProgramId = program.ProgramId,
+                Name = program.Name,
+                Budget = program.Budget,
+                StartDate = program.StartDate,
+                EndDate = program.EndDate,
+                Description = program.Description,
+                Status = program.Status
+
+            });
+        }
+        return response;
+    }
+
+    
 }

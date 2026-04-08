@@ -61,23 +61,26 @@ public class ProgramService : IProgramService
 
     }
 
-    public Task<GetProgramDto> GetProgramById(int id)
+    public Task<IEnumerable<GetProgramDto>> FilterPrograms(FilterProgramsDto request)
     {
-        throw new NotImplementedException();
-    }
-
-    public async Task<IEnumerable<GetProgramDto>> GetPrograms(bool? Status, DateTime? StartDate, DateTime? EndDate)
-    {
-        if (Status.HasValue && Status != true && Status != false)
+        if (!string.IsNullOrEmpty(request.Status) && request.Status.ToLower() != "true" && request.Status.ToLower() != "false")
         {
-            throw new ArgumentException("Status has to be true or false");
-
+            throw new ArgumentException("Status has to be true or false ");
         }
-        if (StartDate > EndDate)
+        if (request.StartDate.HasValue && request.EndDate.HasValue && request.StartDate > request.EndDate)
         {
             throw new ArgumentException("Start Date Cannot be after End date");
         }
-        return await programRepository.GetPrograms(Status, StartDate, EndDate);
+
+        return programRepository.FilterPrograms(request);
+
+    }
+
+   
+
+    public async Task<IEnumerable<GetProgramDto>> GetPrograms()
+    {
+        return await programRepository.GetPrograms(); 
     }
 
     public async Task<UpdateProgramResponseDto> UpdateProgram(int id, UpdateProgramRequestDto request)
@@ -114,7 +117,9 @@ public class ProgramService : IProgramService
 
         if (containsName)
         {
-            throw new InvalidOperationException($"Program {request.Name} Name is already Present");
+            var obj = await programRepository.ProgramWithId(id);
+            if (obj.Name != request.Name)
+                throw new InvalidOperationException($"Program {request.Name} Name is already Present");
         }
 
         return await programRepository.UpdateProgram(id, request);

@@ -47,11 +47,11 @@ namespace GrantTrack.Controllers
         }
         [HttpGet("GetPrograms")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> GetPrograms([FromQuery] bool? Status, [FromQuery] DateTime? StartDate, [FromQuery] DateTime? EndDate)
+        public async Task<IActionResult> GetPrograms()
         {
             try
             {
-                var grantPrograms = await programService.GetPrograms(Status, StartDate, EndDate);
+                var grantPrograms = await programService.GetPrograms();
                 return Ok(grantPrograms);
             }
             catch (ArgumentException ex)
@@ -67,11 +67,30 @@ namespace GrantTrack.Controllers
                 return StatusCode(500, "Internal Server error occured");
             }
         }
-        [HttpGet("GetPrograms/{id}")] 
-        // public async Task<IActionResult> GetProgramById([FromRoute]int id )
-        // {
+         
+        [HttpPost("FilterPrograms")] 
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> FilterPrograms([FromBody] FilterProgramsDto request)
+        {
+            try
+            {
+                var programs = await programService.FilterPrograms(request);
+                return StatusCode(201, programs);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Conflict(ex.Message);
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, "Internal Server error occured");
+            }
 
-        // } 
+        }
         [HttpPut("UpdateProgram/{id}")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> UpdateProgram([FromRoute] int id, [FromBody] UpdateProgramRequestDto request)
