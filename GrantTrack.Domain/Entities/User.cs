@@ -4,19 +4,20 @@ using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
 namespace GrantTrack.Domain.Entities;
+
 public enum UserRole
 {
-    Admin ,
-    Applicant ,
-    Reviewer ,
-    Approver ,
-    FinanceOfficer ,
-    ComplianceOfficer     
+    Admin,
+    Applicant,
+    Reviewer,
+    Approver,
+    FinanceOfficer,
+    ComplianceOfficer
 };
 [Table("User")]
 [PrimaryKey("UserId")]
 public class User
-{   
+{
     [Key]
     public int UserId { get; set; }
     [Required]
@@ -35,19 +36,19 @@ public class User
     public bool Status { get; set; }
     [Required]
     [Column(TypeName = "varchar(max)")]
-    public string Password{get; set;} 
+    public string Password { get; set; }
     public DateTime CreatedAt { get; set; }
     //-------------------PrimaryKey---------------------//
     public List<Recommendation> Recommendations { get; set; }
     public List<Application> Applications { get; set; } = new List<Application>();
-    public List<Review> Reviews { get; set; } = new List<Review>(); 
-    
+    public List<Review> Reviews { get; set; } = new List<Review>();
+
     public List<Decision> Decisions { get; set; } = new List<Decision>();
     // public virtual ICollection<User> Users{get; set;}=new List<User>(); 
     //-------------------ForeignKey---------------------//
-    
-    public List<AuditLog> AuditLogs { get; set; } = new List<AuditLog>(); 
-    public List<Notification> Notifications { get; set; }  = new List<Notification>(); 
+
+    public List<AuditLog> AuditLogs { get; set; } = new List<AuditLog>();
+    public List<Notification> Notifications { get; set; } = new List<Notification>();
 
     public List<Report> Reports { get; set; } = new List<Report>();
 }

@@ -4,6 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
 namespace GrantTrack.Domain.Entities;
+
 [Table("Notification")]
 [PrimaryKey("NotificationId")]
 public class Notification
@@ -20,7 +21,7 @@ public class Notification
     public string Category { get; set; }
     public bool Status { get; set; }
     public DateTime CreatedDate { get; set; }
-    public virtual User ? UserIdNavigation { get; set; }
-    public virtual Application ? ApplicationIdNavigation { get; set; }
+    public virtual User? UserIdNavigation { get; set; }
+    public virtual Application? ApplicationIdNavigation { get; set; }
 
 }

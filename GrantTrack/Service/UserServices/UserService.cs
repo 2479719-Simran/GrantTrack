@@ -151,19 +151,23 @@ namespace GrantTrack.Service
                 throw new Exception("Name cannot be null ");
             }
 
-            if (!PhoneNumberValidator.PhoneNumberValidation(request.Phone))
+            if (!PhonenumberValidator.PhonenumberValidation(request.Phone))
             {
-                throw new Exception("Phone Number has 10 digits only");
+                throw new Exception("Phone Number should have only ten numbers only.");
             }
 
             if (!RoleValidator.RoleValidation(request.Role))
             {
-                throw new Exception("Given Role is not a valid one");
+                throw new Exception("Given Role is not a valid one.");
             }
 
             if (request.Status != false && request.Status != true)
             {
-                throw new Exception("Not a valid status keep it true or false ");
+                throw new Exception("Not a valid status keep it true or false.");
+            }
+            if (!UpdateEmailValidator.EmailValidation(request.Email))
+            {
+                throw new Exception("Invalid email format. Please enter a valid email (e.g., user@example.com).");
             }
             var res = await _userRepository.UpdateUser(id, request);
 

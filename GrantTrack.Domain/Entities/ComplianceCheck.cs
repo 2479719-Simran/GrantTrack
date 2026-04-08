@@ -4,6 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
 namespace GrantTrack.Domain.Entities;
+
 [Table("ComplianceCheck")]
 [PrimaryKey("CheckId")]
 public class ComplianceCheck
@@ -24,8 +25,8 @@ public class ComplianceCheck
 
     public string Notes { get; set; }
 
-    public virtual Application ? ApplicationIdNavigation { get; set; }
+    public virtual Application? ApplicationIdNavigation { get; set; }
 
-    
+
 
 }
