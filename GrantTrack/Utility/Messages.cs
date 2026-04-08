@@ -18,5 +18,15 @@ public static class Messages
     public const string UserDeactivated = "User has been successfully deactivated.";
     public const string UserNotFoundById = "No account found with the provided ID.";
     public const string UserAlreadyInactive = "This user account is already inactive.";
+    public const string ApplicationNotFound     = "Application not found.";
+    public const string Forbidden               = "You are not authorized to perform this action.";
+    public const string ApplicationNotInDraft   = "Application is not in Draft status.";
+
+    // Controller response messages
+    public const string ApplicationSubmitted    = "Application submitted successfully.";
+    public const string UnexpectedError         = "An unexpected error occurred. Please try again later.";
+    public const string UserNotAuthenticated    = "User not authenticated.";
+     public const string ProgramNotFound           = "Program Id not found.";
 }
+
 

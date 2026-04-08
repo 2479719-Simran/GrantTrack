@@ -95,7 +95,15 @@ public class GrantTrackDbContext : DbContext
 
         modelBuilder.Entity<User>()
         .Property(u => u.Role)
-        .HasConversion<string>();
+        .HasConversion<string>(); 
+
+        modelBuilder.Entity<Application>()
+        .Property(u => u.Status)
+        .HasConversion<string>(); 
+
+        modelBuilder.Entity<Decision>()
+        .Property(u => u.DecisionValue)
+        .HasConversion<string>(); 
 
         modelBuilder.Entity<Application>()
         .Property(u => u.Status)

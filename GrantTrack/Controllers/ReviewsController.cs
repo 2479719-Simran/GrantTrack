@@ -23,6 +23,7 @@ namespace GrantTrack.Controllers
         /// </summary>
         /// <param name="reviewService">The review service.</param>
         [HttpPost("assignments/bulk")]
+        [Authorize(Roles ="Reviewer")]
         public async Task<IActionResult> BulkAssign([FromBody] BulkAssignmentDto dto)
         {
             // validation
