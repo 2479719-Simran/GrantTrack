@@ -17,10 +17,5 @@ public class RegisterUserDto
     ErrorMessage = "Mobile number must be exactly 10 digits.")]
     public string Phone { get; set; } = null!;
     public UserRole? Role { get; set; }
-<<<<<<< HEAD
-
-=======
->>>>>>> 823ae897e63897b35b758e1e8de9c867a228d181
-
 
 }
