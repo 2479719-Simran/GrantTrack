@@ -22,8 +22,8 @@ namespace GrantTrack.Controllers
         /// Initializes a new instance of the <see cref="ReviewsController"/> class.
         /// </summary>
         /// <param name="reviewService">The review service.</param>
-        [HttpPost("assignments/bulk")]
-        [Authorize(Roles ="Reviewer")]
+        [HttpPost("assignments")]
+        [Authorize(Roles ="Admin")]
         public async Task<IActionResult> BulkAssign([FromBody] BulkAssignmentDto dto)
         {
             // validation
