@@ -25,7 +25,7 @@ public class Disbursement
         [Column(TypeName = "date")]
         public DateTime? ActualDate { get; set; }
         [MaxLength(50)]
-        public bool Status { get; set; } // e.g., Scheduled/Paid/Partially Paid/Cancelled 
+        public DisbursementStatus Status { get; set; } // e.g., Scheduled/Paid/Partially Paid/Cancelled 
         // I think we need to keep status as bool 
 
         
