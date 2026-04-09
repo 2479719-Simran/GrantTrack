@@ -18,7 +18,8 @@ namespace GrantTrack.Controllers;
 public class ApplicationsController : ControllerBase
 {
     private readonly IApplicationService _service;
-    public ApplicationsController(IApplicationService service){ 
+    public ApplicationsController(IApplicationService service)
+    {
         _service = service;
     }
 
@@ -26,14 +27,8 @@ public class ApplicationsController : ControllerBase
     /// Creates a new grant application in Draft status for the authenticated applicant.
     /// POST /api/v1/applications
     /// </summary>
-    /// <remarks>
-    /// Rules enforced:
-    /// - Program must exist (404 if not found)
-    /// - Program must be active (409 if inactive)
-    /// - Applicant must not already have an application for this program (409 if duplicate)
-    /// </remarks>
     [HttpPost]
-    // [Authorize(Roles = "Applicant")]
+    [Authorize(Roles = "Applicant")]
     [ProducesResponseType(typeof(ApplicationResponseDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
@@ -102,13 +97,11 @@ public class ApplicationsController : ControllerBase
             return StatusCode(StatusCodes.Status500InternalServerError, new { error = Messages.UnexpectedError });
         }
     }
-
     /// <summary>
     /// Extracts the authenticated user's ID from their JWT claims.
     /// </summary>
     private int GetCurrentUserId()
     {
-        // ClaimTypes.NameIdentifier == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"
         var claim = User.FindFirstValue(ClaimTypes.NameIdentifier)
             ?? throw new UnauthorizedAccessException(Messages.UserNotAuthenticated);
 
