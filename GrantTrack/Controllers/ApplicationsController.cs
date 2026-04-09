@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace GrantTrack.Controllers;
 
-// <summary>
+/// <summary>
 /// Manages grant applications — creation and submission by applicants.
 /// All endpoints require authentication. Role-specific endpoints require the "Applicant" role.
 /// </summary>
@@ -18,22 +18,26 @@ namespace GrantTrack.Controllers;
 public class ApplicationsController : ControllerBase
 {
     private readonly IApplicationService _service;
-
-    public ApplicationsController(IApplicationService service)
-    {
+    public ApplicationsController(IApplicationService service){ 
         _service = service;
     }
 
     /// <summary>
     /// Creates a new grant application in Draft status for the authenticated applicant.
-    /// POST /api/applications → creates a Draft
+    /// POST /api/v1/applications
     /// </summary>
+    /// <remarks>
+    /// Rules enforced:
+    /// - Program must exist (404 if not found)
+    /// - Program must be active (409 if inactive)
+    /// - Applicant must not already have an application for this program (409 if duplicate)
+    /// </remarks>
     [HttpPost]
-    [Authorize(Roles = "Applicant")]
-    [ProducesResponseType(StatusCodes.Status201Created)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    // [Authorize(Roles = "Applicant")]
+    [ProducesResponseType(typeof(ApplicationResponseDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Create([FromBody] CreateApplicationDto dto)
     {
@@ -43,13 +47,17 @@ public class ApplicationsController : ControllerBase
             var result = await _service.CreateDraftAsync(dto, applicantId);
             return CreatedAtAction(nameof(Submit), new { id = result.ApplicationId }, result);
         }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { error = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Conflict(new { error = ex.Message });
+        }
         catch (UnauthorizedAccessException)
         {
             return StatusCode(StatusCodes.Status403Forbidden, new { error = Messages.Forbidden });
-        }
-        catch (InvalidOperationException)
-        {
-            return StatusCode(StatusCodes.Status404NotFound, new { error = Messages.ProgramNotFound });
         }
         catch (Exception)
         {
@@ -60,13 +68,15 @@ public class ApplicationsController : ControllerBase
     /// <summary>
     /// Submits an existing Draft application, transitioning its status to Submitted.
     /// Only the applicant who owns the application can submit it.
-    /// POST /api/applications/{id}/submit → status Submitted
+    /// POST /api/v1/applications/{id}/submit
     /// </summary>
     [HttpPost("{id}/submit")]
     [Authorize(Roles = "Applicant")]
     [ProducesResponseType(typeof(ApplicationResponseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Submit(int id)
     {
         try
@@ -83,9 +93,9 @@ public class ApplicationsController : ControllerBase
         {
             return StatusCode(StatusCodes.Status403Forbidden, new { error = Messages.Forbidden });
         }
-        catch (InvalidOperationException)
+        catch (InvalidOperationException ex)
         {
-            return Conflict(new { error = Messages.ApplicationNotInDraft });
+            return Conflict(new { error = ex.Message });
         }
         catch (Exception)
         {
@@ -98,8 +108,10 @@ public class ApplicationsController : ControllerBase
     /// </summary>
     private int GetCurrentUserId()
     {
+        // ClaimTypes.NameIdentifier == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"
         var claim = User.FindFirstValue(ClaimTypes.NameIdentifier)
             ?? throw new UnauthorizedAccessException(Messages.UserNotAuthenticated);
+
         return int.Parse(claim);
     }
 }
