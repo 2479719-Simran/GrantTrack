@@ -50,8 +50,12 @@ public class ProgramService : IProgramService
 
     public async Task<DeleteProgramDto> DeleteProgram(int id)
     {
-        bool idIsPresent = await programRepository.ContainsId(id);
-
+        bool idIsPresent = await programRepository.ContainsId(id); 
+        var obj = await programRepository.ProgramWithId(id);
+        if (!obj.Status)
+        {
+            throw new ArgumentException($"Program with Id {id} is already inactive ");
+        }
         if (!idIsPresent)
         {
             throw new ArgumentException($"Program with Id {id} is not present");
