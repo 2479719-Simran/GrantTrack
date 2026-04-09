@@ -72,9 +72,9 @@ namespace GrantTrack.Service
             {
                 throw new InvalidOperationException("JWT SecretKey is not configured.");
             }
-            var issuer = config["JwtSettings:Issueer"];
+            var issuer = config["JwtSettings:Issuer"];
             var audience = config["JwtSettings:Audience"];
-            var expiryMinutes = int.TryParse(config["JwtSettings:Expiry"], out var minutes) ? minutes : 60;
+            var expiryMinutes = int.TryParse(config["JwtSettings:ExpiryMinutes"], out var minutes) ? minutes : 1;
             // Create signing credentials
             var SecurityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
             var SecurityAlgorithm = new SigningCredentials(SecurityKey, SecurityAlgorithms.HmacSha256);
