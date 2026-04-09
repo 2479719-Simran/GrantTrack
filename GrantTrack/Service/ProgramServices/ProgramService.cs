@@ -50,15 +50,15 @@ public class ProgramService : IProgramService
 
     public async Task<DeleteProgramDto> DeleteProgram(int id)
     {
-        bool idIsPresent = await programRepository.ContainsId(id); 
+
         var obj = await programRepository.ProgramWithId(id);
+        if (obj == null)
+        {
+            throw new ArgumentException($"Program with Id {id} is not present");
+        }
         if (!obj.Status)
         {
             throw new ArgumentException($"Program with Id {id} is already inactive ");
-        }
-        if (!idIsPresent)
-        {
-            throw new ArgumentException($"Program with Id {id} is not present");
         }
 
         return await programRepository.DeleteProgram(id);
@@ -80,11 +80,11 @@ public class ProgramService : IProgramService
 
     }
 
-   
+
 
     public async Task<IEnumerable<GetProgramDto>> GetPrograms()
     {
-        return await programRepository.GetPrograms(); 
+        return await programRepository.GetPrograms();
     }
 
     public async Task<UpdateProgramResponseDto> UpdateProgram(int id, UpdateProgramRequestDto request)
