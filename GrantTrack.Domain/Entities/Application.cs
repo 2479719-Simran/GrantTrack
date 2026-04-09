@@ -5,6 +5,7 @@ namespace GrantTrack.Domain.Entities;
 
 public enum ApplicationStatus
 {
+    Draft,
     Submitted,
     UnderReview,
     Approved,
@@ -17,7 +18,7 @@ public class Application
     [Required]
     public int ProgramId { get; set; }
     [ForeignKey(nameof(ProgramId))]
-    public virtual Program ProgramIDNavigation { get; set; }
+    public virtual GrantProgram ProgramIDNavigation { get; set; }
     [Required]
     [ForeignKey("ApplicantIDNavigation")]
     public int ApplicantId { get; set; }
@@ -25,7 +26,9 @@ public class Application
     [Required]
     public DateTime SubmittedDate { get; set; }
     [Required]
-    public ApplicationStatus Status { get; set; }
+    [Column(TypeName = "varchar(20)")]          // ← store as string not bit
+    public ApplicationStatus Status { get; set; } = ApplicationStatus.Draft;
+
     public List<Document> Documents { get; set; } = new List<Document>();
     public List<ApplicationValidation> ApplicationValidations { get; set; } = new List<ApplicationValidation>();
     public List<Recommendation> Recommendations { get; set; } = new List<Recommendation>();
@@ -36,6 +39,4 @@ public class Application
     public List<ComplianceCheck> ComplianceChecks { get; set; } = new List<ComplianceCheck>();
     public List<Disbursement> Disbursements { get; set; } = new List<Disbursement>();
 }
-
-
 

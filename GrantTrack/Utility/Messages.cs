@@ -15,5 +15,22 @@ public static class Messages
     public const string EmailInvalid = "Invalid email format.";
     public const string NewPasswordRequired = "New password is required.";
     public const string ConfirmPasswordRequired = "Confirm password is required.";
-}
+    public const string UserDeactivated = "User has been successfully deactivated.";
+    public const string UserNotFoundById = "No account found with the provided ID.";
+    public const string UserAlreadyInactive = "This user account is already inactive.";
+    public const string DisbursementCreated                 = "Disbursement tranche created successfully.";
+    public const string DisbursementUpdated                 = "Disbursement tranche updated successfully.";
+    public const string DisbursementNotFound                = "Disbursement not found.";
+    public const string DisbursementScheduledDateInPast     = "Scheduled date cannot be in the past.";
+    public const string DisbursementCannotBeModified        = "Disbursement cannot be modified once it is Paid or Cancelled.";
+    public const string DisbursementInvalidStatusTransition = "Cannot transition status from '{0}' to '{1}'.";
+    public const string ApplicationNotFound     = "Application not found.";
+    public const string Forbidden               = "You are not authorized to perform this action.";
+    public const string ApplicationNotInDraft   = "Application is not in Draft status.";
 
+    // Controller response messages
+    public const string ApplicationSubmitted    = "Application submitted successfully.";
+    public const string UnexpectedError         = "An unexpected error occurred. Please try again later.";
+    public const string UserNotAuthenticated    = "User not authenticated.";
+     public const string ProgramNotFound           = "Program Id not found.";
+}

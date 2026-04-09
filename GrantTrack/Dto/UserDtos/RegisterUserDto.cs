@@ -6,7 +6,6 @@ namespace GrantTrack.Dto.User;
 public class RegisterUserDto
 {
     public string Name { get; set; } = null!;
-
     [Required]
     [RegularExpression(
     @"^[^@\s]+@[^@\s]+\.[^@\s]+$",
@@ -18,6 +17,4 @@ public class RegisterUserDto
     ErrorMessage = "Mobile number must be exactly 10 digits.")]
     public string Phone { get; set; } = null!; 
     public UserRole? Role { get; set; }
-
-
 }

@@ -72,9 +72,9 @@ namespace GrantTrack.Service
             {
                 throw new InvalidOperationException("JWT SecretKey is not configured.");
             }
-            var issuer = config["JwtSettings:Issueer"];
+            var issuer = config["JwtSettings:Issuer"];
             var audience = config["JwtSettings:Audience"];
-            var expiryMinutes = int.TryParse(config["JwtSettings:Expiry"], out var minutes) ? minutes : 60;
+            var expiryMinutes = int.TryParse(config["JwtSettings:ExpiryMinutes"], out var minutes) ? minutes : 1;
             // Create signing credentials
             var SecurityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
             var SecurityAlgorithm = new SigningCredentials(SecurityKey, SecurityAlgorithms.HmacSha256);
@@ -191,6 +191,22 @@ namespace GrantTrack.Service
                     Status = user.Status
                 })
                 .ToListAsync();
+        }
+
+        public async Task<string?> DeactivateUserByIdAsync(int id)
+        {
+            var users = await _userRepository.GetAllUsersAsync();
+            var user = users.FirstOrDefault(u => u.UserId == id);
+
+            if (user == null) return null;
+
+            if (user.Status == false)
+            {
+                return "ALREADY_INACTIVE";
+            }
+
+            await _userRepository.UpdateUserStatusAsync(id, false);
+            return "SUCCESS";
         }
     }
 }
