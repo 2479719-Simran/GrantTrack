@@ -22,9 +22,14 @@
   </ItemGroup>
 
   <ItemGroup>
+
     <Folder Include="Dto\DisbursementDtos\" />
     <Folder Include="Repository\DisbursementRepositories\" />
     <Folder Include="Service\DisbursementServices\" />
+    <Folder Include="Dto\ProgramDtos\" />
+    <Folder Include="Repository\ProgramRepository\" />
+    <Folder Include="Service\ProgramServices\" />
+
   </ItemGroup>
 
 </Project>

@@ -18,7 +18,7 @@ public class Application
     [Required]
     public int ProgramId { get; set; }
     [ForeignKey(nameof(ProgramId))]
-    public virtual Program ProgramIDNavigation { get; set; }
+    public virtual GrantProgram ProgramIDNavigation { get; set; }
     [Required]
     [ForeignKey("ApplicantIDNavigation")]
     public int ApplicantId { get; set; }

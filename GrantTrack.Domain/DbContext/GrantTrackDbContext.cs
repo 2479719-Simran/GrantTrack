@@ -19,7 +19,7 @@ public class GrantTrackDbContext : DbContext
     public DbSet<Document> Documents { get; set; }
     public DbSet<Decision> Decisions { get; set; }
     public DbSet<EligibilityRule> EligibilityRules { get; set; }
-    public DbSet<Program> Programs { get; set; }
+    public DbSet<GrantProgram> GrantPrograms { get; set; }
     public DbSet<RequiredDocument> RequiredDocuments { get; set; }
     public DbSet<Operation> Operations { get; set; }
     public DbSet<AuditLog> AuditLogs { get; set; }
