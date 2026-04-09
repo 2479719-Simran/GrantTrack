@@ -24,6 +24,7 @@ public static class Messages
     public const string DisbursementScheduledDateInPast     = "Scheduled date cannot be in the past.";
     public const string DisbursementCannotBeModified        = "Disbursement cannot be modified once it is Paid or Cancelled.";
     public const string DisbursementInvalidStatusTransition = "Cannot transition status from '{0}' to '{1}'.";
+    public const string DisbursementExceedsBudget = "Disbursement amount exceeds remaining budget. Remaining budget: {0}";
     public const string ApplicationNotFound     = "Application not found.";
     public const string Forbidden               = "You are not authorized to perform this action.";
     public const string ApplicationNotInDraft   = "Application is not in Draft status.";
