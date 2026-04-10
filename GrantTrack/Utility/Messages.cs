@@ -33,5 +33,9 @@ public static class Messages
     public const string ApplicationSubmitted    = "Application submitted successfully.";
     public const string UnexpectedError         = "An unexpected error occurred. Please try again later.";
     public const string UserNotAuthenticated    = "User not authenticated.";
-     public const string ProgramNotFound           = "Program Id not found.";
+    public const string ProgramNotFound         = "Program not found.";
+
+    // ← newly added for application business rules
+    public const string ProgramNotActive        = "Applications can only be submitted to active programs.";
+    public const string DuplicateApplication    = "You have already created the draft for this program.";
 }
