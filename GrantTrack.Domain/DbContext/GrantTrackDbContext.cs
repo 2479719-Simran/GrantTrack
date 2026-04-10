@@ -117,5 +117,12 @@ public class GrantTrackDbContext : DbContext
         .Property(r => r.Decision)
         .HasConversion<string>();
 
+        modelBuilder.Entity<Disbursement>()
+        .Property(d => d.Status)
+        .HasConversion<string>();
+
+        modelBuilder.Entity<Payment>()
+        .Property(p => p.Status)
+        .HasConversion<string>();
     }
 }

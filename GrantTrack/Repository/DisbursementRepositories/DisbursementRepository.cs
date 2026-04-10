@@ -33,4 +33,17 @@ public class DisbursementRepository : IDisbursementRepository
         await _context.SaveChangesAsync();
         return disbursement;
     }
+    public async Task<decimal> GetTotalDisbursedAmountAsync(int applicationId)
+    {
+        return await _context.Disbursements
+            .Where(d => d.ApplicationId == applicationId
+                     && d.Status != DisbursementStatus.Cancelled)
+            .SumAsync(d => (decimal?)d.Amount) ?? 0;
+    }
+    public async Task<Application?> GetApplicationWithProgramAsync(int applicationId)
+    {
+    return await _context.Applications
+        .Include(a => a.ProgramIDNavigation)
+        .FirstOrDefaultAsync(a => a.ApplicationId == applicationId); 
+    }
 }
