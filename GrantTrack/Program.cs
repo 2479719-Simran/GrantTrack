@@ -18,9 +18,9 @@ using DotNetEnv;
 // using Microsoft.AspNetCore.Authentication.JwtBearer; // Ensure this is present
 Env.Load();
 var DefaultConnection = Environment.GetEnvironmentVariable("DefaultConnection");
+Console.WriteLine(DefaultConnection);
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
-Console.WriteLine(DefaultConnection);
 builder.Services.AddDbContext<GrantTrackDbContext>(options => options.UseSqlServer(
 DefaultConnection));
 
@@ -36,10 +36,6 @@ builder.Services.AddScoped<IApplicationRepository, ApplicationRepository>();
 builder.Services.AddScoped<IApplicationService, ApplicationService>();
 builder.Services.AddSingleton<IEventPublisher, InMemoryEventPublisher>();
 
-
-builder.Services.AddDbContext<GrantTrackDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
-);
 
 builder.Services.AddSwaggerGen(options =>
 {
