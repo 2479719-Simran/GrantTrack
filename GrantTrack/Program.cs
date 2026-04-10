@@ -23,7 +23,6 @@ using GrantTrack.Service.ReviewService;
 // using Microsoft.AspNetCore.Authentication.JwtBearer; // Ensure this is present
 Env.Load();
 var DefaultConnection = Environment.GetEnvironmentVariable("DefaultConnection");
-Console.WriteLine(DefaultConnection);
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddDbContext<GrantTrackDbContext>(options => options.UseSqlServer(
