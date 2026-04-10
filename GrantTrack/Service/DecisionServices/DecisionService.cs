@@ -46,7 +46,7 @@ namespace GrantTrack.Service.DecisionServices
             var decision = new Decision
             {
                 ApplicationId = dto.ApplicationId,
-                UserId = dto.UserId,
+                UserId = dto.ApproverId,
                 DecisionValue = dto.DecisionValue,
                 Notes = dto.Notes,
                 Date = dto.Date
@@ -64,7 +64,7 @@ namespace GrantTrack.Service.DecisionServices
             // 5. Create Audit Log
             var auditLog = new AuditLog
             {
-                UserId = dto.UserId,
+                UserId = dto.ApproverId,
                 ActionId = dto.DecisionValue == DecisionStatus.Approved ? 0 : 1, // 0:Approved, 1:Rejected
                 Resource = "Decision",
                 TimeStamp = DateTime.UtcNow
