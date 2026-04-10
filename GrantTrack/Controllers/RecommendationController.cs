@@ -1,5 +1,7 @@
 using GrantTrack.Dto.RecommendationDto;
+using GrantTrack.Dto.ReviewDtos;
 using GrantTrack.Service.RecommendationService;
+using GrantTrack.Service.ReviewService;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -11,34 +13,43 @@ namespace GrantTrack.Controllers
     public class RecommendationController : ControllerBase
     {
         private readonly IRecommendationService _recommendationService;
+        private readonly IReviewService _reviewService;
         //<summary>
         //purpose: The RecommendationController is responsible for handling the submission of recommendations and scores by reviewers for specific reviews.
         /// Initializes a new instance of the <see cref="RecommendationController"/> class.
         /// </summary>
         /// <param name="recommendationService">The recommendation service.</param>
-        public RecommendationController(IRecommendationService recommendationService)
+        public RecommendationController(IRecommendationService recommendationService, IReviewService reviewService)
         {
             _recommendationService = recommendationService;
+            _reviewService = reviewService;
         }
-        [HttpPost("recommendations")]
+
+        [HttpPost("recommendation")]
         [Authorize(Roles = "Reviewer")]
-        // This endpoint allows reviewers to submit their recommendations and scores for a specific review. It ensures that only the assigned reviewer can submit the recommendation for their review.
-        public async Task<IActionResult> SubmitReview(int ReviewId, int currentReviewerId, RecommendationRequestDto dto)
+        public async Task<IActionResult> SubmitRecommendation([FromBody] RecommendationRequestDto dto)
         {
-            // Validation: Check if the request body is null   
-            if (dto == null) return BadRequest("Request body is missing");
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
 
             try
             {
-                var result = await _recommendationService.SubmitReviewAsync(ReviewId, currentReviewerId, dto);
+                var result = await _recommendationService.SubmitReviewAsync(dto.ReviewerId, dto);
                 if (!result)
-                    return NotFound("Review record not found or data is invalid.");
-
-                return Ok("Success!");
+                {
+                    return BadRequest(new { error = "Failed to submit recommendation." });
+                }
+                return Ok(new { message = "Recommendation submitted successfully!" });
             }
-            catch (UnauthorizedAccessException ex)
+            catch (InvalidOperationException ex)
             {
-                return StatusCode(403, ex.Message);
+                return BadRequest(new { error = ex.Message });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new { error = "An internal server error occurred." });
             }
         }
     }

@@ -18,6 +18,8 @@ using Microsoft.OpenApi;
 using GrantTrack.Service.RecommendationService;
 using GrantTrack.Service.ReviewFilterService;
 using GrantTrack.Service.ReviewService;
+using GrantTrack.Repository.ReviewRepository;
+using GrantTrack.Repository.RecommendationRepository;
 // using Microsoft.OpenApi.Models; // Change this
 // using Microsoft.AspNetCore.Authentication.JwtBearer; // Ensure this is present
 
@@ -33,6 +35,8 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IReviewService, ReviewService>();
+builder.Services.AddScoped<IReviewRepository,ReviewRepository>();
+builder.Services.AddScoped<IRecommendationRepository,RecommendationRepository>();
 builder.Services.AddScoped<IRecommendationService,RecommendationService>();
 builder.Services.AddScoped<IReviewFilterService,ReviewFilterService>();
 builder.Services.AddScoped<IDisbursementRepository, DisbursementRepository>();
@@ -43,6 +47,7 @@ builder.Services.AddScoped<IProgramRepository, ProgramRepository>();
 builder.Services.AddScoped<IApplicationRepository, ApplicationRepository>();
 builder.Services.AddScoped<IApplicationService, ApplicationService>();
 builder.Services.AddSingleton<IEventPublisher, InMemoryEventPublisher>();
+
 
 
 builder.Services.AddDbContext<GrantTrackDbContext>(options =>

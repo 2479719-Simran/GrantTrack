@@ -2,48 +2,22 @@ using System;
 using System.Text.Json;
 using GrantTrack.Domain.Entities;
 using GrantTrack.Dto;
+using GrantTrack.Repository.ReviewRepository;
 using Microsoft.EntityFrameworkCore;
 
 namespace GrantTrack.Service.ReviewFilterService;
 
 public class ReviewFilterService : IReviewFilterService
 {
-    private readonly GrantTrackDbContext _context;
-    public ReviewFilterService(GrantTrackDbContext context)
+    private readonly IReviewRepository _reviewRepo;
+
+    public ReviewFilterService(IReviewRepository reviewRepo)
     {
-        _context = context;
+        _reviewRepo = reviewRepo;
     }
 
-   public async Task<List<ReviewFilterDto>> GetPagedReviewsAsync(ReviewFilterRequestDto filter)
-{
-    var query = from review in _context.Reviews
-                join app in _context.Applications on review.ApplicationId equals app.ApplicationId
-                join user in _context.Users on app.ApplicantId equals user.UserId
-                where review.ReviewerId == filter.ReviewerId
-                select new { review, app, user };
-
-    if (filter.Decision.HasValue)
+    public async Task<List<ReviewFilterResponseDto>> GetPagedReviewsAsync(ReviewFilterRequestDto filter)
     {
-        query = query.Where(x => _context.Recommendations
-            .Any(rec => rec.ApplicationId == x.app.ApplicationId && rec.Decision == filter.Decision));
+        return await _reviewRepo.GetFilteredReviewsAsync(filter);
     }
-
-    var pagedData = await query
-        .Skip((filter.PageNumber - 1) * filter.PageSize)
-        .Take(filter.PageSize)
-        .Select(x => new ReviewFilterDto
-        {
-            ReviewId = x.review.ReviewId,
-            ApplicationId = x.app.ApplicationId,
-            HolderName = x.user.Name,
-            ReviewerId = x.review.ReviewerId,
-            Decision = filter.Decision,
-            PageNumber = filter.PageNumber,
-            PageSize = filter.PageSize
-        })
-        .ToListAsync();
-
-    return pagedData; 
-}
-
 }

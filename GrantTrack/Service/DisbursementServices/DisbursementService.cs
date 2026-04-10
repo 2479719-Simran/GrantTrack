@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 
 namespace GrantTrack.Service.DisbursementServices;
 
-public class DisbursementService : IDisbursementService
+public class DisbursementService : IDisbursementService  
 {
    private readonly IDisbursementRepository _disbursementRepository;
     private readonly ILogger<DisbursementService> _logger;

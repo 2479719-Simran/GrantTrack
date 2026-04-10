@@ -3,7 +3,7 @@ using GrantTrack.Domain.Entities;
 
 namespace GrantTrack.Dto;
 
-public class ReviewFilterDto
+public class ReviewFilterResponseDto
 {
     public int ReviewerId { get; set; }
     public int PageNumber { get; set; } = 1; // Default page 1
