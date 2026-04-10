@@ -13,14 +13,16 @@ using GrantTrack.Utility;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
+using DotNetEnv; 
 // using Microsoft.OpenApi.Models; // Change this
 // using Microsoft.AspNetCore.Authentication.JwtBearer; // Ensure this is present
-
+Env.Load();
+var DefaultConnection = Environment.GetEnvironmentVariable("DefaultConnection");
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
-
+Console.WriteLine(DefaultConnection);
 builder.Services.AddDbContext<GrantTrackDbContext>(options => options.UseSqlServer(
-builder.Configuration.GetConnectionString("DefaultConnection")));
+DefaultConnection));
 
 builder.Services.AddOpenApi();
 builder.Services.AddControllers();
