@@ -15,17 +15,18 @@ using GrantTrack.Utility;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
+using DotNetEnv;
 using GrantTrack.Service.RecommendationService;
 using GrantTrack.Service.ReviewFilterService;
 using GrantTrack.Service.ReviewService;
 // using Microsoft.OpenApi.Models; // Change this
 // using Microsoft.AspNetCore.Authentication.JwtBearer; // Ensure this is present
-
+Env.Load();
+var DefaultConnection = Environment.GetEnvironmentVariable("DefaultConnection");
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
-
 builder.Services.AddDbContext<GrantTrackDbContext>(options => options.UseSqlServer(
-builder.Configuration.GetConnectionString("DefaultConnection")));
+DefaultConnection));
 
 builder.Services.AddOpenApi();
 builder.Services.AddControllers();
@@ -44,10 +45,6 @@ builder.Services.AddScoped<IApplicationRepository, ApplicationRepository>();
 builder.Services.AddScoped<IApplicationService, ApplicationService>();
 builder.Services.AddSingleton<IEventPublisher, InMemoryEventPublisher>();
 
-
-builder.Services.AddDbContext<GrantTrackDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
-);
 
 builder.Services.AddSwaggerGen(options =>
 {

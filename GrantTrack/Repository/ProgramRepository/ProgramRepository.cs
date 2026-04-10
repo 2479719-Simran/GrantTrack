@@ -42,11 +42,11 @@ public class ProgramRepository : IProgramRepository
         }
     }
 
-    public async  Task<GrantProgram> ProgramWithId(int id)
+    public async Task<GrantProgram> ProgramWithId(int id)
     {
-        var obj = await dbContext.GrantPrograms.FindAsync(id);  
+        var obj = await dbContext.GrantPrograms.FindAsync(id);
 
-        return obj; 
+        return obj;
     }
     public async Task<CreateProgramResponseDto> CreateProgram(CreateProgramRequestDto request)
     {
@@ -94,7 +94,7 @@ public class ProgramRepository : IProgramRepository
     public async Task<IEnumerable<GetProgramDto>> GetPrograms()
     {
         List<GetProgramDto> response = new List<GetProgramDto>();
-        var grantPrograms = await dbContext.GrantPrograms.ToListAsync(); 
+        var grantPrograms = await dbContext.GrantPrograms.ToListAsync();
         foreach (var program in grantPrograms)
         {
             response.Add(new GetProgramDto
@@ -155,7 +155,7 @@ public class ProgramRepository : IProgramRepository
             query = query.Where(q => request.EndDate >= q.EndDate);
         }
         var grantPrograms = await query.ToListAsync();
-        List<GetProgramDto> response = new List<GetProgramDto>(); 
+        List<GetProgramDto> response = new List<GetProgramDto>();
         foreach (var program in grantPrograms)
         {
             response.Add(new GetProgramDto
@@ -180,5 +180,5 @@ public class ProgramRepository : IProgramRepository
     public async Task<bool> IsActiveAsync(int programId)
         => await dbContext.GrantPrograms.AnyAsync(p => p.ProgramId == programId && p.Status);
 
-    
+
 }
