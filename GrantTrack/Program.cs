@@ -37,9 +37,6 @@ builder.Services.AddScoped<IApplicationService, ApplicationService>();
 builder.Services.AddSingleton<IEventPublisher, InMemoryEventPublisher>();
 
 
-builder.Services.AddDbContext<GrantTrackDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
-);
 
 builder.Services.AddSwaggerGen(options =>
 {
