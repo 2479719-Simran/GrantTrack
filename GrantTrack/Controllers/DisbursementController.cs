@@ -51,6 +51,10 @@ namespace GrantTrack.Controllers
             {
                 return BadRequest(new { error = ex.Message });
             }
+            catch (InvalidOperationException ex)  // ← THIS WAS MISSING
+            {
+              return BadRequest(new { error = ex.Message });
+            }
             catch (Exception)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError,

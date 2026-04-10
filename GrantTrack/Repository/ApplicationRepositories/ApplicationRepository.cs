@@ -30,4 +30,9 @@ public class ApplicationRepository : IApplicationRepository
         await _db.SaveChangesAsync();
         return application;
     }
+
+    // Returns true if the applicant already has any application for this program.
+    public async Task<bool> ExistsForApplicantAsync(int applicantId, int programId)
+        => await _db.Applications
+            .AnyAsync(a => a.ApplicantId == applicantId && a.ProgramId == programId);
 }

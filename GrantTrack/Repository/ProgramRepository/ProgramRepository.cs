@@ -172,6 +172,13 @@ public class ProgramRepository : IProgramRepository
         }
         return response;
     }
+     // Returns true if a program row with this ID exists.
+    public async Task<bool> ExistsAsync(int programId)
+        => await dbContext.GrantPrograms.AnyAsync(p => p.ProgramId == programId);
+
+    // Returns true only when the program exists AND Status == true (active).
+    public async Task<bool> IsActiveAsync(int programId)
+        => await dbContext.GrantPrograms.AnyAsync(p => p.ProgramId == programId && p.Status);
 
     
 }
