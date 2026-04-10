@@ -9,7 +9,7 @@ namespace GrantTrack.Service.DisbursementServices;
 
 public class DisbursementService : IDisbursementService  
 {
-   private readonly IDisbursementRepository _disbursementRepository;
+    private readonly IDisbursementRepository _disbursementRepository;
     private readonly ILogger<DisbursementService> _logger;
 
     public DisbursementService(
@@ -24,6 +24,18 @@ public class DisbursementService : IDisbursementService
     {
         if (dto.ScheduledDate.Date < DateTime.UtcNow.Date)
             throw new ArgumentException(Messages.DisbursementScheduledDateInPast);
+
+        var application = await _disbursementRepository.GetApplicationWithProgramAsync(dto.ApplicationId);
+        if (application == null)
+            throw new ArgumentException(Messages.ApplicationNotFound);
+
+        var programBudget  = application.ProgramIDNavigation.Budget;
+        var totalDisbursed = await _disbursementRepository.GetTotalDisbursedAmountAsync(dto.ApplicationId);
+        var remaining      = programBudget - totalDisbursed;
+
+        if (dto.Amount > remaining)
+            throw new InvalidOperationException(
+                string.Format(Messages.DisbursementExceedsBudget, remaining));
 
         var entity = new Disbursement
         {
@@ -46,7 +58,24 @@ public class DisbursementService : IDisbursementService
             existing.Status == DisbursementStatus.Cancelled)
             throw new InvalidOperationException(Messages.DisbursementCannotBeModified);
 
-        if (dto.Amount.HasValue)        existing.Amount        = dto.Amount.Value;
+        // ── Budget validation when amount is updated ─────────────────────
+        if (dto.Amount.HasValue)
+        {
+            var application   = await _disbursementRepository.GetApplicationWithProgramAsync(existing.ApplicationId);
+            var programBudget = application!.ProgramIDNavigation.Budget;
+
+            // Exclude current disbursement from total before comparing
+            var totalExcludingCurrent = await _disbursementRepository.GetTotalDisbursedAmountAsync(existing.ApplicationId)
+                                        - existing.Amount;
+            var remaining = programBudget - totalExcludingCurrent;
+
+            if (dto.Amount.Value > remaining)
+                throw new InvalidOperationException(
+                    string.Format(Messages.DisbursementExceedsBudget, remaining));
+
+            existing.Amount = dto.Amount.Value;
+        }
+
         if (dto.ScheduledDate.HasValue) existing.ScheduledDate = dto.ScheduledDate.Value;
         if (dto.ActualDate.HasValue)    existing.ActualDate    = dto.ActualDate.Value;
 
@@ -68,6 +97,8 @@ public class DisbursementService : IDisbursementService
         return MapToResponse(updated);
     }
 
+    // ── Helpers ─────────────────────────────────────────────────────────
+
     private void EmitDisbursementScheduled(Disbursement d)
     {
         _logger.LogInformation(
@@ -80,9 +111,6 @@ public class DisbursementService : IDisbursementService
 
     private static void ValidateStatusTransition(DisbursementStatus current, DisbursementStatus next)
     {
-        // Allowed transitions:
-        // Pending   → Scheduled, Cancelled
-        // Scheduled → Paid, PartiallyPaid, Cancelled
         var allowed = new Dictionary<DisbursementStatus, HashSet<DisbursementStatus>>
         {
             [DisbursementStatus.Pending]   = new() { DisbursementStatus.Scheduled, DisbursementStatus.Cancelled },
@@ -101,6 +129,6 @@ public class DisbursementService : IDisbursementService
         Amount         = d.Amount,
         ScheduledDate  = d.ScheduledDate,
         ActualDate     = d.ActualDate,
-        Status         = d.Status.ToString()  // returns "Pending", "Scheduled" etc.
+        Status         = d.Status.ToString()
     };
 }
