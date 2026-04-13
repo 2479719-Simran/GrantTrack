@@ -1,10 +1,7 @@
-using GrantTrack.Domain.Entities;
-using Microsoft.EntityFrameworkCore;
 using GrantTrack.Dto.ReviewDtos;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 using GrantTrack.Service.ReviewService;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace GrantTrack.Controllers
 {
@@ -13,35 +10,38 @@ namespace GrantTrack.Controllers
     public class ReviewsController : ControllerBase
     {
         private readonly IReviewService _reviewService;
+
         public ReviewsController(IReviewService reviewService)
         {
             _reviewService = reviewService;
         }
-        //<summary>
-        //purpose: The ReviewsController is responsible for handling requests related to reviews, including bulk assignment of reviewers.
-        /// Initializes a new instance of the <see cref="ReviewsController"/> class.
+
+        /// <summary>
+        /// Bulk assigns reviewers to applications with strict validation.
         /// </summary>
-        /// <param name="reviewService">The review service.</param>
-        [HttpPost("assignments/bulk")]
-        [Authorize(Roles ="Reviewer")]
+        /// <param name="dto">The list of assignments.</param>
+        /// <returns>ActionResult indicating success or specific validation error.</returns>
+        [HttpPost("assignments")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> BulkAssign([FromBody] BulkAssignmentDto dto)
         {
-            // validation
+            //Basic request validation
             if (dto == null || dto.Assignments == null || !dto.Assignments.Any())
             {
-                return BadRequest("Assignments list is empty!");
+                return BadRequest(new { error = "Assignments list is empty!" });
             }
 
-            //service layer logic
+            // 2. Service layer logic call
+            //ApplicationId exist check, ReviewerId exist check, 
+            // Duplicate assignment check, and Workload check (max 5) nadakkum.
             var result = await _reviewService.BulkAssignReviewersAsync(dto);
 
-            //based on result response will be given
-            if (result)
+            // 3. Response handling
+            if (result.Success)
             {
-                return Ok("Success");
+                return Ok(new { message = "Bulk assignment successful!" });
             }
-
-            return StatusCode(500, "Server Error");
+            return BadRequest(new { error = result.Message });
         }
     }
 }
