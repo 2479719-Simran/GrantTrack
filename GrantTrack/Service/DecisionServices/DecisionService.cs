@@ -13,8 +13,8 @@ namespace GrantTrack.Service.DecisionServices
         private readonly GrantTrackDbContext _context;
 
         public DecisionService(
-            IDecisionRepository decisionRepository, 
-            IAuditLogRepository auditLogRepository, 
+            IDecisionRepository decisionRepository,
+            IAuditLogRepository auditLogRepository,
             GrantTrackDbContext context)
         {
             _decisionRepository = decisionRepository;
@@ -36,10 +36,32 @@ namespace GrantTrack.Service.DecisionServices
                 throw new KeyNotFoundException($"Application {dto.ApplicationId} not found.");
             }
 
-            // 2. Prevent duplicate decisions
+            // --- NEW STATUS VALIDATIONS ---
+
+            // 1. Prevent decisions on Draft applications (as discussed before)
+            if (application.Status == ApplicationStatus.Draft)
+            {
+                throw new InvalidOperationException("Cannot record a decision for a Draft application. It must be submitted first.");
+            }
+
+            // 2. Prevent re-approving an already Approved application
+            if (application.Status == ApplicationStatus.Approved)
+            {
+                throw new InvalidOperationException("This application has already been Approved and cannot be modified.");
+            }
+
+            // 3. Prevent re-rejecting an already Rejected application
+            if (application.Status == ApplicationStatus.Rejected)
+            {
+                throw new InvalidOperationException("This application has already been Rejected and cannot be modified.");
+            }
+
+            // --- END NEW VALIDATIONS ---
+
+            // 2. Prevent duplicate decision records in the Decision table
             if (await _decisionRepository.DecisionExistsAsync(dto.ApplicationId))
             {
-                throw new InvalidOperationException("Decision already exists for this application.");
+                throw new InvalidOperationException("A decision record already exists for this application in the system.");
             }
 
             // 3. Save Decision
@@ -54,10 +76,10 @@ namespace GrantTrack.Service.DecisionServices
             await _decisionRepository.AddDecisionAsync(decision);
 
             // 4. Update Application Status 
-            application.Status = dto.DecisionValue == DecisionStatus.Approved 
-                ? ApplicationStatus.Approved 
+            application.Status = dto.DecisionValue == DecisionStatus.Approved
+                ? ApplicationStatus.Approved
                 : ApplicationStatus.Rejected;
-            
+
             _context.Applications.Update(application);
             await _context.SaveChangesAsync();
 
@@ -65,7 +87,7 @@ namespace GrantTrack.Service.DecisionServices
             var auditLog = new AuditLog
             {
                 UserId = dto.ApproverId,
-                ActionId = dto.DecisionValue == DecisionStatus.Approved ? 0 : 1, // 0:Approved, 1:Rejected
+                ActionId = dto.DecisionValue == DecisionStatus.Approved ? 1 : 2, // Ensure these match your DB
                 Resource = "Decision",
                 TimeStamp = DateTime.UtcNow
             };
