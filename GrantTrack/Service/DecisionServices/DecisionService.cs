@@ -87,7 +87,7 @@ namespace GrantTrack.Service.DecisionServices
             var auditLog = new AuditLog
             {
                 UserId = dto.ApproverId,
-                ActionId = dto.DecisionValue == DecisionStatus.Approved ? 1 : 2, // Ensure these match your DB
+                ActionId = dto.DecisionValue == DecisionStatus.Approved ? 0 : 1, // 0 = Approve, 1 = Reject
                 Resource = "Decision",
                 TimeStamp = DateTime.UtcNow
             };
