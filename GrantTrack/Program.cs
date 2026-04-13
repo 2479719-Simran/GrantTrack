@@ -19,6 +19,9 @@ using DotNetEnv;
 using GrantTrack.Service.RecommendationService;
 using GrantTrack.Service.ReviewFilterService;
 using GrantTrack.Service.ReviewService;
+using GrantTrack.Repository.DecisionRepositories;
+using GrantTrack.Service.DecisionServices;
+using GrantTrack.Repository.AuditLogRepoistories;
 // using Microsoft.OpenApi.Models; // Change this
 // using Microsoft.AspNetCore.Authentication.JwtBearer; // Ensure this is present
 Env.Load();
@@ -40,7 +43,9 @@ builder.Services.AddScoped<IDisbursementRepository, DisbursementRepository>();
 builder.Services.AddScoped<IDisbursementService, DisbursementService>();
 builder.Services.AddScoped<IProgramService, ProgramService>();
 builder.Services.AddScoped<IProgramRepository, ProgramRepository>();
-
+builder.Services.AddScoped<IDecisionService, DecisionService>();
+builder.Services.AddScoped<IDecisionRepository, DecisionRepository>();
+builder.Services.AddScoped<IAuditLogRepository, AuditLogRepository>();
 builder.Services.AddScoped<IApplicationRepository, ApplicationRepository>();
 builder.Services.AddScoped<IApplicationService, ApplicationService>();
 builder.Services.AddSingleton<IEventPublisher, InMemoryEventPublisher>();
