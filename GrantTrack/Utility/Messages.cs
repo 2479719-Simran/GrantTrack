@@ -34,4 +34,8 @@ public static class Messages
     public const string UnexpectedError         = "An unexpected error occurred. Please try again later.";
     public const string UserNotAuthenticated    = "User not authenticated.";
      public const string ProgramNotFound           = "Program Id not found.";
+    public const string PaymentCreated                   = "Payment recorded successfully.";
+    public const string PaymentDisbursementNotScheduled  = "Payment can only be recorded against a Scheduled disbursement.";
+    public const string PaymentExceedsDisbursementAmount = "Payment amount exceeds remaining disbursement amount. Remaining: {0}";
+
 }
