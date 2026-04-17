@@ -5,5 +5,6 @@ namespace GrantTrack.Service.ReviewService;
 
 public interface IReviewService
 {
-    Task<bool> BulkAssignReviewersAsync(BulkAssignmentDto dto);
+    Task<(bool Success, string Message)> BulkAssignReviewersAsync(BulkAssignmentDto dto);
+
 }

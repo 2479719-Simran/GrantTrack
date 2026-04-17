@@ -5,6 +5,7 @@ namespace GrantTrack.Service.ApplicationServices;
 
 public interface IApplicationService
 {
-    Task<ApplicationResponseDto> CreateDraftAsync(CreateApplicationDto dto, int applicantId);
+   Task<ApplicationResponseDto> CreateDraftAsync(CreateApplicationDto dto, int applicantId);
     Task<ApplicationResponseDto> SubmitAsync(int applicationId, int applicantId);
+    Task<ApplicationResponseDto> GetByIdAsync(int applicationId, int applicantId);
 }

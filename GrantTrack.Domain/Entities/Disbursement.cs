@@ -25,10 +25,10 @@ public class Disbursement
         [Column(TypeName = "date")]
         public DateTime? ActualDate { get; set; }
         [MaxLength(50)]
-        public DisbursementStatus Status { get; set; } // e.g., Scheduled/Paid/Partially Paid/Cancelled 
-        // I think we need to keep status as bool 
-
         
+        [Column(TypeName = "varchar(20)")]
+        public DisbursementStatus Status { get; set; } = DisbursementStatus.Pending;
+
          [ForeignKey("ApplicationId")]
          public virtual Application Application { get; set; }
 

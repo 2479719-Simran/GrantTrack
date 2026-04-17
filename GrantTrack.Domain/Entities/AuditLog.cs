@@ -6,7 +6,7 @@ namespace GrantTrack.Domain.Entities;
 
 public class AuditLog
 {
-  [Key]
+    [Key]
     public int AuditId { get; set; }
 
     public int UserId { get; set; }       // FK property
@@ -25,3 +25,4 @@ public class AuditLog
     [ForeignKey("ActionId")]             // Points to the FK property above
     public virtual Operation ActionNavigation { get; set; }
 }
+
