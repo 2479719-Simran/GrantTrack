@@ -1,36 +1,23 @@
 using System;
+using System.Text.Json;
 using GrantTrack.Domain.Entities;
 using GrantTrack.Dto;
+using GrantTrack.Repository.ReviewRepository;
 using Microsoft.EntityFrameworkCore;
 
 namespace GrantTrack.Service.ReviewFilterService;
 
 public class ReviewFilterService : IReviewFilterService
 {
-    private readonly GrantTrackDbContext _context;
-    public ReviewFilterService(GrantTrackDbContext context)
+    private readonly IReviewRepository _reviewRepo;
+
+    public ReviewFilterService(IReviewRepository reviewRepo)
     {
-        _context = context;
+        _reviewRepo = reviewRepo;
     }
 
-    public async Task<List<Review>> GetPagedReviewsAsync(ReviewFilterDto filter)
+    public async Task<List<ReviewFilterResponseDto>> GetPagedReviewsAsync(ReviewFilterRequestDto filter)
     {
-        var query = _context.Reviews
-            .Where(r => r.ReviewerId == filter.ReviewerId)
-            .AsQueryable();
-
-        //filter based on decision
-        if (filter.Decision.HasValue)
-        {
-            query = query.Where(r => _context.Recommendations
-                    .Any(rec => rec.ApplicationId == r.ApplicationId && rec.Decision == filter.Decision));
-        }
-
-        var pagedData = await query
-            .Skip((filter.PageNumber - 1) * filter.PageSize)
-            .Take(filter.PageSize)
-            .ToListAsync();
-
-        return pagedData;
+        return await _reviewRepo.GetFilteredReviewsAsync(filter);
     }
 }

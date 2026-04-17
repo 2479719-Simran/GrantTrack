@@ -1,64 +1,51 @@
-using System;
-using GrantTrack.Domain.Entities;
 using GrantTrack.Dto.ReviewDtos;
-using Microsoft.EntityFrameworkCore;
+using GrantTrack.Repository.ReviewRepository;
 
 namespace GrantTrack.Service.ReviewService;
 
 public class ReviewService : IReviewService
 {
-    private readonly GrantTrackDbContext _context;
+    private readonly IReviewRepository _reviewRepo;
 
-    public ReviewService(GrantTrackDbContext context)
+    public ReviewService(IReviewRepository reviewRepo)
     {
-        _context = context;
+        _reviewRepo = reviewRepo;
     }
 
-    public async Task<bool> BulkAssignReviewersAsync(BulkAssignmentDto dto)
+    public async Task<(bool Success, string Message)> BulkAssignReviewersAsync(BulkAssignmentDto dto)
     {
-        // Transaction start - All or Nothing!
-
-        using var transaction = await _context.Database.BeginTransactionAsync();
-
-        try
+        //Validate if all Application IDs exist
+        var appIds = dto.Assignments.Select(a => a.ApplicationId).Distinct().ToList();
+        if (!await _reviewRepo.ApplicationsExistAsync(appIds))
         {
-            foreach (var item in dto.Assignments)
+            return (false, "One or more Application IDs are invalid.");
+        }
+
+        //Validate if all Reviewer IDs exist
+        var reviewerIds = dto.Assignments.Select(a => a.ReviewerId).Distinct().ToList();
+        if (!await _reviewRepo.ReviewersExistAsync(reviewerIds))
+        {
+            return (false, "One or more Reviewer IDs do not exist.");
+        }
+
+        //Workload Check (Max 5 Pending)
+        foreach (var reviewerId in reviewerIds)
+        {
+            int pendingCount = await _reviewRepo.GetPendingReviewCountAsync(reviewerId);
+            int newIncoming = dto.Assignments.Count(a => a.ReviewerId == reviewerId);
+
+            if ((pendingCount + newIncoming) > 5)
             {
-                //it will check weather reviewer has less then 5 records in pending list
-                int pendingCount = await _context.Reviews.CountAsync(r => r.ReviewerId == item.ReviewerId && r.Score == 0);
-
-                //if there is less then 5 then it will continue the process
-                if (pendingCount >= 5) continue;
-
-                // Check if assignment already exists to find duplicates
-                bool exists = await _context.Reviews.AnyAsync<Review>(r =>
-                    r.ApplicationId == item.ApplicationId &&
-                    r.ReviewerId == item.ReviewerId);
-
-                if (!exists)
-                {
-                    //create Review entry
-                    var newReview = new Review
-                    {
-                        ApplicationId = item.ApplicationId,
-                        ReviewerId = item.ReviewerId,
-                        Date = DateTime.Now,
-                        Comments = item.Comments,
-                        Score = item.Score
-                    };
-                    _context.Reviews.Add(newReview);
-                }
+                return (false, $"Reviewer ID {reviewerId} already has {pendingCount} pending reviews. Assignment failed.");
             }
+        }
 
-            await _context.SaveChangesAsync();
-            await transaction.CommitAsync();
-            return true;
-        }
-        catch (Exception)
-        {
-            await transaction.RollbackAsync();
-            return false;
-        }
+        //Save to DB using Repository
+        var result = await _reviewRepo.BulkAssignAsync(dto);
+
+        if (result)
+            return (true, "Success");
+        else
+            return (false, "Database error during assignment.");
     }
-
 }

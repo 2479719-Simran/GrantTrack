@@ -14,4 +14,6 @@ public interface IProgramRepository
     Task<UpdateProgramResponseDto> UpdateProgram(int id , UpdateProgramRequestDto request);
     Task<GrantProgram> ProgramWithId(int id);
     Task<DeleteProgramDto> DeleteProgram(int id);
+   Task<bool> ExistsAsync(int programId);    // true if program row exists
+    Task<bool> IsActiveAsync(int programId);  // true if Status == true
 }
