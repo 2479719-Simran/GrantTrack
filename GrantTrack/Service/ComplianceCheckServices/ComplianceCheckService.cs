@@ -63,62 +63,58 @@ namespace GrantTrack.Service.ComplianceCheckServices
         /// Completes a compliance check and synchronizes the status with the Grantee's Report.
         /// Prevents modifications if the report is already verified.
         /// </summary>
-        public async Task<ComplianceCheck?> CompleteCheckAsync(int id, UpdateComplianceCheckDto dto)
+       public async Task<ComplianceCheck?> CompleteCheckAsync(int id, UpdateComplianceCheckDto dto)
+{
+    // 1. Fetch the compliance check record
+    var check = await _repository.GetByIdAsync(id);
+
+    if (check == null)
+    {
+        throw new KeyNotFoundException($"Compliance Check with ID {id} not found.");
+    }
+
+    // 2. Fetch the corresponding Grant Report
+    var report = await _context.GrantReports
+        .FirstOrDefaultAsync(r => r.ApplicationId == check.ApplicationId);
+
+    if (report == null)
+    {
+        throw new KeyNotFoundException("No Grant Report found to verify.");
+    }
+
+    // 3. Business Rule: If already verified, do not allow further compliance checks
+    if (report.Status == ReportStatus.Verified)
+    {
+        throw new InvalidOperationException("This report has already been verified.");
+    }
+
+    // 4. Parse the result (Completed or Flagged)
+    if (Enum.TryParse<ComplianceResult>(dto.Result, ignoreCase: true, out var outcome))
+    {
+        check.Result = outcome;
+
+        // 5. UPDATE REPORT STATUS BASED ON COMPLIANCE RESULT
+        if (outcome == ComplianceResult.Completed)
         {
-            // 1. Fetch the existing compliance check record
-            var check = await _repository.GetByIdAsync(id);
-
-            if (check == null)
-            {
-                throw new KeyNotFoundException($"Compliance Check with ID {id} not found.");
-            }
-
-            // 2. Fetch the corresponding Grant Report for this application
-            var report = await _context.GrantReports
-                .FirstOrDefaultAsync(r => r.ApplicationId == check.ApplicationId);
-
-            if (report == null)
-            {
-                throw new KeyNotFoundException($"No Grant Report found for Application ID {check.ApplicationId}. Compliance cannot be completed without a report.");
-            }
-
-            // 3. Business Rule: Prevent processing if the report is already finalized/verified
-            if (report.Status == ReportStatus.Verified)
-            {
-                throw new InvalidOperationException("This report has already been verified and the compliance process is finalized.");
-            }
-
-            // 4. Prevent editing if the compliance record itself is already marked as 'Completed'
-            if (check.Result == ComplianceResult.Completed)
-            {
-                throw new InvalidOperationException("This compliance check is already completed and cannot be modified.");
-            }
-
-            // 5. Parse the new result from DTO and sync statuses
-            if (Enum.TryParse<ComplianceResult>(dto.Result, ignoreCase: true, out var outcome))
-            {
-                check.Result = outcome;
-
-                // Sync: If compliance is 'Completed', mark the Grantee's report as 'Verified'
-                if (outcome == ComplianceResult.Completed)
-                {
-                    report.Status = ReportStatus.Verified;
-                }
-                // Sync: If compliance is 'Flagged', mark the report for 'Resubmission/Returned'
-                else if (outcome == ComplianceResult.Flagged)
-                {
-                    report.Status = ReportStatus.Returned;
-                }
-            }
-            
-            check.Notes = dto.Notes;
-            check.Date = DateTime.UtcNow; // Log the completion timestamp
-
-            // Save changes for both ComplianceCheck and GrantReport
-            await _repository.SaveChangesAsync();
-            await _context.SaveChangesAsync(); 
-
-            return check;
+            // If check is successful, the report is now officially Verified
+            report.Status = ReportStatus.Verified;
         }
+        else if (outcome == ComplianceResult.Flagged)
+        {
+            // If the officer flags it, we mark the report as Returned 
+            // so the Applicant knows they need to check the notes and fix it.
+            report.Status = ReportStatus.Returned;
+        }
+    }
+    
+    check.Notes = dto.Notes;
+    check.Date = DateTime.UtcNow;
+
+    // Save changes to both tables
+    await _repository.SaveChangesAsync();
+    await _context.SaveChangesAsync(); 
+
+    return check;
+}
     }
 }
