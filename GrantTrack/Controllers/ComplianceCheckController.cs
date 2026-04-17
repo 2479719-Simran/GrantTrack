@@ -2,95 +2,84 @@ using Microsoft.AspNetCore.Mvc;
 using GrantTrack.Domain.Entities;
 using GrantTrack.Repository.ComplianceCheckRepository;
 using GrantTrack.Dto.ComplianceCheckDtos;
+using GrantTrack.Service.ComplianceCheckServices; // Service use panna idhu thevai
 
 namespace GrantTrack.Controllers;
+
 [ApiController]
 [Route("api/compliance-checks")]
 public class ComplianceCheckController : ControllerBase
 {
-    private readonly IComplianceCheckRepository _repository;
+    private readonly IComplianceCheckService _service; // Controller ippo service kooda dhaan pesanum
 
-    public ComplianceCheckController(IComplianceCheckRepository repository)
+    public ComplianceCheckController(IComplianceCheckService service)
     {
-        _repository = repository;
+        _service = service;
     }
 
-    /// <summary>
-    /// Requirement: POST /compliance-checks
-    /// Logic: Schedules a new check. Result starts as 'Flagged' (Pending).
-    /// </summary>
-    [HttpPost]
-    public async Task<IActionResult> Create([FromBody] ComplianceCheckDto dto)
+[HttpPost]
+public async Task<IActionResult> CreateComplianceCheck([FromBody] ComplianceCheckDto dto)
+{
+    try
     {
-        if (!ModelState.IsValid) return BadRequest(ModelState);
-
-        var newCheck = new Domain.Entities.ComplianceCheck
-        {
-            ApplicationId = dto.ApplicationId,
-            Type = Enum.Parse<ComplianceType>(dto.Type),
-            Result = ComplianceResult.Flagged, // Starting status
-            Date = DateTime.UtcNow,           // Scheduled time
-            Notes = dto.Notes
-        };
-
-        await _repository.AddAsync(newCheck);
-        await _repository.SaveChangesAsync();
-
-        return CreatedAtAction(nameof(GetById), new { id = newCheck.CheckId }, newCheck);
+        var result = await _service.ScheduleCheckAsync(dto);
+        return Ok(result);
     }
-
-    /// <summary>
-    /// Requirement: PATCH /compliance-checks/{id}
-    /// Logic: Stores outcome, updates automatic time, and triggers completion.
-    /// </summary>
-    [HttpPatch("{id}")]
-    public async Task<IActionResult> UpdateResult(int id, [FromBody] UpdateComplianceCheckDto dto)
+    catch (KeyNotFoundException ex)
     {
-        var check = await _repository.GetByIdAsync(id);
-
-        if (check == null)
-        {
-            return NotFound(new { message = $"Check ID {id} not found." });
-        }
-
-        // 1. Store Outcome (Enum conversion)
-        if (Enum.TryParse<ComplianceResult>(dto.Result, out var outcome))
-        {
-            check.Result = outcome;
-        }
-        else
-        {
-            return BadRequest("Invalid Result value. Use 'Completed' or 'Flagged'.");
-        }
-
-        // 2. Store Notes
-        check.Notes = dto.Notes;
-
-        // 3. Logic: Update automatic time to the exact moment of completion
-        check.Date = DateTime.UtcNow;
-
-        await _repository.SaveChangesAsync();
-
-        // AC Requirement: event ComplianceCheck.Completed
-        if (check.Result == ComplianceResult.Completed)
-        {
-            // Inga neenga system events trigger pannalaam (e.g. Email notification)
-            return Ok(new { 
-                eventTriggered = "ComplianceCheck.Completed",
-                id = check.CheckId,
-                status = "Success",
-                completionTime = check.Date 
-            });
-        }
-
-        return Ok(new { message = "Outcome recorded successfully.", currentResult = check.Result.ToString() });
+        // Returns 404 if the Application or Decision record is missing
+        return NotFound(new { message = ex.Message });
     }
-
-    [HttpGet("{id}")]
-    public async Task<IActionResult> GetById(int id)
+    catch (ArgumentException ex)
     {
-        var check = await _repository.GetByIdAsync(id);
-        return check == null ? NotFound() : Ok(check);
+        // Returns 400 if the Enum Type is invalid
+        return BadRequest(new { message = ex.Message });
+    }
+    catch (InvalidOperationException ex)
+    {
+        // Returns 400 if the business rule (Approved status) fails
+        return BadRequest(new { message = ex.Message });
+    }
+    catch (Exception ex)
+    {
+        // Only actual code crashes or DB connection issues will show 500
+        return StatusCode(500, new { message = "An unexpected error occurred.", detail = ex.Message });
     }
 }
 
+    [HttpPatch("{id}")]
+    public async Task<IActionResult> UpdateResult(int id, [FromBody] UpdateComplianceCheckDto dto)
+    {
+        try
+        {
+            var updatedCheck = await _service.CompleteCheckAsync(id, dto);
+            
+            if (updatedCheck.Result == ComplianceResult.Completed)
+            {
+                return Ok(new { 
+                    eventTriggered = "ComplianceCheck.Completed",
+                    id = updatedCheck.CheckId,
+                    status = "Success",
+                    completionTime = updatedCheck.Date 
+                });
+            }
+
+            return Ok(updatedCheck);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(ex.Message);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
+
+    [HttpGet("{id}")]
+    [ApiExplorerSettings(IgnoreApi = true)] //it doesn't need to be visible in Swagger, but we need it for internal use in the service layer
+    public IActionResult GetById(int id)
+    {
+        return Ok();
+    }
+}

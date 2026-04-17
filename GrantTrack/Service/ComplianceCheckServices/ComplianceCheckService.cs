@@ -1,6 +1,5 @@
-using GrantTrack.Controllers;
 using GrantTrack.Domain.Entities;
-using GrantTrack.Dto;
+using GrantTrack.Dto.ComplianceCheckDtos;
 using GrantTrack.Repository.ComplianceCheckRepository;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,88 +7,89 @@ namespace GrantTrack.Service.ComplianceCheckServices
 {
     public class ComplianceCheckService : IComplianceCheckService
     {
-          /// <summary>
-        /// POST: Schedules a new compliance check for an application.
-        /// </summary>
-        public async Task<ComplianceCheck> ScheduleCheckAsync(ComplianceCheckDto dto)
-        {
-            // 1. Verify Application exists (DecisionService-la irundha maari validation)
-            var application = await _context.Applications
-                .FirstOrDefaultAsync(a => a.ApplicationId == dto.ApplicationId);
-
-            if (application == null)
-            {
-                throw new KeyNotFoundException($"Application {dto.ApplicationId} not found.");
-            }
-
-            // 2. Map and Save new Compliance Check
-            var newCheck = new ComplianceCheck
-            {
-                ApplicationId = dto.ApplicationId,
-                Type = Enum.Parse<ComplianceType>(dto.Type),
-                Result = ComplianceResult.Flagged, // Default initial status
-                Date = DateTime.UtcNow,           // Auto-set scheduling time
-                Notes = dto.Notes
-            };
-
-            await _repository.AddAsync(newCheck);
-            await _repository.SaveChangesAsync();
-            
-            return newCheck;
-        }
-
-        /// <summary>
-        /// PATCH: Stores outcome, notes, and triggers the Completion event.
-        /// </summary>
-        public async Task<Domain.Entities.ComplianceCheck?> CompleteCheckAsync(int id, UpdateComplianceCheckDto dto)
-        {
-            // 1. Find the existing check
-            var check = await _repository.GetByIdAsync(id);
-
-            if (check == null)
-            {
-                throw new KeyNotFoundException($"Compliance Check ID {id} not found.");
-            }
-
-            // 2. Prevent re-completing an already completed check (Validation)
-            if (check.Result == ComplianceResult.Completed)
-            {
-                throw new InvalidOperationException("This compliance check is already marked as Completed.");
-            }
-
-            // 3. Store outcome and notes
-            if (Enum.TryParse<ComplianceResult>(dto.Result, out var outcome))
-            {
-                check.Result = outcome;
-            }
-            check.Notes = dto.Notes;
-
-            // 4. Update the Date to exact completion time (Automatic)
-            check.Date = DateTime.UtcNow;
-
-            await _repository.SaveChangesAsync();
-
-            // 5. Logic: event ComplianceCheck.Completed trigger
-            if (check.Result == ComplianceResult.Completed)
-            {
-                // Inga event trigger logic implementation (e.g., Audit logs or notifications)
-                Console.WriteLine($"[LOG]: Event ComplianceCheck.Completed for ID {id}");
-            }
-
-            return check;
-        }
-
         private readonly IComplianceCheckRepository _repository;
         private readonly GrantTrackDbContext _context;
 
-        public ComplianceCheckService(
-            IComplianceCheckRepository repository, 
-            GrantTrackDbContext context)
+        public ComplianceCheckService(IComplianceCheckRepository repository, GrantTrackDbContext context)
         {
             _repository = repository;
             _context = context;
         }
 
-        
+        /// <summary>
+        /// Schedules a compliance check only if the application has been 'Approved'.
+        /// Note: Works with String-converted Enums as defined in DbContext.
+        /// </summary>
+     public async Task<ComplianceCheck> ScheduleCheckAsync(ComplianceCheckDto dto)
+{
+    // 1. Fetch Decision
+    var decision = await _context.Decisions
+        .FirstOrDefaultAsync(d => d.ApplicationId == dto.ApplicationId);
+
+    if (decision == null)
+    {
+        throw new KeyNotFoundException($"No decision record found for Application ID {dto.ApplicationId}.");
+    }
+
+    // 2. Status Check
+    if ((int)decision.DecisionValue != 0)
+    {
+        throw new InvalidOperationException("Compliance checks can only be initiated for 'Approved' applications.");
+    }
+
+    // 3. SAFE ENUM PARSING (This prevents 500 error)
+    if (!Enum.TryParse<ComplianceType>(dto.Type, ignoreCase: true, out var complianceType))
+    {
+        // 500-ku badhila indha message user-ku pogaum (Managed as Bad Request in Controller)
+        throw new ArgumentException($"Invalid Compliance Type: '{dto.Type}'. Valid values are: Financial, Operational.");
+    }
+
+    // 4. Create Entity
+    var newCheck = new ComplianceCheck
+    {
+        ApplicationId = dto.ApplicationId,
+        Type = complianceType, // Use the parsed value here
+        Result = ComplianceResult.Flagged,
+        Date = DateTime.UtcNow,
+        Notes = dto.Notes
+    };
+
+    await _repository.AddAsync(newCheck);
+    await _repository.SaveChangesAsync();
+
+    return newCheck;
+}
+
+        /// <summary>
+        /// Updates an existing compliance check to 'Completed'.
+        /// </summary>
+        public async Task<ComplianceCheck?> CompleteCheckAsync(int id, UpdateComplianceCheckDto dto)
+        {
+            var check = await _repository.GetByIdAsync(id);
+
+            if (check == null)
+            {
+                throw new KeyNotFoundException($"Compliance Check with ID {id} not found.");
+            }
+
+            // Prevent editing if already finalized
+            if (check.Result == ComplianceResult.Completed)
+            {
+                throw new InvalidOperationException("This compliance check is already completed and cannot be modified.");
+            }
+
+            // Update the result if a valid outcome is provided
+            if (Enum.TryParse<ComplianceResult>(dto.Result, ignoreCase: true, out var outcome))
+            {
+                check.Result = outcome;
+            }
+            
+            check.Notes = dto.Notes;
+            check.Date = DateTime.UtcNow; // Update timestamp to completion time
+
+            await _repository.SaveChangesAsync();
+
+            return check;
+        }
     }
 }

@@ -31,7 +31,12 @@ using GrantTrack.Service.ComplianceCheckServices;
 Env.Load();
 var DefaultConnection = Environment.GetEnvironmentVariable("DefaultConnection");
 var builder = WebApplication.CreateBuilder(args);
-builder.Services.AddControllers();
+builder.Services.AddControllers().AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+        options.JsonSerializerOptions.WriteIndented = true;
+        options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+    });
 builder.Services.AddDbContext<GrantTrackDbContext>(options => options.UseSqlServer(
 DefaultConnection));
 
