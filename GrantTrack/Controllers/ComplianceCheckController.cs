@@ -42,6 +42,7 @@ public class ComplianceCheckController : ControllerBase
             // Returns 400 if the business rule (Approved status) fails
             return BadRequest(new { message = ex.Message });
         }
+        
         catch (Exception ex)
         {
             // General 500 for unexpected system crashes
