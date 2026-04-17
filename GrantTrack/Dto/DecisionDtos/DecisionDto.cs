@@ -17,8 +17,8 @@ namespace GrantTrack.Dto.DecisionDtos
         /// <summary>
         /// Gets or sets the ID of the user (Approver) making the decision.
         /// </summary>
-        [Required]
-        public int ApproverId { get; set; }
+        //[Required]
+        //public int ApproverId { get; set; }
 
         /// <summary>
         /// Gets or sets the decision value (Approved or Rejected).
