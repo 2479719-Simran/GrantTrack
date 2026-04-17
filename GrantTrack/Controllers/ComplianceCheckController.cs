@@ -1,51 +1,53 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization; // Required for Authorize attribute
 using GrantTrack.Domain.Entities;
-using GrantTrack.Repository.ComplianceCheckRepository;
 using GrantTrack.Dto.ComplianceCheckDtos;
-using GrantTrack.Service.ComplianceCheckServices; // Service use panna idhu thevai
+using GrantTrack.Service.ComplianceCheckServices;
 
 namespace GrantTrack.Controllers;
 
 [ApiController]
 [Route("api/compliance-checks")]
+// Restricted to users with the 'ComplianceChecker' role
+[Authorize(Roles = "ComplianceChecker")] 
 public class ComplianceCheckController : ControllerBase
 {
-    private readonly IComplianceCheckService _service; // Controller ippo service kooda dhaan pesanum
+    private readonly IComplianceCheckService _service;
 
     public ComplianceCheckController(IComplianceCheckService service)
     {
         _service = service;
     }
 
-[HttpPost]
-public async Task<IActionResult> CreateComplianceCheck([FromBody] ComplianceCheckDto dto)
-{
-    try
+    [HttpPost]
+    public async Task<IActionResult> CreateComplianceCheck([FromBody] ComplianceCheckDto dto)
     {
-        var result = await _service.ScheduleCheckAsync(dto);
-        return Ok(result);
+        try
+        {
+            var result = await _service.ScheduleCheckAsync(dto);
+            return Ok(result);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            // Returns 404 if the Application or Decision record is missing
+            return NotFound(new { message = ex.Message });
+        }
+        catch (ArgumentException ex)
+        {
+            // Returns 400 if the Enum Type is invalid
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            // Returns 400 if the business rule (Approved status) fails
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            // General 500 for unexpected system crashes
+            return StatusCode(500, new { message = "An unexpected error occurred.", detail = ex.Message });
+        }
     }
-    catch (KeyNotFoundException ex)
-    {
-        // Returns 404 if the Application or Decision record is missing
-        return NotFound(new { message = ex.Message });
-    }
-    catch (ArgumentException ex)
-    {
-        // Returns 400 if the Enum Type is invalid
-        return BadRequest(new { message = ex.Message });
-    }
-    catch (InvalidOperationException ex)
-    {
-        // Returns 400 if the business rule (Approved status) fails
-        return BadRequest(new { message = ex.Message });
-    }
-    catch (Exception ex)
-    {
-        // Only actual code crashes or DB connection issues will show 500
-        return StatusCode(500, new { message = "An unexpected error occurred.", detail = ex.Message });
-    }
-}
 
     [HttpPatch("{id}")]
     public async Task<IActionResult> UpdateResult(int id, [FromBody] UpdateComplianceCheckDto dto)
@@ -54,7 +56,8 @@ public async Task<IActionResult> CreateComplianceCheck([FromBody] ComplianceChec
         {
             var updatedCheck = await _service.CompleteCheckAsync(id, dto);
             
-            if (updatedCheck.Result == ComplianceResult.Completed)
+            // If the check is finalized, return a specific success event object
+            if (updatedCheck != null && updatedCheck.Result == ComplianceResult.Completed)
             {
                 return Ok(new { 
                     eventTriggered = "ComplianceCheck.Completed",
@@ -68,18 +71,23 @@ public async Task<IActionResult> CreateComplianceCheck([FromBody] ComplianceChec
         }
         catch (KeyNotFoundException ex)
         {
-            return NotFound(ex.Message);
+            return NotFound(new { message = ex.Message });
         }
         catch (InvalidOperationException ex)
         {
-            return BadRequest(ex.Message);
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "Update failed", detail = ex.Message });
         }
     }
 
     [HttpGet("{id}")]
-    [ApiExplorerSettings(IgnoreApi = true)] //it doesn't need to be visible in Swagger, but we need it for internal use in the service layer
+    [ApiExplorerSettings(IgnoreApi = true)] 
     public IActionResult GetById(int id)
     {
+        // This remains for internal routing/checks if needed
         return Ok();
     }
 }
