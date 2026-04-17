@@ -24,6 +24,8 @@ using GrantTrack.Repository.RecommendationRepository;
 using GrantTrack.Repository.DecisionRepositories;
 using GrantTrack.Service.DecisionServices;
 using GrantTrack.Repository.AuditLogRepoistories;
+using GrantTrack.Repository.DocumentRepositories;
+using GrantTrack.Service.DocumentServices;
 // using Microsoft.OpenApi.Models; // Change this
 // using Microsoft.AspNetCore.Authentication.JwtBearer; // Ensure this is present
 Env.Load();
@@ -53,6 +55,8 @@ builder.Services.AddScoped<IAuditLogRepository, AuditLogRepository>();
 builder.Services.AddScoped<IApplicationRepository, ApplicationRepository>();
 builder.Services.AddScoped<IApplicationService, ApplicationService>();
 builder.Services.AddSingleton<IEventPublisher, InMemoryEventPublisher>();
+builder.Services.AddScoped<IDocumentRepository, DocumentRepository>();
+builder.Services.AddScoped<IDocumentService, DocumentService>();
 
 
 builder.Services.AddSwaggerGen(options =>
@@ -98,5 +102,6 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseStaticFiles();
 app.MapControllers();
 app.Run();
