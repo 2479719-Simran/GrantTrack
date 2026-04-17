@@ -76,7 +76,7 @@ namespace GrantTrack.Repository
         {
             var user = await _context.Users.FindAsync(id);
             if (user == null) return null;
-            user.Status = status; 
+            user.Status = status;
             await _context.SaveChangesAsync();
             return new UpdateUserResponseDto
             {

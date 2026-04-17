@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <PackageReference Include="BCrypt.Net-Next" Version="4.1.0" />
+    <PackageReference Include="DotNetEnv" Version="3.1.1" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.5" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.5" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.5">
@@ -24,6 +25,8 @@
   <ItemGroup>
     <Folder Include="Dto\RecommendationDto\" />
     <Folder Include="Repository\AssignmentService\" />
+    <Folder Include="Repository\RecommendationRepository\" />
+    <Folder Include="Repository\ReviewRepository\" />
     <Folder Include="Service\RecommendationService\" />
     <Folder Include="Service\ReviewFilterService\" />
 

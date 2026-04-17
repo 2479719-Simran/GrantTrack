@@ -9,5 +9,5 @@ public class GetProgramDto
     public DateTime StartDate { get; set; }
     public DateTime EndDate { get; set; }
     public Decimal Budget { get; set; }
-    public bool Status { get; set; }
+    public bool Status { get; set; }                
 }
