@@ -23,8 +23,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Dto\GrantReportDos\" />
     <Folder Include="Dto\RecommendationDto\" />
     <Folder Include="Repository\AssignmentService\" />
+    <Folder Include="Repository\ComplianceCheckRepository\" />
     <Folder Include="Repository\RecommendationRepository\" />
     <Folder Include="Repository\ReviewRepository\" />
     <Folder Include="Service\RecommendationService\" />

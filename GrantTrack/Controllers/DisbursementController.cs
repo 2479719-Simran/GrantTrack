@@ -108,5 +108,43 @@ namespace GrantTrack.Controllers
                     new { error = Messages.SomethingWentWrong });
             }
         }
+        
+        /// <summary>
+        /// POST /api/v1/disbursement/payments
+        /// Finance Officer records a payment against a disbursement.
+        /// Emits Payment.Recorded event.
+        /// </summary>
+        [HttpPost("payments")]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> CreatePayment([FromBody] CreatePaymentDto dto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            try
+            {
+                var result = await _disbursementService.CreatePaymentAsync(dto);
+                return StatusCode(StatusCodes.Status201Created, new
+                {
+                    message = Messages.PaymentCreated,
+                    data = result
+                });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    new { error = Messages.SomethingWentWrong });
+            }
+        }
     }
 }
