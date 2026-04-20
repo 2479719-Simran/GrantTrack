@@ -4,29 +4,41 @@ using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
 namespace GrantTrack.Domain.Entities;
+public enum ComplianceType
+{
+    Financial,
+    Operational
+}
+
+public enum ComplianceResult
+{
+    Completed,
+    Flagged
+}
 
 [Table("ComplianceCheck")]
-[PrimaryKey("CheckId")]
 public class ComplianceCheck
 {
     [Key]
     public int CheckId { get; set; }
-    [ForeignKey("ApplicationId")]
+
     [Required]
-    public int ApplicationId { get; set; }//foreign key to Application
+    public int ApplicationId { get; set; }
+
+    [ForeignKey(nameof(ApplicationId))]
+    public virtual Application? ApplicationIdNavigation { get; set; }
+
+    /// <summary>
+    /// Stores the Enum as a string in the DB (Financial or Operational)
+    /// </summary>
+    [Required]
+    [Column(TypeName = "VARCHAR(200)")]
+    public ComplianceType Type { get; set; }
 
     [Column(TypeName = "VARCHAR(200)")]
-    public string Type { get; set; }
-
-    [Column(TypeName = "VARCHAR(200)")]
-    public string Result { get; set; }
+    public ComplianceResult Result { get; set; }
 
     public DateTime Date { get; set; }
 
     public string Notes { get; set; }
-
-    public virtual Application? ApplicationIdNavigation { get; set; }
-
-
-
 }
