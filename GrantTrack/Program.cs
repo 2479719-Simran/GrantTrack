@@ -26,12 +26,19 @@ using GrantTrack.Service.DecisionServices;
 using GrantTrack.Repository.AuditLogRepoistories;
 using GrantTrack.Repository.DocumentRepositories;
 using GrantTrack.Service.DocumentServices;
+using GrantTrack.Repository.ComplianceCheckRepository;
+using GrantTrack.Service.ComplianceCheckServices;
 // using Microsoft.OpenApi.Models; // Change this
 // using Microsoft.AspNetCore.Authentication.JwtBearer; // Ensure this is present
 Env.Load();
 var DefaultConnection = Environment.GetEnvironmentVariable("DefaultConnection");
 var builder = WebApplication.CreateBuilder(args);
-builder.Services.AddControllers();
+builder.Services.AddControllers().AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+        options.JsonSerializerOptions.WriteIndented = true;
+        options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+    });
 builder.Services.AddDbContext<GrantTrackDbContext>(options => options.UseSqlServer(
 DefaultConnection));
 
@@ -57,6 +64,9 @@ builder.Services.AddScoped<IApplicationService, ApplicationService>();
 builder.Services.AddSingleton<IEventPublisher, InMemoryEventPublisher>();
 builder.Services.AddScoped<IDocumentRepository, DocumentRepository>();
 builder.Services.AddScoped<IDocumentService, DocumentService>();
+builder.Services.AddScoped<IComplianceCheckService, ComplianceCheckService>();
+builder.Services.AddScoped<IComplianceCheckRepository, ComplianceCheckRepository>();
+
 
 
 builder.Services.AddSwaggerGen(options =>

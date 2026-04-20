@@ -97,6 +97,54 @@ public class DisbursementService : IDisbursementService
         return MapToResponse(updated);
     }
 
+    public async Task<PaymentResponseDto> CreatePaymentAsync(CreatePaymentDto dto)
+    {
+        // Check disbursement exists
+        var disbursement = await _disbursementRepository.GetByIdAsync(dto.DisbursementId);
+        if (disbursement == null)
+            throw new ArgumentException(Messages.DisbursementNotFound);
+
+        // Can only record payment against Scheduled disbursement
+        if (disbursement.Status != DisbursementStatus.Scheduled)
+            throw new InvalidOperationException(Messages.PaymentDisbursementNotScheduled);
+
+        // Payment amount cannot exceed remaining disbursement amount
+        var totalPaid = await _disbursementRepository.GetTotalPaidAmountAsync(dto.DisbursementId);
+        var remaining = disbursement.Amount - totalPaid;
+
+        if (dto.Amount > remaining)
+            throw new InvalidOperationException(
+                string.Format(Messages.PaymentExceedsDisbursementAmount, remaining));
+
+        // Create payment
+        var entity = new Payment
+        {
+            DisbursementId = dto.DisbursementId,
+            Amount         = dto.Amount,
+            Date           = dto.Date,
+            Method         = dto.Method,
+            Status         = PaymentStatus.Completed
+        };
+
+        var created = await _disbursementRepository.CreatePaymentAsync(entity);
+
+        var newTotalPaid = totalPaid + dto.Amount;
+
+        var disbursementForUpdate = await _disbursementRepository.GetByIdAsync(dto.DisbursementId);
+        if (disbursementForUpdate != null)
+        {
+            disbursementForUpdate.Status = newTotalPaid >= disbursementForUpdate.Amount
+                ? DisbursementStatus.Paid
+                : DisbursementStatus.PartiallyPaid;
+
+            await _disbursementRepository.UpdateAsync(disbursementForUpdate);
+        }
+
+        // ── Emit Payment.Recorded event ──────────────────────────────────
+        EmitPaymentRecorded(created);
+
+        return MapPaymentToResponse(created);
+    }
     // ── Helpers ─────────────────────────────────────────────────────────
 
     private void EmitDisbursementScheduled(Disbursement d)
@@ -109,6 +157,15 @@ public class DisbursementService : IDisbursementService
             d.ScheduledDate, DateTime.UtcNow);
     }
 
+    private void EmitPaymentRecorded(Payment p)
+    {
+        _logger.LogInformation(
+            "[Event: Payment.Recorded] PaymentId={PaymentId} " +
+            "DisbursementId={DisbursementId} Amount={Amount} " +
+            "Method={Method} OccurredAt={OccurredAt}",
+            p.PaymentId, p.DisbursementId, p.Amount,
+            p.Method, DateTime.UtcNow);
+    }
     private static void ValidateStatusTransition(DisbursementStatus current, DisbursementStatus next)
     {
         var allowed = new Dictionary<DisbursementStatus, HashSet<DisbursementStatus>>
@@ -130,5 +187,14 @@ public class DisbursementService : IDisbursementService
         ScheduledDate  = d.ScheduledDate,
         ActualDate     = d.ActualDate,
         Status         = d.Status.ToString()
+    };
+    private static PaymentResponseDto MapPaymentToResponse(Payment p) => new()
+    {
+        PaymentId      = p.PaymentId,
+        DisbursementId = p.DisbursementId,
+        Amount         = p.Amount,
+        Date           = p.Date,
+        Method         = p.Method.ToString(),
+        Status         = p.Status.ToString()
     };
 }
