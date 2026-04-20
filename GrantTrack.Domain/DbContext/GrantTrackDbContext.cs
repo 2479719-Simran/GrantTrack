@@ -124,5 +124,9 @@ public class GrantTrackDbContext : DbContext
         modelBuilder.Entity<Payment>()
         .Property(p => p.Status)
         .HasConversion<string>();
+
+        modelBuilder.Entity<GrantProgram>()
+        .Property(g => g.Budget)
+        .HasColumnType("decimal(18,2)");
     }
 }
