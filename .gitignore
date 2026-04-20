@@ -70,3 +70,5 @@ GrantTrack.Domain/Migrations
 # .env files 
 .env
 
+#uploded files
+GrantTrack/wwwroot/uploads/
