@@ -68,7 +68,7 @@ Desktop.ini
 GrantTrack.Domain/Migrations 
 
 # .env files 
-# .env
+.env
 
 # uploaded files — keep folder, ignore contents
 GrantTrack/wwwroot/uploads/*
