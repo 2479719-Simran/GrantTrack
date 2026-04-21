@@ -70,5 +70,6 @@ GrantTrack.Domain/Migrations
 # .env files 
 .env
 
-#uploded files
-GrantTrack/wwwroot/uploads/
+# uploaded files — keep folder, ignore contents
+GrantTrack/wwwroot/uploads/*
+!GrantTrack/wwwroot/uploads/.gitkeep
