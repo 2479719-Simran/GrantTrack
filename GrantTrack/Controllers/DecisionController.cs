@@ -1,4 +1,5 @@
 using GrantTrack.Helpers;
+using GrantTrack.Domain.Entities;
 using GrantTrack.Dto.DecisionDtos;
 using GrantTrack.Service.DecisionServices;
 using Microsoft.AspNetCore.Authorization;
@@ -20,7 +21,7 @@ namespace GrantTrack.Controllers
         /// <summary>
         /// Approves or rejects an application.
         /// </summary>
-        [Authorize(Roles = "Approver")]
+        [Authorize(Roles = nameof(UserRole.Approver))]
         [HttpPost]
         public async Task<IActionResult> CreateDecision([FromBody] DecisionDto dto)
         {

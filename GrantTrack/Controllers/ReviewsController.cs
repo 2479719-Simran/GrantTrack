@@ -1,3 +1,4 @@
+using GrantTrack.Domain.Entities;
 using GrantTrack.Dto.ReviewDtos;
 using GrantTrack.Service.ReviewService;
 using Microsoft.AspNetCore.Authorization;
@@ -22,7 +23,7 @@ namespace GrantTrack.Controllers
         /// <param name="dto">The list of assignments.</param>
         /// <returns>ActionResult indicating success or specific validation error.</returns>
         [HttpPost("assignments")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = nameof(UserRole.Admin))]
         public async Task<IActionResult> BulkAssign([FromBody] BulkAssignmentDto dto)
         {
             //Basic request validation
@@ -39,7 +40,7 @@ namespace GrantTrack.Controllers
             // 3. Response handling
             if (result.Success)
             {
-                return Ok(new { message = "Bulk assignment successful!" });
+                return Ok(new { message = "Successfully Completed" });
             }
             return BadRequest(new { error = result.Message });
         }
