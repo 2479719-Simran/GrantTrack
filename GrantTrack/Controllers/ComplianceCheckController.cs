@@ -9,7 +9,7 @@ namespace GrantTrack.Controllers;
 [ApiController]
 [Route("api/v1/[controller]")]
 // Restricted to users with the 'ComplianceChecker' role
-[Authorize(Roles = "ComplianceChecker")] 
+[Authorize(Roles = nameof(UserRole.ComplianceOfficer))] 
 public class ComplianceCheckController : ControllerBase
 {
     private readonly IComplianceCheckService _service;

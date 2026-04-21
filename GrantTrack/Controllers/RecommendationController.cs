@@ -1,3 +1,4 @@
+using GrantTrack.Domain.Entities;
 using GrantTrack.Dto.RecommendationDto;
 using GrantTrack.Dto.ReviewDtos;
 using GrantTrack.Service.RecommendationService;
@@ -26,7 +27,7 @@ namespace GrantTrack.Controllers
         }
 
         [HttpPost("recommendation")]
-        [Authorize(Roles = "Reviewer")]
+        [Authorize(Roles = nameof(UserRole.Reviewer))]
         public async Task<IActionResult> SubmitRecommendation([FromBody] RecommendationRequestDto dto)
         {
             if (!ModelState.IsValid)

@@ -1,4 +1,5 @@
 using System.Net;
+using GrantTrack.Domain.Entities;
 using GrantTrack.Dto.DisbursementDtos;
 using GrantTrack.Service.DisbursementServices;
 using GrantTrack.Utility;
@@ -9,7 +10,7 @@ namespace GrantTrack.Controllers
 {
     [ApiController]
     [Route("api/v1/[controller]")]
-    [Authorize(Roles = "FinanceOfficer")]
+    [Authorize(Roles = nameof(UserRole.FinanceOfficer))]
     public class DisbursementController : ControllerBase
     {
         private readonly IDisbursementService _disbursementService;
