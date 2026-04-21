@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using GrantTrack.Domain.Entities;
 using GrantTrack.Dto.DocumentDtos;
 using GrantTrack.Service.DocumentServices;
 using GrantTrack.Utility;
@@ -29,7 +30,7 @@ public class DocumentsController : ControllerBase
     /// POST /api/v1/applications/{applicationId}/documents/upload-url
     /// </summary>
     [HttpPost("upload-url")]
-    [Authorize(Roles = "Applicant")]
+    [Authorize(Roles = nameof(UserRole.Applicant))]
     [ProducesResponseType(typeof(GenerateUploadUrlResponseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
