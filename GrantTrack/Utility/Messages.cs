@@ -37,6 +37,7 @@ public static class Messages
     public const string PaymentCreated = "Payment recorded successfully.";
     public const string PaymentDisbursementNotScheduled = "Payment can only be recorded against a Scheduled disbursement.";
     public const string PaymentExceedsDisbursementAmount = "Payment amount exceeds remaining disbursement amount. Remaining: {0}";
+    public const string PaymentDisbursementAlreadyPaid   = "Payment cannot be recorded. Disbursement is already fully paid.";
     // ← newly added for application business rules
     public const string ProgramNotActive = "Applications can only be submitted to active programs.";
     public const string DuplicateApplication = "You have already created the draft for this program.";

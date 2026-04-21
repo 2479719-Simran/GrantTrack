@@ -99,23 +99,23 @@ public class DisbursementService : IDisbursementService
 
     public async Task<PaymentResponseDto> CreatePaymentAsync(CreatePaymentDto dto)
     {
-        // Check disbursement exists
         var disbursement = await _disbursementRepository.GetByIdAsync(dto.DisbursementId);
         if (disbursement == null)
-            throw new ArgumentException(Messages.DisbursementNotFound);
+            throw new KeyNotFoundException(Messages.DisbursementNotFound);
 
-        // Can only record payment against Scheduled disbursement
-        if (disbursement.Status != DisbursementStatus.Scheduled)
+        if (disbursement.Status == DisbursementStatus.Paid)
+            throw new InvalidOperationException(Messages.PaymentDisbursementAlreadyPaid);
+
+        if (disbursement.Status != DisbursementStatus.Scheduled &&
+            disbursement.Status != DisbursementStatus.PartiallyPaid)
             throw new InvalidOperationException(Messages.PaymentDisbursementNotScheduled);
 
-        // Payment amount cannot exceed remaining disbursement amount
         var totalPaid = await _disbursementRepository.GetTotalPaidAmountAsync(dto.DisbursementId);
         var remaining = disbursement.Amount - totalPaid;
 
         if (dto.Amount > remaining)
             throw new InvalidOperationException(
                 string.Format(Messages.PaymentExceedsDisbursementAmount, remaining));
-
         // Create payment
         var entity = new Payment
         {
@@ -171,7 +171,8 @@ public class DisbursementService : IDisbursementService
         var allowed = new Dictionary<DisbursementStatus, HashSet<DisbursementStatus>>
         {
             [DisbursementStatus.Pending]   = new() { DisbursementStatus.Scheduled, DisbursementStatus.Cancelled },
-            [DisbursementStatus.Scheduled] = new() { DisbursementStatus.Paid, DisbursementStatus.PartiallyPaid, DisbursementStatus.Cancelled }
+            [DisbursementStatus.Scheduled] = new() { DisbursementStatus.Paid, DisbursementStatus.PartiallyPaid, DisbursementStatus.Cancelled },
+            [DisbursementStatus.PartiallyPaid] = new() { DisbursementStatus.Paid, DisbursementStatus.Cancelled }
         };
 
         if (!allowed.TryGetValue(current, out var validNext) || !validNext.Contains(next))
