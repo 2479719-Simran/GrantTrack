@@ -19,7 +19,7 @@ namespace GrantTrack.Controllers
         }
 
         [HttpGet("reviews")]
-        [Authorize(Roles = "Reviewer,Admin")]
+        [Authorize(Roles = nameof(UserRole.Admin)+","+nameof(UserRole.Reviewer))]
         // This endpoint allows reviewers to fetch their assigned reviews based on the provided filter criteria, such as pagination and reviewer ID. It ensures that only authenticated reviewers can access their assigned reviews.
         public async Task<ActionResult<List<ReviewFilterResponseDto>>> GetAssignedReviews([FromQuery] ReviewFilterRequestDto filter)
         {

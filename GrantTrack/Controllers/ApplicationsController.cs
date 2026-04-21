@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using GrantTrack.Domain.Entities;
 using GrantTrack.Dto.ApplicationDtos;
 using GrantTrack.Service.ApplicationServices;
 using GrantTrack.Utility;
@@ -28,7 +29,7 @@ public class ApplicationsController : ControllerBase
     /// POST /api/v1/applications
     /// </summary>
     [HttpPost]
-    [Authorize(Roles = "Applicant")]
+    [Authorize(Roles = nameof(UserRole.Applicant))]
     [ProducesResponseType(typeof(ApplicationResponseDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
@@ -66,7 +67,7 @@ public class ApplicationsController : ControllerBase
     /// POST /api/v1/applications/{id}/submit
     /// </summary>
     [HttpPost("{id}/submit")]
-    [Authorize(Roles = "Applicant")]
+    [Authorize(Roles = nameof(UserRole.Applicant))]
     [ProducesResponseType(typeof(ApplicationResponseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
