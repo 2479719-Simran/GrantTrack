@@ -7,7 +7,7 @@ namespace GrantTrack.Api.Controllers;
 
 [ApiController]
 [Route("api/v1/[controller]")]
-//[Authorize(Roles = "ComplianceOfficer")]
+[Authorize(Roles = "ComplianceOfficer")]
 public class ComplianceCheckController : ControllerBase
 {
     private readonly IComplianceCheckService _service;
@@ -17,8 +17,6 @@ public class ComplianceCheckController : ControllerBase
         _service = service;
     }
 
-    // ROUTE 1: Assignment (POST)
-    // Officer oru check-ai initiate pandradhu. Approved-ah illana 404 tharum.
     [HttpPost]
     public async Task<IActionResult> CreateComplianceCheck([FromBody] ComplianceCheckDto dto)
     {
@@ -37,8 +35,6 @@ public class ComplianceCheckController : ControllerBase
         }
     }
 
-    // ROUTE 2: Update/Finalize (PATCH)
-    // Evidence vandha aprom result update pandradhu. Notes mandatory.
     [HttpPatch("{id}")]
     public async Task<IActionResult> UpdateResult(int id, [FromBody] UpdateComplianceCheckDto dto)
     {
@@ -54,12 +50,12 @@ public class ComplianceCheckController : ControllerBase
         }
         catch (ArgumentException ex)
         {
-            // Mandatory Notes missing-na inga catch aagum
+          
             return BadRequest(new { message = ex.Message });
         }
         catch (InvalidOperationException ex)
         {
-            // Evidence submit pannala-na inga catch aagum
+           
             return BadRequest(new { message = ex.Message });
         }
         catch (Exception ex)
