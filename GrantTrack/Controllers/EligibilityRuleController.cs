@@ -1,5 +1,7 @@
+using GrantTrack.Domain.Entities;
 using GrantTrack.Dto.EligibilityRulesDtos;
 using GrantTrack.Service.EligibilityRuleServices;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -17,7 +19,8 @@ namespace GrantTrack.Controllers
     }
 
     // POST: api/EligibilityRules
-    [HttpPost]
+    [HttpPost("CreateEligibilityRule")]
+    [Authorize(Roles = nameof(UserRole.Admin))]
     public async Task<IActionResult> CreateRule([FromBody] CreateEligibilityRuleRequestDto request)
     {
         try
@@ -49,6 +52,7 @@ namespace GrantTrack.Controllers
 
     // GET: api/EligibilityRules
     [HttpGet]
+    [Authorize(Roles = nameof(UserRole.Admin))]
     public async Task<IActionResult> GetRules()
     {
         try
@@ -63,7 +67,8 @@ namespace GrantTrack.Controllers
     }
 
     // GET: api/EligibilityRules/program/5
-    [HttpGet("program/{programId}")]
+    [Authorize(Roles = nameof(UserRole.Admin))]
+    [HttpGet("GetprogramById/{programId}")]
     public async Task<IActionResult> GetRulesByProgramId([FromRoute] int programId)
     {
         try
@@ -86,7 +91,8 @@ namespace GrantTrack.Controllers
     }
 
     // PUT: api/EligibilityRules/5
-    [HttpPut("{ruleId}")]
+    [HttpPut("UpdateEligibility/{ruleId}")]
+    [Authorize(Roles = nameof(UserRole.Admin))]
     public async Task<IActionResult> UpdateRule([FromRoute] int ruleId, [FromBody] UpdateEligibilityRuleRequestDto request)
     {
         try
@@ -117,7 +123,8 @@ namespace GrantTrack.Controllers
     }
 
     // DELETE: api/EligibilityRules/5
-    [HttpDelete("{ruleId}")]
+    [HttpDelete("DeleteEligibility/{ruleId}")]
+    [Authorize(Roles = nameof(UserRole.Admin))]
     public async Task<IActionResult> DeleteRule([FromRoute] int ruleId)
     {
         try

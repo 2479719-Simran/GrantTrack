@@ -103,7 +103,7 @@ namespace GrantTrack.Controllers
             }
         }
         [HttpPost("update/{id:int}")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = nameof(UserRole.Admin))]
         public async Task<IActionResult> UpdateUser([FromRoute] int id, [FromBody] UpdateUserRequestDto request)
         {
             if (request == null)
@@ -148,7 +148,7 @@ namespace GrantTrack.Controllers
         /// Retrieves all users for administrative review. Restricted to Admins.
         /// </summary>
         [HttpGet]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = nameof(UserRole.Admin))]
         public async Task<ActionResult<IEnumerable<ViewUserDto>>> GetAll()
         {
             try
@@ -168,7 +168,7 @@ namespace GrantTrack.Controllers
         /// Route: PATCH /api/v1/user/delete-user/5
         /// </summary>
         [HttpPatch("delete-user/{id:int}")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = nameof(UserRole.Admin))]
         public async Task<IActionResult> SoftDeleteUser([FromRoute] int id)
         {
             try
