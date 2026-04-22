@@ -7,6 +7,6 @@ namespace GrantTrack.Service.DecisionServices
     /// </summary>
     public interface IDecisionService
     {
-        Task CreateDecisionAsync(DecisionDto dto);
+        Task CreateDecisionAsync(DecisionDto dto , int approverId);
     }
 }

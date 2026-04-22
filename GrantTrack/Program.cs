@@ -24,6 +24,8 @@ using GrantTrack.Repository.RecommendationRepository;
 using GrantTrack.Repository.DecisionRepositories;
 using GrantTrack.Service.DecisionServices;
 using GrantTrack.Repository.AuditLogRepoistories;
+using GrantTrack.Repository.EligibilityRuleRepositories;
+using GrantTrack.Service.EligibilityRuleServices;
 // using Microsoft.OpenApi.Models; // Change this
 // using Microsoft.AspNetCore.Authentication.JwtBearer; // Ensure this is present
 Env.Load();
@@ -52,7 +54,9 @@ builder.Services.AddScoped<IDecisionRepository, DecisionRepository>();
 builder.Services.AddScoped<IAuditLogRepository, AuditLogRepository>();
 builder.Services.AddScoped<IApplicationRepository, ApplicationRepository>();
 builder.Services.AddScoped<IApplicationService, ApplicationService>();
-builder.Services.AddSingleton<IEventPublisher, InMemoryEventPublisher>();
+builder.Services.AddSingleton<IEventPublisher, InMemoryEventPublisher>(); 
+builder.Services.AddScoped<IEligibilityRuleRepository , EligibilityRuleRepository>(); 
+builder.Services.AddScoped<IEligibilityRuleService , EligibilityRuleService>(); 
 
 
 builder.Services.AddSwaggerGen(options =>

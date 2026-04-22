@@ -1,3 +1,5 @@
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using GrantTrack.Dto.DecisionDtos;
 using GrantTrack.Service.DecisionServices;
 using Microsoft.AspNetCore.Authorization;
@@ -29,8 +31,9 @@ namespace GrantTrack.Controllers
             }
 
             try
-            {
-                await _decisionService.CreateDecisionAsync(dto);
+            {   
+                int approverId = GetCurrentUserId(); 
+                await _decisionService.CreateDecisionAsync(dto,approverId);
                 return StatusCode(StatusCodes.Status201Created, "Decision recorded successfully.");
             }
             catch (KeyNotFoundException ex)
@@ -47,5 +50,21 @@ namespace GrantTrack.Controllers
                 return StatusCode(500, new { message = "An internal error occurred.", details = ex.Message });
             }
         }
+
+        private int GetCurrentUserId()
+        {
+            var userIdClaim = User.FindFirstValue(JwtRegisteredClaimNames.Sub)
+                              ?? User.FindFirstValue(ClaimTypes.NameIdentifier); 
+            
+            if(string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
+            {
+                throw new InvalidOperationException("Unable to resolve user ID from JWT.");
+            }
+
+            return userId; 
+        } 
+
+
+
     }
 }

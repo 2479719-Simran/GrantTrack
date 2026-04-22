@@ -1,23 +1,19 @@
 using System;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-namespace GrantTrack.Domain.Entities;
 
-public class EligibilityRule
+namespace GrantTrack.Dto.EligibilityRulesDtos;
+
+public class CreateEligibilityRuleResponseDto
 {
-[Key]
-    public int RuleId { get; set; }
-
     [Required]
-    [ForeignKey(nameof(programIDNavigation))]
+    public int RuleId { get; set; }
+    [Required]
     public int ProgramId { get; set; }
 
     [Required]
+    [MaxLength(500)]
     public string RuleDescription { get; set; }
 
     [Required]
-    [Column(TypeName = "VARCHAR(MAX)")]
     public string RuleExpression { get; set; }
-
-    public virtual GrantProgram? programIDNavigation { get; set; }
 }

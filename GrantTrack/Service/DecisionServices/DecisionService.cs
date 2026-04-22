@@ -25,7 +25,7 @@ namespace GrantTrack.Service.DecisionServices
         /// <summary>
         /// Processes the decision, updates application status, and creates an audit log.
         /// </summary>
-        public async Task CreateDecisionAsync(DecisionDto dto)
+        public async Task CreateDecisionAsync(DecisionDto dto,int approverId)
         {
             // 1. Verify Application exists
             var application = await _context.Applications
@@ -68,7 +68,7 @@ namespace GrantTrack.Service.DecisionServices
             var decision = new Decision
             {
                 ApplicationId = dto.ApplicationId,
-                UserId = dto.ApproverId,
+                UserId = approverId,
                 DecisionValue = dto.DecisionValue,
                 Notes = dto.Notes,
                 Date = dto.Date
@@ -83,11 +83,12 @@ namespace GrantTrack.Service.DecisionServices
             _context.Applications.Update(application);
             await _context.SaveChangesAsync();
 
+            var actId = dto.DecisionValue == DecisionStatus.Approved ? 1 : 2;
             // 5. Create Audit Log
             var auditLog = new AuditLog
             {
-                UserId = dto.ApproverId,
-                ActionId = dto.DecisionValue == DecisionStatus.Approved ? 0 : 1, // 0 = Approve, 1 = Reject
+                UserId = approverId,
+                ActionId = actId, 
                 Resource = "Decision",
                 TimeStamp = DateTime.UtcNow
             };

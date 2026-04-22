@@ -14,15 +14,6 @@ namespace GrantTrack.Dto.DecisionDtos
         [Required]
         public int ApplicationId { get; set; }
 
-        /// <summary>
-        /// Gets or sets the ID of the user (Approver) making the decision.
-        /// </summary>
-        [Required]
-        public int ApproverId { get; set; }
-
-        /// <summary>
-        /// Gets or sets the decision value (Approved or Rejected).
-        /// </summary>
         [Required]
         [EnumDataType(typeof(DecisionStatus))]
         public DecisionStatus DecisionValue { get; set; }
