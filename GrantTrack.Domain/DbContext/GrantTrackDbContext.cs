@@ -126,11 +126,7 @@ public class GrantTrackDbContext : DbContext
         .HasConversion<string>();
 
         modelBuilder.Entity<ComplianceCheck>()
-        .Property(c => c.Type)
+        .Property(e => e.Result)
         .HasConversion<string>();
-
-    modelBuilder.Entity<ComplianceCheck>()
-    .Property(e => e.Result)
-    .HasConversion<string>();
     }
 }
