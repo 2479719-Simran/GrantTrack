@@ -2,12 +2,14 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using GrantTrack.Dto.ComplianceCheckDtos;
 using GrantTrack.Service.ComplianceCheckServices;
+using GrantTrack.Domain.Entities;
 
 namespace GrantTrack.Api.Controllers;
 
 [ApiController]
 [Route("api/v1/[controller]")]
-[Authorize(Roles = "ComplianceOfficer")]
+// Restricted to users with the 'ComplianceChecker' role
+[Authorize(Roles = nameof(UserRole.ComplianceOfficer))] 
 public class ComplianceCheckController : ControllerBase
 {
     private readonly IComplianceCheckService _service;

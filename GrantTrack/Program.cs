@@ -24,6 +24,8 @@ using GrantTrack.Repository.RecommendationRepository;
 using GrantTrack.Repository.DecisionRepositories;
 using GrantTrack.Service.DecisionServices;
 using GrantTrack.Repository.AuditLogRepoistories;
+using GrantTrack.Repository.DocumentRepositories;
+using GrantTrack.Service.DocumentServices;
 using GrantTrack.Repository.ComplianceCheckRepository;
 using GrantTrack.Service.ComplianceCheckServices;
 using GrantTrack.Repository.GrantReportRepositories;
@@ -38,6 +40,7 @@ builder.Services.AddControllers().AddJsonOptions(options =>
         options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
         options.JsonSerializerOptions.WriteIndented = true;
         options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+        options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
     });
 builder.Services.AddDbContext<GrantTrackDbContext>(options => options.UseSqlServer(
 DefaultConnection));
@@ -62,6 +65,8 @@ builder.Services.AddScoped<IAuditLogRepository, AuditLogRepository>();
 builder.Services.AddScoped<IApplicationRepository, ApplicationRepository>();
 builder.Services.AddScoped<IApplicationService, ApplicationService>();
 builder.Services.AddSingleton<IEventPublisher, InMemoryEventPublisher>();
+builder.Services.AddScoped<IDocumentRepository, DocumentRepository>();
+builder.Services.AddScoped<IDocumentService, DocumentService>();
 builder.Services.AddScoped<IComplianceCheckService, ComplianceCheckService>();
 builder.Services.AddScoped<IComplianceCheckRepository, ComplianceCheckRepository>();
 builder.Services.AddScoped<IGrantReportRepository, GrantReportRepository>();
@@ -98,7 +103,7 @@ builder.Services.AddAuthentication("Bearer").AddJwtBearer(options =>
         ValidateIssuerSigningKey = true,
         ValidIssuer = jwtSettings["Issuer"],
         ValidAudience = jwtSettings["Audience"],
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey))
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey!))
     };
 });
 var app = builder.Build();
@@ -112,5 +117,6 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseStaticFiles();
 app.MapControllers();
 app.Run();

@@ -1,17 +1,25 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Runtime.Serialization;
+using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 
 namespace GrantTrack.Domain.Entities;
 
 public enum UserRole
 {
+    [EnumMember(Value = "Admin")]
     Admin,
+    [EnumMember(Value = "Applicant")]
     Applicant,
+    [EnumMember(Value = "Reviewer")]
     Reviewer,
+    [EnumMember(Value = "Approver")]
     Approver,
+    [EnumMember(Value = "FinanceOfficer")]
     FinanceOfficer,
+    [EnumMember(Value = "ComplianceOfficer")]
     ComplianceOfficer
 };
 [Table("User")]

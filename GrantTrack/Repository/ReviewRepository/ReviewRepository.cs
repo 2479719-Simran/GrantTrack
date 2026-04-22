@@ -62,7 +62,7 @@ public class ReviewRepository : IReviewRepository
             ApplicationId = a.ApplicationId,
             ReviewerId = a.ReviewerId,
             Score = 0, // Mark as pending
-            Comments = "",
+            Comments = a.Comments,
             Date = DateTime.UtcNow
         }).ToList();
 

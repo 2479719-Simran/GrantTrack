@@ -1,91 +1,60 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using GrantTrack.Dto.GrantReportDtos;
 using GrantTrack.Service.GrantReportServices;
+using GrantTrack.Domain.Entities;
 
-namespace GrantTrack.Api.Controllers
+namespace GrantTrack.Api.Controllers;
+
+[ApiController]
+[Route("api/v1/[controller]")]
+public class GrantReportController : ControllerBase
 {
-    [ApiController]
-    [Route("api/v1/[controller]")]
-    public class GrantReportController : ControllerBase
+    private readonly IGrantReportService _grantReportService;
+
+    public GrantReportController(IGrantReportService grantReportService)
     {
-        private readonly IGrantReportService _grantReportService;
+        _grantReportService = grantReportService;
+    }
 
-        public GrantReportController(IGrantReportService grantReportService)
+    // Only Applicant can submit
+    [HttpPost("submit")]
+    [Authorize(Roles = nameof(UserRole.Applicant))]
+    [Consumes("multipart/form-data")]
+    public async Task<IActionResult> SubmitReport([FromForm] GrantReportDto dto)
+    {
+        try
         {
-            _grantReportService = grantReportService;
+            var result = await _grantReportService.SubmitReportAsync(dto);
+            return StatusCode(201, result);
         }
-
-        /// <summary>
-        /// APPLICANT: Submits report metadata and the actual file stream.
-        /// Using [FromForm] to handle multipart/form-data.
-        /// </summary>
-        [HttpPost("submit")]
-        [Consumes("multipart/form-data")] // Required for file upload
-        public async Task<IActionResult> SubmitReport([FromForm] GrantReportDto dto)
+        catch (Exception ex)
         {
-            try
-            {
-                if (dto.EvidenceFile == null || dto.EvidenceFile.Length == 0)
-                {
-                    return BadRequest(new { message = "Evidence file is required." });
-                }
-
-                // Submit everything in one go (File + Data)
-                var report = await _grantReportService.SubmitReportAsync(dto);
-
-                return StatusCode(201, new 
-                { 
-                    message = "Report and evidence submitted successfully.", 
-                    checkId = report.ComplianceCheckId,
-                    status = report.Status.ToString()
-                });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
+            return BadRequest(new { message = ex.Message });
         }
+    }
 
-        /// <summary>
-        /// OFFICER: View/Download the evidence file for a specific Check ID.
-        /// This is how the Compliance Officer sees the file stored in DB.
-        /// </summary>
-        [HttpGet("evidence/{checkId}")]
-        public async Task<IActionResult> GetEvidence(int checkId)
-        {
-            var report = await _grantReportService.GetReportByCheckIdAsync(checkId);
+    // Officer AND Applicant can download/view
+    [HttpGet("evidence/{complianceCheckId}")]
+    [Authorize(Roles = $"{nameof(UserRole.ComplianceOfficer)},{nameof(UserRole.Applicant)}")]
+    public async Task<IActionResult> GetEvidence(int complianceCheckId)
+    {
+        var report = await _grantReportService.GetReportByCheckIdAsync(complianceCheckId);
 
-            if (report == null || report.FileStream == null)
-            {
-                return NotFound(new { message = "No evidence found for this check." });
-            }
+        if (report == null || report.FileStream == null)
+            return NotFound("No evidence found.");
 
-            // Return the byte array as a file stream to the browser
-            // Content-Type is set to 'application/pdf' as a standard; you can make it dynamic based on file extension.
-            return File(report.FileStream, "application/pdf", report.FileName);
-        }
+        return File(report.FileStream, "application/pdf", report.FileName);
+    }
 
-        /// <summary>
-        /// STATUS TRACKER: Check report status by Check ID.
-        /// </summary>
-        [HttpGet("status/{checkId}")]
-        public async Task<IActionResult> GetReportStatus(int checkId)
-        {
-            var report = await _grantReportService.GetReportByCheckIdAsync(checkId);
-            
-            if (report == null)
-            {
-                return NotFound(new { message = "No report found for this compliance check." });
-            }
+    // Status check for both roles
+    [HttpGet("status/{complianceCheckId}")]
+    [Authorize(Roles = $"{nameof(UserRole.ComplianceOfficer)},{nameof(UserRole.Applicant)}")]
+    public async Task<IActionResult> GetStatus(int complianceCheckId)
+    {
+        var report = await _grantReportService.GetReportByCheckIdAsync(complianceCheckId);
+        if (report == null) return NotFound();
 
-            return Ok(new {
-                checkId = report.ComplianceCheckId,
-                applicationId = report.ApplicationId,
-                status = report.Status.ToString(),
-                submittedDate = report.SubmittedDate,
-                fileName = report.FileName,
-                notes = report.Notes 
-            });
-        }
+        return Ok(new { report.ComplianceCheckId, report.Status, report.SubmittedDate });
     }
 }
