@@ -133,6 +133,14 @@ namespace GrantTrack.Controllers
                     data = result
                 });
             }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { error = ex.Message });
+            }
+            catch (InvalidOperationException ex) when (ex.Message == Messages.PaymentDisbursementAlreadyPaid)
+            {
+                return Conflict(new { error = ex.Message });
+            }
             catch (ArgumentException ex)
             {
                 return BadRequest(new { error = ex.Message });
