@@ -24,6 +24,8 @@ using GrantTrack.Repository.RecommendationRepository;
 using GrantTrack.Repository.DecisionRepositories;
 using GrantTrack.Service.DecisionServices;
 using GrantTrack.Repository.AuditLogRepoistories;
+using GrantTrack.Repository.DocumentRepositories;
+using GrantTrack.Service.DocumentServices;
 using GrantTrack.Repository.ComplianceCheckRepository;
 using GrantTrack.Service.ComplianceCheckServices;
 // using Microsoft.OpenApi.Models; // Change this
@@ -60,6 +62,8 @@ builder.Services.AddScoped<IAuditLogRepository, AuditLogRepository>();
 builder.Services.AddScoped<IApplicationRepository, ApplicationRepository>();
 builder.Services.AddScoped<IApplicationService, ApplicationService>();
 builder.Services.AddSingleton<IEventPublisher, InMemoryEventPublisher>();
+builder.Services.AddScoped<IDocumentRepository, DocumentRepository>();
+builder.Services.AddScoped<IDocumentService, DocumentService>();
 builder.Services.AddScoped<IComplianceCheckService, ComplianceCheckService>();
 builder.Services.AddScoped<IComplianceCheckRepository, ComplianceCheckRepository>();
 
@@ -108,5 +112,6 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseStaticFiles();
 app.MapControllers();
 app.Run();

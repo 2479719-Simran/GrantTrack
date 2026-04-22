@@ -38,6 +38,12 @@ public static class Messages
     public const string PaymentDisbursementNotScheduled = "Payment can only be recorded against a Scheduled disbursement.";
     public const string PaymentExceedsDisbursementAmount = "Payment amount exceeds remaining disbursement amount. Remaining: {0}";
     // ← newly added for application business rules
-    public const string ProgramNotActive = "Applications can only be submitted to active programs.";
-    public const string DuplicateApplication = "You have already created the draft for this program.";
+    public const string ProgramNotActive        = "Applications can only be submitted to active programs.";
+    public const string DuplicateApplication    = "You have already created the draft for this program.";
+
+    public const string DocumentNotFound        = "Document not found.";
+    public const string InvalidUploadToken      = "The upload token is invalid or has expired.";
+    public const string DocumentAlreadyUploaded = "This document has already been uploaded.";
+    public const string EmptyFile               = "File content is required.";
+    public const string ApplicationAlreadyDecided = "Documents cannot be added to an application that has already been decided.";
 }
