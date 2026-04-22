@@ -26,6 +26,8 @@ using GrantTrack.Service.DecisionServices;
 using GrantTrack.Repository.AuditLogRepoistories;
 using GrantTrack.Repository.ComplianceCheckRepository;
 using GrantTrack.Service.ComplianceCheckServices;
+using GrantTrack.Repository.GrantReportRepositories;
+using GrantTrack.Service.GrantReportServices;
 // using Microsoft.OpenApi.Models; // Change this
 // using Microsoft.AspNetCore.Authentication.JwtBearer; // Ensure this is present
 Env.Load();
@@ -62,6 +64,8 @@ builder.Services.AddScoped<IApplicationService, ApplicationService>();
 builder.Services.AddSingleton<IEventPublisher, InMemoryEventPublisher>();
 builder.Services.AddScoped<IComplianceCheckService, ComplianceCheckService>();
 builder.Services.AddScoped<IComplianceCheckRepository, ComplianceCheckRepository>();
+builder.Services.AddScoped<IGrantReportRepository, GrantReportRepository>();
+builder.Services.AddScoped<IGrantReportService, GrantReportService>();
 
 
 
