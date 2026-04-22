@@ -33,17 +33,19 @@ public class DocumentService : IDocumentService
     }
 
     public async Task<GenerateUploadUrlResponseDto> GenerateUploadUrlAsync(
-        int applicationId, int applicantId, GenerateUploadUrlRequestDto dto)
+        int applicantId, GenerateUploadUrlRequestDto dto)
     {
-        // Guard 1: Application must exist → 404
+        var applicationId = dto.ApplicationId;
+
+        // Guard 1: Application must exist
         var application = await _applicationRepo.GetByIdAsync(applicationId)
             ?? throw new KeyNotFoundException(Messages.ApplicationNotFound);
 
-        // Guard 2: Only the owner can upload documents → 403
+        // Guard 2: Only the owner can upload documents
         if (application.ApplicantId != applicantId)
             throw new UnauthorizedAccessException(Messages.Forbidden);
 
-        // Guard 3: Application must not already be decided → 409
+        // Guard 3: Application must not already be decided
         if (application.Status == ApplicationStatus.Approved ||
             application.Status == ApplicationStatus.Rejected)
             throw new InvalidOperationException(Messages.ApplicationAlreadyDecided);
@@ -71,11 +73,10 @@ public class DocumentService : IDocumentService
         var expiresAt = DateTime.UtcNow.AddMinutes(UploadTokenExpiryMinutes);
         var token = GenerateUploadToken(applicationId, created.DocumentId, expiresAt);
 
-        var uploadUrl = $"/api/v1/applications/{applicationId}/documents/{created.DocumentId}/upload?token={token}";
-
+        // NOTE: Url is left empty here — the controller fills it in.
         return new GenerateUploadUrlResponseDto
         {
-            Url = uploadUrl,
+            Url = string.Empty,
             DocumentId = created.DocumentId,
             ExpiresAt = expiresAt,
             Headers = new Dictionary<string, string>
@@ -97,6 +98,7 @@ public class DocumentService : IDocumentService
         var tokenDocId = int.Parse(claims.FindFirstValue("documentId")
             ?? throw new UnauthorizedAccessException(Messages.InvalidUploadToken));
 
+        // Cross-check: DTO values must match what was signed into the token
         if (tokenAppId != applicationId || tokenDocId != documentId)
             throw new UnauthorizedAccessException(Messages.InvalidUploadToken);
 
@@ -106,6 +108,10 @@ public class DocumentService : IDocumentService
 
         if (document.ApplicationId != applicationId)
             throw new UnauthorizedAccessException(Messages.Forbidden);
+
+        // Guard: if the file was already uploaded with this document record, reject replay
+        if (!string.IsNullOrEmpty(document.Hash))
+            throw new InvalidOperationException(Messages.DocumentAlreadyUploaded);
 
         // Save file to wwwroot/uploads/{applicationId}/
         var webRootPath = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
@@ -137,6 +143,7 @@ public class DocumentService : IDocumentService
 
         await _documentRepo.UpdateAsync(document);
     }
+
     // -------------------------------------------------------------------------
     // Private helpers
     // -------------------------------------------------------------------------

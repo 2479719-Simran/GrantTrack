@@ -1,19 +1,18 @@
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Http;
 
 namespace GrantTrack.Dto.DocumentDtos;
 
-public class GenerateUploadUrlRequestDto
+public class ConfirmUploadRequestDto
 {
     [Required]
     [Range(1, int.MaxValue, ErrorMessage = "ApplicationId must be a positive integer.")]
     public int ApplicationId { get; set; }
 
     [Required]
-    public string FileName { get; set; } = string.Empty;
+    [Range(1, int.MaxValue, ErrorMessage = "DocumentId must be a positive integer.")]
+    public int DocumentId { get; set; }
 
     [Required]
-    public string ContentType { get; set; } = string.Empty;
-
-    [Required]
-    public string DocType { get; set; } = string.Empty;
+    public IFormFile File { get; set; } = null!;
 }
