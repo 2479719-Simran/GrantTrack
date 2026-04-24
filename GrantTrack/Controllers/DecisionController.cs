@@ -1,5 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using GrantTrack.Helpers;
+using GrantTrack.Domain.Entities;
 using GrantTrack.Dto.DecisionDtos;
 using GrantTrack.Service.DecisionServices;
 using Microsoft.AspNetCore.Authorization;
@@ -21,7 +23,7 @@ namespace GrantTrack.Controllers
         /// <summary>
         /// Approves or rejects an application.
         /// </summary>
-        [Authorize(Roles = "Approver")]
+        [Authorize(Roles = nameof(UserRole.Approver))]
         [HttpPost]
         public async Task<IActionResult> CreateDecision([FromBody] DecisionDto dto)
         {
@@ -31,10 +33,17 @@ namespace GrantTrack.Controllers
             }
 
             try
-            {   
-                int approverId = GetCurrentUserId(); 
-                await _decisionService.CreateDecisionAsync(dto,approverId);
+            {
+                // CHANGE: Using the Common Helper class instead of a private method
+                int approverId = UserHelper.GetUserId(User); 
+
+                await _decisionService.CreateDecisionAsync(dto, approverId);
                 return StatusCode(StatusCodes.Status201Created, "Decision recorded successfully.");
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                // Handle cases where the helper can't find the user ID
+                return Unauthorized(new { message = ex.Message });
             }
             catch (KeyNotFoundException ex)
             {
@@ -46,7 +55,6 @@ namespace GrantTrack.Controllers
             }
             catch (Exception ex)
             {
-                // Comment WHY: Catch-all to ensure the API doesn't crash on unhandled logic errors
                 return StatusCode(500, new { message = "An internal error occurred.", details = ex.Message });
             }
         }

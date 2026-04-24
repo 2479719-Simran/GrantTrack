@@ -46,4 +46,19 @@ public class DisbursementRepository : IDisbursementRepository
         .Include(a => a.ProgramIDNavigation)
         .FirstOrDefaultAsync(a => a.ApplicationId == applicationId); 
     }
+
+      public async Task<Payment> CreatePaymentAsync(Payment payment)
+    {
+        _context.payments.Add(payment);
+        await _context.SaveChangesAsync();
+        return payment;
+    }
+
+    public async Task<decimal> GetTotalPaidAmountAsync(int disbursementId)
+    {
+        return await _context.payments
+            .Where(p => p.DisbursementId == disbursementId
+                     && p.Status == PaymentStatus.Completed)
+            .SumAsync(p => (decimal?)p.Amount) ?? 0;
+    }
 }

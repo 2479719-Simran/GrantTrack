@@ -1,4 +1,5 @@
 using System.Net;
+using GrantTrack.Domain.Entities;
 using GrantTrack.Dto.DisbursementDtos;
 using GrantTrack.Service.DisbursementServices;
 using GrantTrack.Utility;
@@ -9,7 +10,7 @@ namespace GrantTrack.Controllers
 {
     [ApiController]
     [Route("api/v1/[controller]")]
-    [Authorize(Roles = "FinanceOfficer")]
+    [Authorize(Roles = nameof(UserRole.FinanceOfficer))]
     public class DisbursementController : ControllerBase
     {
         private readonly IDisbursementService _disbursementService;
@@ -93,6 +94,52 @@ namespace GrantTrack.Controllers
                     message = Messages.DisbursementUpdated,
                     data = result
                 });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    new { error = Messages.SomethingWentWrong });
+            }
+        }
+        
+        /// <summary>
+        /// POST /api/v1/disbursement/payments
+        /// Finance Officer records a payment against a disbursement.
+        /// Emits Payment.Recorded event.
+        /// </summary>
+        [HttpPost("payments")]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> CreatePayment([FromBody] CreatePaymentDto dto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            try
+            {
+                var result = await _disbursementService.CreatePaymentAsync(dto);
+                return StatusCode(StatusCodes.Status201Created, new
+                {
+                    message = Messages.PaymentCreated,
+                    data = result
+                });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { error = ex.Message });
+            }
+            catch (InvalidOperationException ex) when (ex.Message == Messages.PaymentDisbursementAlreadyPaid)
+            {
+                return Conflict(new { error = ex.Message });
             }
             catch (ArgumentException ex)
             {

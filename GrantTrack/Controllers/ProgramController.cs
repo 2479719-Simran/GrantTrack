@@ -1,3 +1,4 @@
+using GrantTrack.Domain.Entities;
 using GrantTrack.Dto.ProgramDtos;
 using GrantTrack.Repository.ProgramRepository;
 using GrantTrack.Service.ProgramServices;
@@ -23,7 +24,7 @@ namespace GrantTrack.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = nameof(UserRole.Admin))]
         public async Task<IActionResult> CreateProgram([FromBody] CreateProgramRequestDto request)
         {
             try
@@ -46,7 +47,7 @@ namespace GrantTrack.Controllers
 
         }
         [HttpGet("GetPrograms")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = nameof(UserRole.Admin))]
         public async Task<IActionResult> GetPrograms()
         {
             try
@@ -69,7 +70,7 @@ namespace GrantTrack.Controllers
         }
          
         [HttpPost("FilterPrograms")] 
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = nameof(UserRole.Admin))]
         public async Task<IActionResult> FilterPrograms([FromBody] FilterProgramsDto request)
         {
             try
@@ -92,7 +93,7 @@ namespace GrantTrack.Controllers
 
         }
         [HttpPut("UpdateProgram/{id}")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = nameof(UserRole.Admin))]
         public async Task<IActionResult> UpdateProgram([FromRoute] int id, [FromBody] UpdateProgramRequestDto request)
         {
             try
@@ -116,7 +117,7 @@ namespace GrantTrack.Controllers
 
         }
         [HttpDelete("DeleteProgram/{id}")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = nameof(UserRole.Admin))]
         public async Task<IActionResult> DeleteProgram([FromRoute] int id)
         {
             try
