@@ -20,7 +20,6 @@ namespace GrantTrack.Controllers
             _decisionService = decisionService;
             _context = context;
         }
-
         /// <summary>
         /// Approves or rejects an application.
         /// </summary>
@@ -32,12 +31,10 @@ namespace GrantTrack.Controllers
             {
                 return BadRequest(ModelState);
             }
-
             try
             {
                 // CHANGE: Using the Common Helper class instead of a private method
-                int approverId = UserHelper.GetUserId(User); 
-
+                int approverId = UserHelper.GetUserId(User);
                 await _decisionService.CreateDecisionAsync(dto, approverId);
                 return StatusCode(StatusCodes.Status201Created, "Decision recorded successfully.");
             }
@@ -62,11 +59,11 @@ namespace GrantTrack.Controllers
         /// <summary>
         /// Endpoint for Auditors to verify governance.
         /// </summary>
-        [Authorize(Roles = "Approver, Admin")] 
+        [Authorize(Roles = "Approver, Admin")]
         [HttpGet("history")]
         public async Task<IActionResult> GetHistory([FromQuery] int applicationId)
         {
-           if (applicationId <= 0)
+            if (applicationId <= 0)
             {
                 return BadRequest(new { message = "A valid ApplicationId is required." });
             }
@@ -82,22 +79,20 @@ namespace GrantTrack.Controllers
                 return Ok(history);
             }
             catch (KeyNotFoundException ex)
-    {
-        // CHANGE THIS: Return NotFound (404) instead of StatusCode 500
-        // This removes the "Internal error occurred" message for missing data
-        return NotFound(new { message = ex.Message });
-    }
-    catch (UnauthorizedAccessException ex)
-    {
-        return Unauthorized(new { message = ex.Message });
-    }
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(new { message = ex.Message });
+            }
             catch (Exception ex)
             {
                 // Standard #1: Comment WHY - General exception handling to ensure API stability
                 return StatusCode(500, new { message = "An internal error occurred.", details = ex.Message });
             }
         }
-            private async Task LogGovernanceView(int appId)
+        private async Task LogGovernanceView(int appId)
         {
             var audit = new AuditLog
             {
