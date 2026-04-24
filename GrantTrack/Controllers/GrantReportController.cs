@@ -37,7 +37,7 @@ public class GrantReportController : ControllerBase
     // Officer AND Applicant can download/view
     [HttpGet("evidence/{complianceCheckId}")]
     [Authorize(Roles = $"{nameof(UserRole.ComplianceOfficer)},{nameof(UserRole.Applicant)}")]
-    public async Task<IActionResult> GetEvidence(int complianceCheckId)
+    public async Task<IActionResult> GetEvidenceFile(int complianceCheckId)
     {
         var report = await _grantReportService.GetReportByCheckIdAsync(complianceCheckId);
 
