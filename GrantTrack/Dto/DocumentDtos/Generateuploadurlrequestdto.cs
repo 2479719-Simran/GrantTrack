@@ -13,7 +13,9 @@ public class GenerateUploadUrlRequestDto
 
     [Required]
     public string ContentType { get; set; } = string.Empty;
-
+    [Required]
+    [Range(1, 10485760, ErrorMessage = "File size must be less than 10 MB.")]
+    public long FileSize { get; set; }
     [Required]
     public string DocType { get; set; } = string.Empty;
 }
