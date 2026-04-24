@@ -3,6 +3,7 @@ using GrantTrack.Dto.DecisionDtos;
 using GrantTrack.Repository.AuditLogRepoistories;
 using GrantTrack.Repository.DecisionRepositories;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace GrantTrack.Service.DecisionServices
 {
@@ -102,8 +103,52 @@ namespace GrantTrack.Service.DecisionServices
             
             await _auditLogRepository.AddAuditLogAsync(auditLog);
         }
+        /// <summary>
+        /// Fetches decision history for an application in descending chronological order.
+        /// </summary>
+        public async Task<IEnumerable<DecisionHistoryDto>> GetDecisionHistoryAsync(int applicationId)
+        {
+            // 1. Check if the application exists first
+            var applicationExists = await _context.Applications
+        .   AnyAsync(a => a.ApplicationId == applicationId);
 
+    if (!applicationExists)
+    {
+        // This stops the "void/empty" behavior and forces an error
+        throw new KeyNotFoundException($"Application with ID {applicationId} was not found.");
+    }
+            // JOIN with User table to get the Approver's name
+            var decisions = await _context.Decisions
+                .Include(d => d.User)
+                .Where(d => d.ApplicationId == applicationId)
+                .OrderByDescending(d => d.Date)
+                .ToListAsync();
+               // 2. CHECK: If the list is empty, MANUALLY throw the exception
+                if (decisions == null || !decisions.Any())
+            {
+             throw new KeyNotFoundException($"No history found for Application ID {applicationId}");
+            } 
+
+            // Mapping to DTO - DecisionValue to Status 
+            return decisions.Select(d => new DecisionHistoryDto
+            {
+                DecisionId = d.DecisionId,
+                Status = d.DecisionValue,
+                ApproverName = d.User?.Name ?? "System",
+                Notes = d.Notes,
+                Timestamp = d.Date
+            }).ToList();
+        }
+
+        /// <summary>
+        /// Validates if the application exists to prevent invalid lookups.
+        /// </summary>
+        public async Task<bool> ApplicationExistsAsync(int applicationId)
+        {
+            return await _context.Applications.AnyAsync(a => a.ApplicationId == applicationId);
+        }
     }
 }
+
 
 
