@@ -71,6 +71,7 @@ builder.Services.AddScoped<IDocumentRepository, DocumentRepository>();
 builder.Services.AddScoped<IDocumentService, DocumentService>();
 builder.Services.AddScoped<IComplianceCheckService, ComplianceCheckService>();
 builder.Services.AddScoped<IComplianceCheckRepository, ComplianceCheckRepository>();
+builder.Services.AddAutoMapper(typeof(Program).Assembly); 
 
 
 

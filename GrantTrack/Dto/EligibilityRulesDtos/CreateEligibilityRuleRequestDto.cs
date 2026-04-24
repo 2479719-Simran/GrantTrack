@@ -8,8 +8,8 @@ public class CreateEligibilityRuleRequestDto
     [Required]
     public int ProgramId { get; set; }
 
-    [Required]
     [MaxLength(500)]
+    [Required]
     public string RuleDescription { get; set; }
 
     [Required]

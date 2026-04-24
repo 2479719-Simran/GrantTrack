@@ -2,16 +2,21 @@ using System;
 using GrantTrack.Domain.Entities;
 using GrantTrack.Dto.EligibilityRulesDtos;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata;
+using AutoMapper; 
 
 namespace GrantTrack.Repository.EligibilityRuleRepositories;
 
 public class EligibilityRuleRepository : IEligibilityRuleRepository
 {
     private readonly GrantTrackDbContext dbContext;
+    private readonly IMapper mapper;
 
-    public EligibilityRuleRepository(GrantTrackDbContext dbContext)
+    public EligibilityRuleRepository(GrantTrackDbContext dbContext , IMapper mapper)
     {
-        this.dbContext = dbContext;
+        this.dbContext = dbContext; 
+        this.mapper = mapper; 
+
     }
 
     public async Task<bool> ContainsProgramId(int programId)
@@ -54,32 +59,14 @@ public class EligibilityRuleRepository : IEligibilityRuleRepository
         dbContext.Add(newRule);
         await dbContext.SaveChangesAsync();
 
-        return new CreateEligibilityRuleResponseDto
-        {
-            RuleId = newRule.RuleId,
-            ProgramId = newRule.ProgramId,
-            RuleDescription = newRule.RuleDescription,
-            RuleExpression = newRule.RuleExpression
-        };
+        return mapper.Map<CreateEligibilityRuleResponseDto>(newRule); 
     }
 
     public async Task<IEnumerable<GetEligibilityRuleResponseDto>> GetRules()
     {
-        List<GetEligibilityRuleResponseDto> response = new List<GetEligibilityRuleResponseDto>();
         var rules = await dbContext.EligibilityRules.ToListAsync();
 
-        foreach (var rule in rules)
-        {
-            response.Add(new GetEligibilityRuleResponseDto
-            {
-                RuleId = rule.RuleId,
-                ProgramId = rule.ProgramId,
-                RuleDescription = rule.RuleDescription,
-                RuleExpression = rule.RuleExpression
-            });
-        }
-
-        return response;
+        return mapper.Map<IEnumerable<GetEligibilityRuleResponseDto>>(rules); 
     }
 
     public async Task<IEnumerable<GetEligibilityRuleResponseDto>> GetRulesByProgramId(int programId)
@@ -89,18 +76,7 @@ public class EligibilityRuleRepository : IEligibilityRuleRepository
                                    .Where(q => q.ProgramId == programId)
                                    .ToListAsync();
 
-        foreach (var rule in rules)
-        {
-            response.Add(new GetEligibilityRuleResponseDto
-            {
-                RuleId = rule.RuleId,
-                ProgramId = rule.ProgramId,
-                RuleDescription = rule.RuleDescription,
-                RuleExpression = rule.RuleExpression
-            });
-        }
-
-        return response;
+        return mapper.Map<IEnumerable<GetEligibilityRuleResponseDto>>(rules);
     }
 
     public async Task<UpdateEligibilityRuleResponseDto> UpdateRule(int ruleId, UpdateEligibilityRuleRequestDto request)
@@ -113,13 +89,7 @@ public class EligibilityRuleRepository : IEligibilityRuleRepository
 
         await dbContext.SaveChangesAsync();
 
-        return new UpdateEligibilityRuleResponseDto
-        {
-            
-            ProgramId = obj.ProgramId,
-            RuleDescription = obj.RuleDescription,
-            RuleExpression = obj.RuleExpression
-        };
+        return mapper.Map<UpdateEligibilityRuleResponseDto>(obj);
     }
 
     public async Task<DeleteEligibilityRuleResponseDto> DeleteRule(int ruleId)
@@ -129,12 +99,6 @@ public class EligibilityRuleRepository : IEligibilityRuleRepository
         dbContext.EligibilityRules.Remove(obj);
         await dbContext.SaveChangesAsync();
 
-        return new DeleteEligibilityRuleResponseDto
-        {
-            RuleId = obj.RuleId,
-            ProgramId = obj.ProgramId,
-            RuleDescription = obj.RuleDescription,
-            RuleExpression = obj.RuleExpression
-        };
+        return mapper.Map<DeleteEligibilityRuleResponseDto>(obj);
     }
 }
