@@ -23,7 +23,7 @@ public class ComplianceCheckRepository:IComplianceCheckRepository
         public async Task<ComplianceCheck?> GetByIdAsync(int id)
         {
             return await _context.ComplianceChecks
-                .FirstOrDefaultAsync<ComplianceCheck>(c => c.CheckId == id);
+                .FirstOrDefaultAsync<ComplianceCheck>(c => c.ComplianceCheckId == id);
         }
 
         public async Task SaveChangesAsync()

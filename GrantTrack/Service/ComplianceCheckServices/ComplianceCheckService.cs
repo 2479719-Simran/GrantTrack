@@ -3,118 +3,100 @@ using GrantTrack.Dto.ComplianceCheckDtos;
 using GrantTrack.Repository.ComplianceCheckRepository;
 using Microsoft.EntityFrameworkCore;
 
-namespace GrantTrack.Service.ComplianceCheckServices
-{
-    public class ComplianceCheckService : IComplianceCheckService
-    {
-        private readonly IComplianceCheckRepository _repository;
-        private readonly GrantTrackDbContext _context;
+namespace GrantTrack.Service.ComplianceCheckServices;
 
-        public ComplianceCheckService(IComplianceCheckRepository repository, GrantTrackDbContext context)
+public class ComplianceCheckService : IComplianceCheckService
+{
+    private readonly IComplianceCheckRepository _repository;
+    private readonly GrantTrackDbContext _context;
+
+    public ComplianceCheckService(IComplianceCheckRepository repository, GrantTrackDbContext context)
+    {
+        _repository = repository;
+        _context = context;
+    }
+
+    /// <summary>
+    /// POST: Schedule a check. 
+    /// Notes are strictly mandatory for accountability.
+    /// </summary>
+    public async Task<ComplianceCheck> ScheduleCheckAsync(ComplianceCheckDto dto)
+    {
+        // 1. Strict Validation: Notes cannot be empty
+        if (string.IsNullOrWhiteSpace(dto.Notes))
         {
-            _repository = repository;
-            _context = context;
+            throw new ArgumentException("Notes are mandatory when initiating a compliance check.");
         }
 
-        /// <summary>
-        /// Initiates a new compliance check record.
-        /// Only allowed for applications that have an 'Approved' decision status.
-        /// </summary>
-        public async Task<ComplianceCheck> ScheduleCheckAsync(ComplianceCheckDto dto)
+        // 2. Business Logic: Must be an approved application
+        var decision = await _context.Decisions
+            .FirstOrDefaultAsync(d => d.ApplicationId == dto.ApplicationId);
+
+        if (decision == null || (int)decision.DecisionValue != 0)
         {
-            // 1. Fetch the decision record for the given application
-            var decision = await _context.Decisions
-                .FirstOrDefaultAsync(d => d.ApplicationId == dto.ApplicationId);
-
-            if (decision == null)
-            {
-                throw new KeyNotFoundException($"No decision record found for Application ID {dto.ApplicationId}.");
-            }
-
-            // 2. Validate if the application is approved (Assuming 0 = Approved)
-            if ((int)decision.DecisionValue != 0)
-            {
-                throw new InvalidOperationException("Compliance checks can only be initiated for 'Approved' applications.");
-            }
-
-            // 3. Safe Enum Parsing for ComplianceType (e.g., Financial, Operational)
-            if (!Enum.TryParse<ComplianceType>(dto.Type, ignoreCase: true, out var complianceType))
-            {
-                throw new ArgumentException($"Invalid Compliance Type: '{dto.Type}'. Valid values are: Financial, Operational.");
-            }
-
-            // 4. Map DTO to Entity and set default initial result
-            var newCheck = new ComplianceCheck
-            {
-                ApplicationId = dto.ApplicationId,
-                Type = complianceType,
-                Result = ComplianceResult.Flagged, // Default status before review
-                Date = DateTime.UtcNow,
-                Notes = dto.Notes
-            };
-
-            await _repository.AddAsync(newCheck);
-            await _repository.SaveChangesAsync();
-
-            return newCheck;
+            throw new KeyNotFoundException($"No approved decision found for Application ID {dto.ApplicationId}.");
         }
 
-        /// <summary>
-        /// Completes a compliance check and synchronizes the status with the Grantee's Report.
-        /// Prevents modifications if the report is already verified.
+        if (!Enum.TryParse<ComplianceType>(dto.Type, true, out var cType))
+            throw new ArgumentException("Invalid Compliance Type.");
+
+        var newCheck = new ComplianceCheck
+        {
+            ApplicationId = dto.ApplicationId,
+            Type = cType,
+            Result = ComplianceResult.Flagged, 
+            Date = DateTime.UtcNow,
+            Notes = dto.Notes
+        };
+
+        await _repository.AddAsync(newCheck);
+        await _repository.SaveChangesAsync();
+        return newCheck;
+    }
+
+        /// <summary>   
+        /// PATCH: Finalize the check result.
+        /// Notes are mandatory for feedback and audit trail.   
+        /// Strict linkage: Can only finalize if evidence has been submitted for this specific check.
         /// </summary>
-       public async Task<ComplianceCheck?> CompleteCheckAsync(int id, UpdateComplianceCheckDto dto)
-{
-    // 1. Fetch the compliance check record
-    var check = await _repository.GetByIdAsync(id);
-
-    if (check == null)
+        
+    public async Task<ComplianceCheck?> CompleteCheckAsync(int id, UpdateComplianceCheckDto dto)
     {
-        throw new KeyNotFoundException($"Compliance Check with ID {id} not found.");
-    }
+        // 1. Strict Validation: Feedback notes mandatory
+        if (string.IsNullOrWhiteSpace(dto.Notes))
+        {
+            throw new ArgumentException("Feedback notes are mandatory when updating a compliance result.");
+        }
 
-    // 2. Fetch the corresponding Grant Report
-    var report = await _context.GrantReports
-        .FirstOrDefaultAsync(r => r.ApplicationId == check.ApplicationId);
+        var check = await _repository.GetByIdAsync(id);
+        if (check == null) throw new KeyNotFoundException($"Check ID {id} not found.");
 
-    if (report == null)
-    {
-        throw new KeyNotFoundException("No Grant Report found to verify.");
-    }
+        // 2. Linkage: Find the report for this specific check
+        var report = await _context.GrantReports.FirstOrDefaultAsync(r => r.ComplianceCheckId == id);
 
-    // 3. Business Rule: If already verified, do not allow further compliance checks
-    if (report.Status == ReportStatus.Verified)
-    {
-        throw new InvalidOperationException("This report has already been verified.");
-    }
+        if (report == null || report.Status == ReportStatus.Draft)
+        {
+            throw new InvalidOperationException("Applicant has not submitted evidence for this specific check yet.");
+        }
 
-    // 4. Parse the result (Completed or Flagged)
-    if (Enum.TryParse<ComplianceResult>(dto.Result, ignoreCase: true, out var outcome))
-    {
+        if (!Enum.TryParse<ComplianceResult>(dto.Result, true, out var outcome))
+            throw new ArgumentException("Invalid Result Value.");
+
+        // Update tables
         check.Result = outcome;
+        check.Notes = dto.Notes;
+        check.Date = DateTime.UtcNow;
 
-        // 5. UPDATE REPORT STATUS BASED ON COMPLIANCE RESULT
+        // Sync logic
         if (outcome == ComplianceResult.Completed)
-        {
-            // If check is successful, the report is now officially Verified
             report.Status = ReportStatus.Verified;
-        }
-        else if (outcome == ComplianceResult.Flagged)
-        {
-            // If the officer flags it, we mark the report as Returned 
-            // so the Applicant knows they need to check the notes and fix it.
+        else if (outcome == ComplianceResult.Returned)
             report.Status = ReportStatus.Returned;
-        }
-    }
-    
-    check.Notes = dto.Notes;
-    check.Date = DateTime.UtcNow;
+        else
+            report.Status = ReportStatus.Submitted;
 
-    // Save changes to both tables
-    await _repository.SaveChangesAsync();
-    await _context.SaveChangesAsync(); 
-
-    return check;
-}
+        await _repository.SaveChangesAsync();
+        await _context.SaveChangesAsync();
+        return check;
     }
 }

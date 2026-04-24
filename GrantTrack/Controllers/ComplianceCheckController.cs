@@ -1,10 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization; // Required for Authorize attribute
-using GrantTrack.Domain.Entities;
+using Microsoft.AspNetCore.Authorization;
 using GrantTrack.Dto.ComplianceCheckDtos;
 using GrantTrack.Service.ComplianceCheckServices;
+using GrantTrack.Domain.Entities;
 
-namespace GrantTrack.Controllers;
+namespace GrantTrack.Api.Controllers;
 
 [ApiController]
 [Route("api/v1/[controller]")]
@@ -25,28 +25,15 @@ public class ComplianceCheckController : ControllerBase
         try
         {
             var result = await _service.ScheduleCheckAsync(dto);
-            return Ok(result);
+            return StatusCode(201, result);
         }
         catch (KeyNotFoundException ex)
         {
-            // Returns 404 if the Application or Decision record is missing
             return NotFound(new { message = ex.Message });
         }
-        catch (ArgumentException ex)
-        {
-            // Returns 400 if the Enum Type is invalid
-            return BadRequest(new { message = ex.Message });
-        }
-        catch (InvalidOperationException ex)
-        {
-            // Returns 400 if the business rule (Approved status) fails
-            return BadRequest(new { message = ex.Message });
-        }
-        
         catch (Exception ex)
         {
-            // General 500 for unexpected system crashes
-            return StatusCode(500, new { message = "An unexpected error occurred.", detail = ex.Message });
+            return BadRequest(new { message = ex.Message });
         }
     }
 
@@ -56,39 +43,26 @@ public class ComplianceCheckController : ControllerBase
         try
         {
             var updatedCheck = await _service.CompleteCheckAsync(id, dto);
-            
-            // If the check is finalized, return a specific success event object
-            if (updatedCheck != null && updatedCheck.Result == ComplianceResult.Completed)
-            {
-                return Ok(new { 
-                    eventTriggered = "ComplianceCheck.Completed",
-                    id = updatedCheck.CheckId,
-                    status = "Success",
-                    completionTime = updatedCheck.Date 
-                });
-            }
-
-            return Ok(updatedCheck);
+            return StatusCode(201, new 
+            { 
+                message = "Compliance check finalized.",
+                checkId = updatedCheck.ComplianceCheckId,
+                status = updatedCheck.Result.ToString()
+            });
         }
-        catch (KeyNotFoundException ex)
+        catch (ArgumentException ex)
         {
-            return NotFound(new { message = ex.Message });
+          
+            return BadRequest(new { message = ex.Message });
         }
         catch (InvalidOperationException ex)
         {
+           
             return BadRequest(new { message = ex.Message });
         }
         catch (Exception ex)
         {
-            return StatusCode(500, new { message = "Update failed", detail = ex.Message });
+            return NotFound(new { message = ex.Message });
         }
-    }
-
-    [HttpGet("{id}")]
-    [ApiExplorerSettings(IgnoreApi = true)] 
-    public IActionResult GetById(int id)
-    {
-        // This remains for internal routing/checks if needed
-        return Ok();
     }
 }

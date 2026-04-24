@@ -13,14 +13,15 @@ public enum ComplianceType
 public enum ComplianceResult
 {
     Completed,
-    Flagged
+    Flagged,
+    Returned
 }
 
 [Table("ComplianceCheck")]
 public class ComplianceCheck
 {
     [Key]
-    public int CheckId { get; set; }
+    public int ComplianceCheckId { get; set; }
 
     [Required]
     public int ApplicationId { get; set; }
