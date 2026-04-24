@@ -59,20 +59,5 @@ namespace GrantTrack.Controllers
             }
         }
 
-        private int GetCurrentUserId()
-        {
-            var userIdClaim = User.FindFirstValue(JwtRegisteredClaimNames.Sub)
-                              ?? User.FindFirstValue(ClaimTypes.NameIdentifier); 
-            
-            if(string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
-            {
-                throw new InvalidOperationException("Unable to resolve user ID from JWT.");
-            }
-
-            return userId; 
-        } 
-
-
-
     }
 }

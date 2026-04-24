@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace GrantTrack.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/v1/[controller]")]
     [ApiController]
     public class EligibilityRuleController : ControllerBase
     {
@@ -48,7 +48,7 @@ namespace GrantTrack.Controllers
     }
 
     // GET: api/EligibilityRules
-    [HttpGet]
+    [HttpGet("GetProgramById/{programId}")]
     public async Task<IActionResult> GetRules()
     {
         try
