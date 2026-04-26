@@ -35,6 +35,7 @@ public class DocumentsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
+    [ProducesResponseType(StatusCodes.Status413PayloadTooLarge)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetUploadUrl([FromBody] GenerateUploadUrlRequestDto dto)
     {
@@ -51,9 +52,13 @@ public class DocumentsController : ControllerBase
         {
             return NotFound(new { error = ex.Message });
         }
-        catch (UnauthorizedAccessException)
+        catch (UnauthorizedAccessException ex)
         {
-            return StatusCode(StatusCodes.Status403Forbidden, new { error = Messages.Forbidden });
+            return StatusCode(StatusCodes.Status403Forbidden, new { error = ex.Message });
+        }
+        catch (InvalidOperationException ex) when (ex.Message == Messages.FileSizeExceeded)
+        {
+            return StatusCode(StatusCodes.Status413PayloadTooLarge, new { error = ex.Message });
         }
         catch (InvalidOperationException ex)
         {
@@ -74,11 +79,15 @@ public class DocumentsController : ControllerBase
     [HttpPut("api/v1/documents/upload")]
     [AllowAnonymous] // Auth handled by the upload token, not the user JWT
     [Consumes("multipart/form-data")]
+    [RequestSizeLimit(10_485_760)]
+    [RequestFormLimits(MultipartBodyLengthLimit = 10_485_760)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
+    [ProducesResponseType(StatusCodes.Status413PayloadTooLarge)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Upload(
         [FromQuery] string token,
@@ -92,16 +101,30 @@ public class DocumentsController : ControllerBase
 
         try
         {
-            await _service.ConfirmUploadAsync(dto.ApplicationId, dto.DocumentId, token, dto.File.OpenReadStream());
+            await _service.ConfirmUploadAsync(
+                dto.ApplicationId,
+                dto.DocumentId,
+                token,
+                dto.File.OpenReadStream(),
+                dto.File.ContentType);
+
             return NoContent();
         }
         catch (KeyNotFoundException ex)
         {
             return NotFound(new { error = ex.Message });
         }
+        catch (UnauthorizedAccessException ex) when (ex.Message == Messages.ContentTypeMismatch)
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, new { error = ex.Message });
+        }
         catch (UnauthorizedAccessException ex)
         {
             return Unauthorized(new { error = ex.Message });
+        }
+        catch (InvalidOperationException ex) when (ex.Message == Messages.FileSizeExceeded)
+        {
+            return StatusCode(StatusCodes.Status413PayloadTooLarge, new { error = ex.Message });
         }
         catch (InvalidOperationException ex)
         {

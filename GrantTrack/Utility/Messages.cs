@@ -47,4 +47,7 @@ public static class Messages
     public const string DocumentAlreadyUploaded = "This document has already been uploaded.";
     public const string EmptyFile               = "File content is required.";
     public const string ApplicationAlreadyDecided = "Documents cannot be added to an application that has already been decided.";
+    public const string FileSizeExceeded = "File size exceeds the maximum allowed limit.";
+    public const string UnsupportedContentType = "The specified content type is not allowed.";
+public const string ContentTypeMismatch = "Uploaded file type does not match the declared content type.";
 }

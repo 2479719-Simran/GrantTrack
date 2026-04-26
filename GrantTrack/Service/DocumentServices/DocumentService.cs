@@ -50,6 +50,16 @@ public class DocumentService : IDocumentService
             application.Status == ApplicationStatus.Rejected)
             throw new InvalidOperationException(Messages.ApplicationAlreadyDecided);
 
+        // Guard 4: File size must be within limit
+        var maxSize = _config.GetValue<long>("DocumentUpload:MaxFileSizeBytes");
+        if (dto.FileSize <= 0 || dto.FileSize > maxSize)
+            throw new InvalidOperationException(Messages.FileSizeExceeded);
+
+        // Guard 5: Content type must be in the allowed list
+        var allowedTypes = _config.GetSection("DocumentUpload:AllowedContentTypes").Get<string[]>() ?? Array.Empty<string>();
+        if (!allowedTypes.Contains(dto.ContentType, StringComparer.OrdinalIgnoreCase))
+            throw new UnauthorizedAccessException(Messages.UnsupportedContentType);
+
         var safeFileName = SanitizeFileName(dto.FileName);
 
         // Determine version — increment if same filename already uploaded
@@ -63,6 +73,7 @@ public class DocumentService : IDocumentService
             DocType = dto.DocType,
             FileName = safeFileName,
             FileURI = string.Empty,
+            ContentType = dto.ContentType,
             Version = version,
             CreatedAt = DateTime.UtcNow,
         };
@@ -89,7 +100,8 @@ public class DocumentService : IDocumentService
     }
 
     public async Task ConfirmUploadAsync(
-        int applicationId, int documentId, string uploadToken, Stream fileStream)
+        int applicationId, int documentId, string uploadToken,
+        Stream fileStream, string uploadedContentType)
     {
         // Validate upload token
         var claims = ValidateUploadToken(uploadToken);
@@ -109,9 +121,18 @@ public class DocumentService : IDocumentService
         if (document.ApplicationId != applicationId)
             throw new UnauthorizedAccessException(Messages.Forbidden);
 
+        // Guard: uploaded file type must match what was declared in Phase 1
+        if (!string.Equals(document.ContentType, uploadedContentType, StringComparison.OrdinalIgnoreCase))
+            throw new UnauthorizedAccessException(Messages.ContentTypeMismatch);
+
         // Guard: if the file was already uploaded with this document record, reject replay
         if (!string.IsNullOrEmpty(document.Hash))
             throw new InvalidOperationException(Messages.DocumentAlreadyUploaded);
+
+        // Guard: enforce max file size
+        var maxSize = _config.GetValue<long>("DocumentUpload:MaxFileSizeBytes");
+        if (fileStream.CanSeek && fileStream.Length > maxSize)
+            throw new InvalidOperationException(Messages.FileSizeExceeded);
 
         // Save file to wwwroot/uploads/{applicationId}/
         var webRootPath = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
