@@ -68,7 +68,7 @@ namespace GrantTrack.Controllers
 
     // GET: api/EligibilityRules/program/5
     [Authorize(Roles = nameof(UserRole.Admin))]
-    [HttpGet("GetprogramById/{programId}")]
+    [HttpGet("GetProgramById/{programId}")]
     public async Task<IActionResult> GetRulesByProgramId([FromRoute] int programId)
     {
         try
