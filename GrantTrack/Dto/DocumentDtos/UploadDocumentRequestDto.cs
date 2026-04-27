@@ -3,16 +3,15 @@ using Microsoft.AspNetCore.Http;
 
 namespace GrantTrack.Dto.DocumentDtos;
 
-public class ConfirmUploadRequestDto
+public class UploadDocumentRequestDto
 {
     [Required]
     [Range(1, int.MaxValue, ErrorMessage = "ApplicationId must be a positive integer.")]
     public int ApplicationId { get; set; }
 
     [Required]
-    [Range(1, int.MaxValue, ErrorMessage = "DocumentId must be a positive integer.")]
-    public int DocumentId { get; set; }
-    
+    public string DocType { get; set; } = string.Empty;
+
     [Required]
     public IFormFile File { get; set; } = null!;
 }

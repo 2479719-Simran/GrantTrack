@@ -1,13 +1,9 @@
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
 using System.Security.Cryptography;
-using System.Text;
 using GrantTrack.Domain.Entities;
 using GrantTrack.Dto.DocumentDtos;
 using GrantTrack.Repository.ApplicationRepositories;
 using GrantTrack.Repository.DocumentRepositories;
 using GrantTrack.Utility;
-using Microsoft.IdentityModel.Tokens;
 
 namespace GrantTrack.Service.DocumentServices;
 
@@ -17,8 +13,6 @@ public class DocumentService : IDocumentService
     private readonly IApplicationRepository _applicationRepo;
     private readonly IConfiguration _config;
     private readonly IWebHostEnvironment _env;
-
-    private const int UploadTokenExpiryMinutes = 15;
 
     public DocumentService(
         IDocumentRepository documentRepo,
@@ -32,191 +26,156 @@ public class DocumentService : IDocumentService
         _env = env;
     }
 
-    public async Task<GenerateUploadUrlResponseDto> GenerateUploadUrlAsync(
-        int applicantId, GenerateUploadUrlRequestDto dto)
+    public async Task<UploadDocumentResponseDto> UploadAsync(
+        int applicantId, UploadDocumentRequestDto dto)
     {
-        var applicationId = dto.ApplicationId;
+        var file = dto.File;
 
-        // Guard 1: Application must exist
-        var application = await _applicationRepo.GetByIdAsync(applicationId)
+        //File must be present and non-empty
+        if (file == null || file.Length == 0)
+            throw new InvalidOperationException(Messages.EmptyFile);
+
+        //Application must exist
+        var application = await _applicationRepo.GetByIdAsync(dto.ApplicationId)
             ?? throw new KeyNotFoundException(Messages.ApplicationNotFound);
 
-        // Guard 2: Only the owner can upload documents
+        // Only the owner can upload documents
         if (application.ApplicantId != applicantId)
             throw new UnauthorizedAccessException(Messages.Forbidden);
 
-        // Guard 3: Application must not already be decided
+        //Application must not already be decided
         if (application.Status == ApplicationStatus.Approved ||
             application.Status == ApplicationStatus.Rejected)
             throw new InvalidOperationException(Messages.ApplicationAlreadyDecided);
 
-        // Guard 4: File size must be within limit
+        //File size must be within limit
         var maxSize = _config.GetValue<long>("DocumentUpload:MaxFileSizeBytes");
-        if (dto.FileSize <= 0 || dto.FileSize > maxSize)
+        if (file.Length > maxSize)
             throw new InvalidOperationException(Messages.FileSizeExceeded);
 
-        // Guard 5: Content type must be in the allowed list
-        var allowedTypes = _config.GetSection("DocumentUpload:AllowedContentTypes").Get<string[]>() ?? Array.Empty<string>();
-        if (!allowedTypes.Contains(dto.ContentType, StringComparer.OrdinalIgnoreCase))
+        //Content type must be in the allowed list
+        var allowedTypes = _config.GetSection("DocumentUpload:AllowedContentTypes")
+            .Get<string[]>() ?? Array.Empty<string>();
+        if (!allowedTypes.Contains(file.ContentType, StringComparer.OrdinalIgnoreCase))
             throw new UnauthorizedAccessException(Messages.UnsupportedContentType);
 
-        var safeFileName = SanitizeFileName(dto.FileName);
+        var safeFileName = SanitizeFileName(file.FileName);
 
         // Determine version — increment if same filename already uploaded
-        var exists = await _documentRepo.ExistsForApplicationAsync(applicationId, safeFileName);
+        var exists = await _documentRepo.ExistsForApplicationAsync(dto.ApplicationId, safeFileName);
         var version = exists ? 2 : 1;
-
-        // Create pending document record
-        var document = new Document
-        {
-            ApplicationId = applicationId,
-            DocType = dto.DocType,
-            FileName = safeFileName,
-            FileURI = string.Empty,
-            ContentType = dto.ContentType,
-            Version = version,
-            CreatedAt = DateTime.UtcNow,
-        };
-
-        var created = await _documentRepo.CreateAsync(document);
-
-        // Generate short-lived upload token
-        var expiresAt = DateTime.UtcNow.AddMinutes(UploadTokenExpiryMinutes);
-        var token = GenerateUploadToken(applicationId, created.DocumentId, expiresAt);
-
-        // NOTE: Url is left empty here — the controller fills it in.
-        return new GenerateUploadUrlResponseDto
-        {
-            Url = string.Empty,
-            DocumentId = created.DocumentId,
-            ExpiresAt = expiresAt,
-            Headers = new Dictionary<string, string>
-            {
-                { "Content-Type",   dto.ContentType },
-                { "X-Document-Id",  created.DocumentId.ToString() },
-                { "X-Upload-Token", token }
-            }
-        };
-    }
-
-    public async Task ConfirmUploadAsync(
-        int applicationId, int documentId, string uploadToken,
-        Stream fileStream, string uploadedContentType)
-    {
-        // Validate upload token
-        var claims = ValidateUploadToken(uploadToken);
-        var tokenAppId = int.Parse(claims.FindFirstValue("applicationId")
-            ?? throw new UnauthorizedAccessException(Messages.InvalidUploadToken));
-        var tokenDocId = int.Parse(claims.FindFirstValue("documentId")
-            ?? throw new UnauthorizedAccessException(Messages.InvalidUploadToken));
-
-        // Cross-check: DTO values must match what was signed into the token
-        if (tokenAppId != applicationId || tokenDocId != documentId)
-            throw new UnauthorizedAccessException(Messages.InvalidUploadToken);
-
-        // Fetch the document record
-        var document = await _documentRepo.GetByIdAsync(documentId)
-            ?? throw new KeyNotFoundException(Messages.DocumentNotFound);
-
-        if (document.ApplicationId != applicationId)
-            throw new UnauthorizedAccessException(Messages.Forbidden);
-
-        // Guard: uploaded file type must match what was declared in Phase 1
-        if (!string.Equals(document.ContentType, uploadedContentType, StringComparison.OrdinalIgnoreCase))
-            throw new UnauthorizedAccessException(Messages.ContentTypeMismatch);
-
-        // Guard: if the file was already uploaded with this document record, reject replay
-        if (!string.IsNullOrEmpty(document.Hash))
-            throw new InvalidOperationException(Messages.DocumentAlreadyUploaded);
-
-        // Guard: enforce max file size
-        var maxSize = _config.GetValue<long>("DocumentUpload:MaxFileSizeBytes");
-        if (fileStream.CanSeek && fileStream.Length > maxSize)
-            throw new InvalidOperationException(Messages.FileSizeExceeded);
 
         // Save file to wwwroot/uploads/{applicationId}/
         var webRootPath = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
-        var uploadRoot  = Path.Combine(webRootPath, "uploads", applicationId.ToString());
+        var uploadRoot = Path.Combine(webRootPath, "uploads", dto.ApplicationId.ToString());
         Directory.CreateDirectory(uploadRoot);
 
         // Version the filename if needed: e.g. contract_v2.pdf
-        var versionedName = document.Version > 1
-            ? $"{Path.GetFileNameWithoutExtension(document.FileName)}_v{document.Version}{Path.GetExtension(document.FileName)}"
-            : document.FileName;
+        var versionedName = version > 1
+            ? $"{Path.GetFileNameWithoutExtension(safeFileName)}_v{version}{Path.GetExtension(safeFileName)}"
+            : safeFileName;
 
         var filePath = Path.Combine(uploadRoot, versionedName);
 
-        // Write file and compute SHA-256 hash in a single pass
         string hash;
+        await using (var inStream = file.OpenReadStream())
         using (var sha256 = SHA256.Create())
-        using (var fileOut = File.Create(filePath))
-        using (var cryptoStream = new CryptoStream(fileOut, sha256, CryptoStreamMode.Write))
+        await using (var fileOut = File.Create(filePath))
+        await using (var cryptoStream = new CryptoStream(fileOut, sha256, CryptoStreamMode.Write))
         {
-            await fileStream.CopyToAsync(cryptoStream);
+            await inStream.CopyToAsync(cryptoStream);
             await cryptoStream.FlushFinalBlockAsync();
             hash = Convert.ToHexString(sha256.Hash!).ToLowerInvariant();
         }
 
-        // Update document with hash, URI and upload time
-        document.FileURI = $"/uploads/{applicationId}/{versionedName}";
-        document.Hash = hash;
-        document.UploadedAt = DateTime.UtcNow;
-
-        await _documentRepo.UpdateAsync(document);
-    }
-
-    // -------------------------------------------------------------------------
-    // Private helpers
-    // -------------------------------------------------------------------------
-    private string GenerateUploadToken(int applicationId, int documentId, DateTime expiresAt)
-    {
-        var jwtSettings = _config.GetSection("JwtSettings");
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["SecretKey"]!));
-        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
-        var claims = new[]
+        // Persist the document record (single insert with everything filled in)
+        var document = new Document
         {
-            new Claim("applicationId", applicationId.ToString()),
-            new Claim("documentId",    documentId.ToString()),
-            new Claim("purpose",       "document-upload"),
+            ApplicationId = dto.ApplicationId,
+            DocType = dto.DocType,
+            FileName = safeFileName,
+            FileURI = $"/uploads/{dto.ApplicationId}/{versionedName}",
+            ContentType = file.ContentType,
+            Hash = hash,
+            Version = version,
+            CreatedAt = DateTime.UtcNow,
+            UploadedAt = DateTime.UtcNow,
         };
 
-        var token = new JwtSecurityToken(
-            issuer: jwtSettings["Issuer"],
-            audience: jwtSettings["Audience"],
-            claims: claims,
-            notBefore: DateTime.UtcNow,
-            expires: expiresAt,
-            signingCredentials: creds);
+        var created = await _documentRepo.CreateAsync(document);
 
-        return new JwtSecurityTokenHandler().WriteToken(token);
+        return new UploadDocumentResponseDto
+        {
+            DocumentId = created.DocumentId,
+            FileName = created.FileName,
+            FileURI = created.FileURI,
+            Hash = created.Hash,
+            Version = created.Version,
+            UploadedAt = created.UploadedAt!.Value,
+        };
     }
 
-    private ClaimsPrincipal ValidateUploadToken(string token)
+    public async Task<DocumentDownloadDto> DownloadAsync(int userId, UserRole role, int documentId)
     {
-        var jwtSettings = _config.GetSection("JwtSettings");
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["SecretKey"]!));
+        //Document must exist
+        var document = await _documentRepo.GetByIdAsync(documentId)
+            ?? throw new KeyNotFoundException(Messages.DocumentNotFound);
 
-        var parameters = new TokenValidationParameters
+        //Authorization
+        //   - Applicant: only their own documents
+        //   - Admin / Reviewer: any document
+        var isPrivileged = role == UserRole.Admin || role == UserRole.Reviewer;
+        var isOwner = document.Application?.ApplicantId == userId;
+
+        if (!isPrivileged && !isOwner)
+            throw new UnauthorizedAccessException(Messages.Forbidden);
+
+        // Document must have actually been uploaded (not just a DB row)
+        if (string.IsNullOrEmpty(document.FileURI))
+            throw new InvalidOperationException(Messages.DocumentNotUploaded);
+
+        // Resolve absolute path on disk.
+        // FileURI is something like "/uploads/5/contract.pdf"
+        var webRootPath = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+        var relativePath = document.FileURI.TrimStart('/').Replace('/', Path.DirectorySeparatorChar);
+        var absolutePath = Path.Combine(webRootPath, relativePath);
+
+        // ensure the resolved path is still inside the upload root.
+        // Protects against any future bug that lets a tampered FileURI escape the directory.
+        var uploadRoot = Path.Combine(webRootPath, "uploads");
+        var fullAbsolute = Path.GetFullPath(absolutePath);
+        var fullUploadRoot = Path.GetFullPath(uploadRoot);
+        if (!fullAbsolute.StartsWith(fullUploadRoot, StringComparison.OrdinalIgnoreCase))
+            throw new UnauthorizedAccessException(Messages.Forbidden);
+
+        // File must actually exist on disk
+        if (!File.Exists(fullAbsolute))
+            throw new KeyNotFoundException(Messages.FileNotFound);
+
+        // Open as a read-only async stream.
+        // The controller will dispose it after streaming the response to the client.
+        var stream = new FileStream(
+            fullAbsolute,
+            FileMode.Open,
+            FileAccess.Read,
+            FileShare.Read,
+            bufferSize: 81920,
+            useAsync: true);
+
+        // Versioned filename for the download (matches what's actually on disk)
+        var versionedName = document.Version > 1
+            ? $"{Path.GetFileNameWithoutExtension(document.FileName)}_v{document.Version}{Path.GetExtension(document.FileName)}"
+            : document.FileName;
+
+        return new DocumentDownloadDto
         {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-            ValidIssuer = jwtSettings["Issuer"],
-            ValidAudience = jwtSettings["Audience"],
-            IssuerSigningKey = key,
-            ClockSkew = TimeSpan.Zero,
+            Content = stream,
+            FileName = versionedName,
+            ContentType = string.IsNullOrWhiteSpace(document.ContentType)
+                            ? "application/octet-stream"
+                            : document.ContentType,
+            Length = stream.Length,
         };
-
-        try
-        {
-            return new JwtSecurityTokenHandler().ValidateToken(token, parameters, out _);
-        }
-        catch (SecurityTokenException)
-        {
-            throw new UnauthorizedAccessException(Messages.InvalidUploadToken);
-        }
     }
 
     private static string SanitizeFileName(string fileName)
