@@ -61,4 +61,47 @@ public class DisbursementRepository : IDisbursementRepository
                      && p.Status == PaymentStatus.Completed)
             .SumAsync(p => (decimal?)p.Amount) ?? 0;
     }
+    public async Task<(IEnumerable<Disbursement> Items, int TotalCount)> GetFilteredDisbursementsAsync(
+        int? applicationId, string? status, int page, int pageSize)
+    {
+        var query = _context.Disbursements.AsNoTracking().AsQueryable();
+
+        if (applicationId.HasValue)
+            query = query.Where(d => d.ApplicationId == applicationId.Value);
+
+        if (!string.IsNullOrWhiteSpace(status) &&
+            Enum.TryParse<DisbursementStatus>(status, ignoreCase: true, out var parsedStatus))
+            query = query.Where(d => d.Status == parsedStatus);
+
+        var totalCount = await query.CountAsync();
+
+        var items = await query
+            .OrderByDescending(d => d.ScheduledDate)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        return (items, totalCount);
+    }
+    public async Task<(IEnumerable<Payment> Items, int TotalCount)> GetFilteredPaymentsAsync(
+        DateTime? from, DateTime? to, int page, int pageSize)
+    {
+        var query = _context.payments.AsNoTracking().AsQueryable();
+
+        if (from.HasValue)
+            query = query.Where(p => p.Date >= from.Value);
+
+        if (to.HasValue)
+            query = query.Where(p => p.Date <= to.Value);
+
+        var totalCount = await query.CountAsync();
+
+        var items = await query
+            .OrderByDescending(p => p.Date)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        return (items, totalCount);
+    }
 }

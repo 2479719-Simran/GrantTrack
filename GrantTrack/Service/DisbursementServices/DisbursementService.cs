@@ -99,23 +99,23 @@ public class DisbursementService : IDisbursementService
 
     public async Task<PaymentResponseDto> CreatePaymentAsync(CreatePaymentDto dto)
     {
-        // Check disbursement exists
         var disbursement = await _disbursementRepository.GetByIdAsync(dto.DisbursementId);
         if (disbursement == null)
-            throw new ArgumentException(Messages.DisbursementNotFound);
+            throw new KeyNotFoundException(Messages.DisbursementNotFound);
 
-        // Can only record payment against Scheduled disbursement
-        if (disbursement.Status != DisbursementStatus.Scheduled)
+        if (disbursement.Status == DisbursementStatus.Paid)
+            throw new InvalidOperationException(Messages.PaymentDisbursementAlreadyPaid);
+
+        if (disbursement.Status != DisbursementStatus.Scheduled &&
+            disbursement.Status != DisbursementStatus.PartiallyPaid)
             throw new InvalidOperationException(Messages.PaymentDisbursementNotScheduled);
 
-        // Payment amount cannot exceed remaining disbursement amount
         var totalPaid = await _disbursementRepository.GetTotalPaidAmountAsync(dto.DisbursementId);
         var remaining = disbursement.Amount - totalPaid;
 
         if (dto.Amount > remaining)
             throw new InvalidOperationException(
                 string.Format(Messages.PaymentExceedsDisbursementAmount, remaining));
-
         // Create payment
         var entity = new Payment
         {
@@ -145,6 +145,38 @@ public class DisbursementService : IDisbursementService
 
         return MapPaymentToResponse(created);
     }
+    
+public async Task<PagedResponseDto<DisbursementResponseDto>> GetDisbursementsAsync(
+    int? applicationId, string? status, int page, int pageSize)
+{
+    var (items, totalCount) = await _disbursementRepository
+        .GetFilteredDisbursementsAsync(applicationId, status, page, pageSize);
+
+    return new PagedResponseDto<DisbursementResponseDto>
+    {
+        Page         = page,
+        PageSize     = pageSize,
+        TotalRecords = totalCount,
+        TotalPages   = (int)Math.Ceiling((double)totalCount / pageSize),
+        Data         = items.Select(MapToResponse)
+    };
+}
+
+public async Task<PagedResponseDto<PaymentResponseDto>> GetPaymentsAsync(
+    DateTime? from, DateTime? to, int page, int pageSize)
+{
+    var (items, totalCount) = await _disbursementRepository
+        .GetFilteredPaymentsAsync(from, to, page, pageSize);
+
+    return new PagedResponseDto<PaymentResponseDto>
+    {
+        Page         = page,
+        PageSize     = pageSize,
+        TotalRecords = totalCount,
+        TotalPages   = (int)Math.Ceiling((double)totalCount / pageSize),
+        Data         = items.Select(MapPaymentToResponse)
+    };
+}
     // ── Helpers ─────────────────────────────────────────────────────────
 
     private void EmitDisbursementScheduled(Disbursement d)
@@ -171,7 +203,8 @@ public class DisbursementService : IDisbursementService
         var allowed = new Dictionary<DisbursementStatus, HashSet<DisbursementStatus>>
         {
             [DisbursementStatus.Pending]   = new() { DisbursementStatus.Scheduled, DisbursementStatus.Cancelled },
-            [DisbursementStatus.Scheduled] = new() { DisbursementStatus.Paid, DisbursementStatus.PartiallyPaid, DisbursementStatus.Cancelled }
+            [DisbursementStatus.Scheduled] = new() { DisbursementStatus.Paid, DisbursementStatus.PartiallyPaid, DisbursementStatus.Cancelled },
+            [DisbursementStatus.PartiallyPaid] = new() { DisbursementStatus.Paid, DisbursementStatus.Cancelled }
         };
 
         if (!allowed.TryGetValue(current, out var validNext) || !validNext.Contains(next))
