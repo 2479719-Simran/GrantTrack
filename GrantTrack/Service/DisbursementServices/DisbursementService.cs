@@ -145,6 +145,38 @@ public class DisbursementService : IDisbursementService
 
         return MapPaymentToResponse(created);
     }
+    
+public async Task<PagedResponseDto<DisbursementResponseDto>> GetDisbursementsAsync(
+    int? applicationId, string? status, int page, int pageSize)
+{
+    var (items, totalCount) = await _disbursementRepository
+        .GetFilteredDisbursementsAsync(applicationId, status, page, pageSize);
+
+    return new PagedResponseDto<DisbursementResponseDto>
+    {
+        Page         = page,
+        PageSize     = pageSize,
+        TotalRecords = totalCount,
+        TotalPages   = (int)Math.Ceiling((double)totalCount / pageSize),
+        Data         = items.Select(MapToResponse)
+    };
+}
+
+public async Task<PagedResponseDto<PaymentResponseDto>> GetPaymentsAsync(
+    DateTime? from, DateTime? to, int page, int pageSize)
+{
+    var (items, totalCount) = await _disbursementRepository
+        .GetFilteredPaymentsAsync(from, to, page, pageSize);
+
+    return new PagedResponseDto<PaymentResponseDto>
+    {
+        Page         = page,
+        PageSize     = pageSize,
+        TotalRecords = totalCount,
+        TotalPages   = (int)Math.Ceiling((double)totalCount / pageSize),
+        Data         = items.Select(MapPaymentToResponse)
+    };
+}
     // ── Helpers ─────────────────────────────────────────────────────────
 
     private void EmitDisbursementScheduled(Disbursement d)
