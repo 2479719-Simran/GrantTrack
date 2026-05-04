@@ -8,5 +8,7 @@ namespace GrantTrack.Service.DecisionServices
     public interface IDecisionService
     {
         Task CreateDecisionAsync(DecisionDto dto, int approverId);
+        Task<bool> ApplicationExistsAsync(int applicationId);
+        Task<IEnumerable<DecisionHistoryDto>> GetDecisionHistoryAsync(int applicationId);
     }
 }
