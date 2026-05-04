@@ -1,12 +1,10 @@
+using GrantTrack.Domain.Entities;
 using GrantTrack.Dto.DocumentDtos;
 
 namespace GrantTrack.Service.DocumentServices;
 
 public interface IDocumentService
 {
-    Task<GenerateUploadUrlResponseDto> GenerateUploadUrlAsync(
-        int applicantId, GenerateUploadUrlRequestDto dto);
-
-    Task ConfirmUploadAsync(
-        int applicationId, int documentId, string uploadToken, Stream fileStream);
+    Task<UploadDocumentResponseDto> UploadAsync(int applicantId, UploadDocumentRequestDto dto);
+    Task<DocumentDownloadDto> DownloadAsync(int userId, UserRole role, int documentId);
 }

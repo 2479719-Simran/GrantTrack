@@ -28,6 +28,8 @@ using GrantTrack.Repository.DocumentRepositories;
 using GrantTrack.Service.DocumentServices;
 using GrantTrack.Repository.ComplianceCheckRepository;
 using GrantTrack.Service.ComplianceCheckServices;
+using GrantTrack.Repository.GrantReportRepositories;
+using GrantTrack.Service.GrantReportServices;
 // using Microsoft.OpenApi.Models; // Change this
 // using Microsoft.AspNetCore.Authentication.JwtBearer; // Ensure this is present
 Env.Load();
@@ -38,6 +40,7 @@ builder.Services.AddControllers().AddJsonOptions(options =>
         options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
         options.JsonSerializerOptions.WriteIndented = true;
         options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+        options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
     });
 builder.Services.AddDbContext<GrantTrackDbContext>(options => options.UseSqlServer(
 DefaultConnection));
@@ -66,6 +69,8 @@ builder.Services.AddScoped<IDocumentRepository, DocumentRepository>();
 builder.Services.AddScoped<IDocumentService, DocumentService>();
 builder.Services.AddScoped<IComplianceCheckService, ComplianceCheckService>();
 builder.Services.AddScoped<IComplianceCheckRepository, ComplianceCheckRepository>();
+builder.Services.AddScoped<IGrantReportRepository, GrantReportRepository>();
+builder.Services.AddScoped<IGrantReportService, GrantReportService>();
 
 
 
