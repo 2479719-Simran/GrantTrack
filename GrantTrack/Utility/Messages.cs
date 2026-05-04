@@ -37,17 +37,20 @@ public static class Messages
     public const string PaymentCreated = "Payment recorded successfully.";
     public const string PaymentDisbursementNotScheduled = "Payment can only be recorded against a Scheduled disbursement.";
     public const string PaymentExceedsDisbursementAmount = "Payment amount exceeds remaining disbursement amount. Remaining: {0}";
-    public const string PaymentDisbursementAlreadyPaid   = "Payment cannot be recorded. Disbursement is already fully paid.";
+    public const string PaymentDisbursementAlreadyPaid = "Payment cannot be recorded. Disbursement is already fully paid.";
     // ← newly added for application business rules
-    public const string ProgramNotActive        = "Applications can only be submitted to active programs.";
-    public const string DuplicateApplication    = "You have already created the draft for this program.";
+    public const string ProgramNotActive = "Applications can only be submitted to active programs.";
+    public const string DuplicateApplication = "You have already created the draft for this program.";
 
-    public const string DocumentNotFound        = "Document not found.";
-    public const string InvalidUploadToken      = "The upload token is invalid or has expired.";
+    public const string DocumentNotFound = "Document not found.";
+    public const string InvalidUploadToken = "The upload token is invalid or has expired.";
     public const string DocumentAlreadyUploaded = "This document has already been uploaded.";
-    public const string EmptyFile               = "File content is required.";
+    public const string EmptyFile = "File content is required.";
     public const string ApplicationAlreadyDecided = "Documents cannot be added to an application that has already been decided.";
     public const string FileSizeExceeded = "File size exceeds the maximum allowed limit.";
     public const string UnsupportedContentType = "The specified content type is not allowed.";
-public const string ContentTypeMismatch = "Uploaded file type does not match the declared content type.";
+    public const string ContentTypeMismatch = "Uploaded file type does not match the declared content type.";
+
+    public const string DocumentNotUploaded = "Document has no file uploaded yet.";
+    public const string FileNotFound = "File is missing on the server.";
 }
