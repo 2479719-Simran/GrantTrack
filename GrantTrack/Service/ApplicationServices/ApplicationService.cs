@@ -1,4 +1,4 @@
-using System;
+using DynamicExpresso;
 using GrantTrack.Domain.Entities;
 using GrantTrack.Dto.ApplicationDtos;
 using GrantTrack.Events;
@@ -13,14 +13,18 @@ public class ApplicationService : IApplicationService
     private readonly IApplicationRepository _ApplicationRepo;
     private readonly IEventPublisher _eventPublisher;
     private readonly IProgramRepository _programRepo;
-    public ApplicationService(IApplicationRepository repo, IEventPublisher eventPublisher , IProgramRepository programRepo)
+
+    public ApplicationService(
+        IApplicationRepository repo,
+        IEventPublisher eventPublisher,
+        IProgramRepository programRepo)
     {
         _ApplicationRepo = repo;
         _eventPublisher = eventPublisher;
         _programRepo = programRepo;
     }
 
-     public async Task<ApplicationResponseDto> CreateDraftAsync(CreateApplicationDto dto, int applicantId)
+    public async Task<ApplicationResponseDto> CreateDraftAsync(CreateApplicationDto dto, int applicantId)
     {
         // Guard 1: Program must exist → 404
         if (!await _programRepo.ExistsAsync(dto.ProgramId))
@@ -36,9 +40,9 @@ public class ApplicationService : IApplicationService
 
         var application = new Application
         {
-            ProgramId   = dto.ProgramId,
+            ProgramId = dto.ProgramId,
             ApplicantId = applicantId,
-            Status      = ApplicationStatus.Draft,
+            Status = ApplicationStatus.Draft,
         };
 
         var created = await _ApplicationRepo.CreateAsync(application);
@@ -67,30 +71,144 @@ public class ApplicationService : IApplicationService
         if (application.Status != ApplicationStatus.Draft)
             throw new InvalidOperationException(Messages.ApplicationNotInDraft);
 
-        application.Status        = ApplicationStatus.Submitted;
-        application.SubmittedDate = DateTime.UtcNow;
+        //Validate BEFORE changing status
+        var validationResults = await ValidateApplicationAsync(application);
 
+        if (validationResults.Count > 0)
+            await _ApplicationRepo.AddValidationsAsync(validationResults);
+
+        var anyFailed = validationResults.Any(r => r.Result == "Failed");
+
+        if (anyFailed)
+        {
+            // Validation failed — stay as Draft, return failure messages
+            var failedDto = ToDto(application);
+            failedDto.ValidationMessages = validationResults
+                .Where(v => v.Result == "Failed")
+                .Select(v => new ValidationMessageDto
+                {
+                    RuleName = v.RuleName ?? string.Empty,
+                    Result = v.Result ?? string.Empty,
+                    Message = v.Message ?? string.Empty
+                })
+                .ToList();
+
+            return failedDto;
+        }
+
+        //All validations passed — move to UnderReview 
+        application.Status = ApplicationStatus.UnderReview;
+        application.SubmittedDate = DateTime.UtcNow;
         var updated = await _ApplicationRepo.UpdateAsync(application);
 
         await _eventPublisher.PublishAsync(new ApplicationSubmittedEvent
         {
             ApplicationId = updated.ApplicationId,
-            ProgramId     = updated.ProgramId,
-            ApplicantId   = updated.ApplicantId,
-            SubmittedAt   = updated.SubmittedDate
-            // !.Value 
+            ProgramId = updated.ProgramId,
+            ApplicantId = updated.ApplicantId,
+            SubmittedAt = updated.SubmittedDate
         });
 
         return ToDto(updated);
+    }
+    /// <summary>
+    /// Runs all validations on an application:
+    /// 1. Checks mandatory required documents are uploaded.
+    /// 2. Evaluates each EligibilityRule.RuleExpression via DynamicExpresso.
+    /// Returns a list of ApplicationValidation rows describing pass/fail outcomes.
+    /// </summary>
+    private async Task<List<ApplicationValidation>> ValidateApplicationAsync(Application application)
+    {
+        var results = new List<ApplicationValidation>();
+        var now = DateTime.UtcNow;
+
+        var appWithDocs = await _ApplicationRepo.GetForEvaluationAsync(application.ApplicationId);
+        if (appWithDocs is null) return results;
+
+        //Mandatory document check
+        var requiredDocs = await _ApplicationRepo.GetRequiredDocsAsync(application.ProgramId);
+
+        var uploadedTypes = appWithDocs.Documents
+            .Where(d => d.UploadedAt.HasValue)
+            .Select(d => d.DocType)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var req in requiredDocs)
+        {
+            if (string.IsNullOrWhiteSpace(req.Name)) continue;
+
+            if (!uploadedTypes.Contains(req.Name))
+            {
+                results.Add(new ApplicationValidation
+                {
+                    ApplicationId = application.ApplicationId,
+                    RuleName = $"RequiredDoc:{req.Name}",
+                    Result = "Failed",
+                    Message = $"Mandatory document '{req.Name}' is missing.",
+                    CheckedDate = now
+                });
+            }
+        }
+
+        //Eligibility rule evaluation (DynamicExpresso)
+        var rules = await _ApplicationRepo.GetRulesAsync(application.ProgramId);
+
+        var interpreter = new Interpreter();
+        interpreter.SetVariable("ApplicantId", appWithDocs.ApplicantId);
+        interpreter.SetVariable("ProgramId", appWithDocs.ProgramId);
+        interpreter.SetVariable("DocumentCount", appWithDocs.Documents.Count);
+        interpreter.SetVariable("SubmittedDate", appWithDocs.SubmittedDate);
+        if (appWithDocs.ApplicantIDNavigation is not null)
+        {
+            var user = appWithDocs.ApplicantIDNavigation;
+            interpreter.SetVariable("AccountActive", user.Status);
+
+            var accountAgeDays = (int)(DateTime.UtcNow - user.CreatedAt).TotalDays;
+            interpreter.SetVariable("AccountAge", accountAgeDays);
+        }
+
+        foreach (var rule in rules)
+        {
+            var ruleName = string.IsNullOrWhiteSpace(rule.RuleDescription)
+                ? $"Rule#{rule.RuleId}"
+                : rule.RuleDescription;
+
+            try
+            {
+                var passed = interpreter.Eval<bool>(rule.RuleExpression);
+                results.Add(new ApplicationValidation
+                {
+                    ApplicationId = application.ApplicationId,
+                    RuleName = ruleName,
+                    Result = passed ? "Passed" : "Failed",
+                    Message = passed
+                        ? "Rule passed"
+                        : $"Rule failed: {rule.RuleExpression}",
+                    CheckedDate = now
+                });
+            }
+            catch (Exception ex)
+            {
+                results.Add(new ApplicationValidation
+                {
+                    ApplicationId = application.ApplicationId,
+                    RuleName = ruleName,
+                    Result = "Failed",
+                    Message = $"Rule error: {ex.Message}",
+                    CheckedDate = now
+                });
+            }
+        }
+
+        return results;
     }
 
     private static ApplicationResponseDto ToDto(Application a) => new()
     {
         ApplicationId = a.ApplicationId,
-        ProgramId     = a.ProgramId,
-        ApplicantId   = a.ApplicantId,
-        Status        = a.Status.ToString(),
+        ProgramId = a.ProgramId,
+        ApplicantId = a.ApplicantId,
+        Status = a.Status.ToString(),
         SubmittedDate = a.SubmittedDate,
     };
-
 }

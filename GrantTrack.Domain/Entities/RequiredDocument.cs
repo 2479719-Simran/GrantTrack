@@ -9,7 +9,7 @@ public class RequiredDocument
 {
     [Key]
     public int DocumentId { get; set; }
-    [ForeignKey("ProgramId")]
+    [ForeignKey("ProgramIDNavigation")]
     public int ProgramId { get; set; }
     [Required]
     public string? Name { get; set; }

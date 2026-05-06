@@ -1,4 +1,3 @@
-using System;
 using GrantTrack.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -17,7 +16,6 @@ public class ApplicationRepository : IApplicationRepository
         await _db.SaveChangesAsync();
         return application;
     }
-
     public async Task<Application?> GetByIdAsync(int id)
         => await _db.Applications
             .Include(a => a.ProgramIDNavigation)
@@ -35,4 +33,30 @@ public class ApplicationRepository : IApplicationRepository
     public async Task<bool> ExistsForApplicantAsync(int applicantId, int programId)
         => await _db.Applications
             .AnyAsync(a => a.ApplicantId == applicantId && a.ProgramId == programId);
+
+    // Loads the application along with its documents and applicant for evaluation.
+    public async Task<Application?> GetForEvaluationAsync(int applicationId)
+        => await _db.Applications
+            .Include(a => a.Documents)
+            .Include(a => a.ApplicantIDNavigation)
+            .FirstOrDefaultAsync(a => a.ApplicationId == applicationId);
+
+    // Returns all eligibility rules defined for the given program.
+    public async Task<List<EligibilityRule>> GetRulesAsync(int programId)
+        => await _db.EligibilityRules
+            .Where(r => r.ProgramId == programId)
+            .ToListAsync();
+
+    // Returns mandatory required documents for the given program.
+    public async Task<List<RequiredDocument>> GetRequiredDocsAsync(int programId)
+        => await _db.RequiredDocuments
+            .Where(d => d.ProgramId == programId && d.Mandatory)
+            .ToListAsync();
+
+    // Bulk inserts validation results for an application.
+    public async Task AddValidationsAsync(IEnumerable<ApplicationValidation> validations)
+    {
+        await _db.ApplicationValidations.AddRangeAsync(validations);
+        await _db.SaveChangesAsync();
+    }
 }

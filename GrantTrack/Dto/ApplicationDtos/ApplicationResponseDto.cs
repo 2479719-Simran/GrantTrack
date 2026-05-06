@@ -9,5 +9,6 @@ public class ApplicationResponseDto
     public int ApplicantId { get; set; }
     public string Status { get; set; } = string.Empty;
     public DateTime? SubmittedDate { get; set; }
+    public List<ValidationMessageDto> ValidationMessages { get; set; } = new();
 
 }
