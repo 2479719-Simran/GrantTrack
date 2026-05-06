@@ -7,7 +7,7 @@ public class EligibilityRule
 {
     [Key]
     public int RuleId { get; set; }
-    [ForeignKey("programId")]
+    [ForeignKey("programIDNavigation")]
     public int ProgramId { get; set; }
     public string RuleDescription { get; set; }
     [Column(TypeName = "VARCHAR(MAX)")]
