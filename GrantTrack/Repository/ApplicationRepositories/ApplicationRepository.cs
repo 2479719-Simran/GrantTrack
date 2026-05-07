@@ -36,10 +36,11 @@ public class ApplicationRepository : IApplicationRepository
 
     // Loads the application along with its documents and applicant for evaluation.
     public async Task<Application?> GetForEvaluationAsync(int applicationId)
-        => await _db.Applications
-            .Include(a => a.Documents)
-            .Include(a => a.ApplicantIDNavigation)
-            .FirstOrDefaultAsync(a => a.ApplicationId == applicationId);
+    => await _db.Applications
+        .Include(a => a.Documents)
+        .Include(a => a.ApplicantIDNavigation)
+        .Include(a => a.ProgramIDNavigation)
+        .FirstOrDefaultAsync(a => a.ApplicationId == applicationId);
 
     // Returns all eligibility rules defined for the given program.
     public async Task<List<EligibilityRule>> GetRulesAsync(int programId)
@@ -58,5 +59,32 @@ public class ApplicationRepository : IApplicationRepository
     {
         await _db.ApplicationValidations.AddRangeAsync(validations);
         await _db.SaveChangesAsync();
+    }
+    public async Task<List<ApplicationValidation>> GetValidationsByApplicationIdAsync(int applicationId)
+    => await _db.ApplicationValidations
+        .Where(v => v.ApplicationId == applicationId)
+        .OrderByDescending(v => v.CheckedDate)
+        .ToListAsync();
+
+    public async Task<(List<ApplicationValidation> Items, int TotalCount)> FilterValidationsAsync(
+        int? applicationId, string? result, int page, int pageSize)
+    {
+        var query = _db.ApplicationValidations.AsQueryable();
+
+        if (applicationId.HasValue)
+            query = query.Where(v => v.ApplicationId == applicationId.Value);
+
+        if (!string.IsNullOrWhiteSpace(result))
+            query = query.Where(v => v.Result == result);
+
+        var total = await query.CountAsync();
+
+        var items = await query
+            .OrderByDescending(v => v.CheckedDate)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        return (items, total);
     }
 }

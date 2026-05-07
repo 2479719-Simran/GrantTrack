@@ -5,7 +5,7 @@ namespace GrantTrack.Repository.ApplicationRepositories;
 
 public interface IApplicationRepository
 {
-     Task<Application> CreateAsync(Application application);
+    Task<Application> CreateAsync(Application application);
     Task<Application?> GetByIdAsync(int id);
     Task<Application> UpdateAsync(Application application);
     Task<bool> ExistsForApplicantAsync(int applicantId, int programId); // duplicate guard
@@ -15,5 +15,8 @@ public interface IApplicationRepository
     Task<List<EligibilityRule>> GetRulesAsync(int programId);
     Task<List<RequiredDocument>> GetRequiredDocsAsync(int programId);
     Task AddValidationsAsync(IEnumerable<ApplicationValidation> validations);
-  
+
+    Task<List<ApplicationValidation>> GetValidationsByApplicationIdAsync(int applicationId);
+    Task<(List<ApplicationValidation> Items, int TotalCount)> FilterValidationsAsync(int? applicationId, string? result, int page, int pageSize);
+
 }
