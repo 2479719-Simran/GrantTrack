@@ -1,6 +1,7 @@
 using DynamicExpresso;
 using GrantTrack.Domain.Entities;
 using GrantTrack.Dto.ApplicationDtos;
+using GrantTrack.Dto.DisbursementDtos;
 using GrantTrack.Events;
 using GrantTrack.Repository.ApplicationRepositories;
 using GrantTrack.Repository.ProgramRepository;
@@ -148,6 +149,18 @@ public class ApplicationService : IApplicationService
                     CheckedDate = now
                 });
             }
+            else
+            {
+                results.Add(new ApplicationValidation
+                {
+                    ApplicationId = application.ApplicationId,
+                    RuleName = $"RequiredDoc:{req.Name}",
+                    Result = "Passed",
+                    Message = $"Mandatory document '{req.Name}' uploaded.",
+                    CheckedDate = now
+                });
+            }
+
         }
 
         //Eligibility rule evaluation (DynamicExpresso)
@@ -210,5 +223,56 @@ public class ApplicationService : IApplicationService
         ApplicantId = a.ApplicantId,
         Status = a.Status.ToString(),
         SubmittedDate = a.SubmittedDate,
+    };
+
+    public async Task<List<ValidationResponseDto>> GetValidationsAsync(
+    int applicationId, int currentUserId, string currentUserRole)
+    {
+        var application = await _ApplicationRepo.GetByIdAsync(applicationId)
+            ?? throw new KeyNotFoundException(Messages.ApplicationNotFound);
+
+        // Applicants can only see their own; Reviewers/Admins can see any
+        if (currentUserRole == nameof(UserRole.Applicant) && application.ApplicantId != currentUserId)
+            throw new UnauthorizedAccessException(Messages.Forbidden);
+
+        var validations = await _ApplicationRepo.GetValidationsByApplicationIdAsync(applicationId);
+        return validations.Select(ToValidationDto).ToList();
+    }
+
+    public async Task<PagedValidationResponseDto> FilterValidationsAsync(
+        ValidationFilterDto filter, int currentUserId, string currentUserRole)
+    {
+        if (currentUserRole == nameof(UserRole.Applicant))
+        {
+            if (!filter.ApplicationId.HasValue)
+                throw new UnauthorizedAccessException(Messages.Forbidden);
+
+            var app = await _ApplicationRepo.GetByIdAsync(filter.ApplicationId.Value)
+                ?? throw new KeyNotFoundException(Messages.ApplicationNotFound);
+
+            if (app.ApplicantId != currentUserId)
+                throw new UnauthorizedAccessException(Messages.Forbidden);
+        }
+
+        var (items, total) = await _ApplicationRepo.FilterValidationsAsync(
+            filter.ApplicationId, filter.Result, filter.Page, filter.PageSize);
+
+        return new PagedValidationResponseDto
+        {
+            Items = items.Select(ToValidationDto).ToList(),
+            TotalCount = total,
+            Page = filter.Page,
+            PageSize = filter.PageSize
+        };
+    }
+
+    private static ValidationResponseDto ToValidationDto(ApplicationValidation v) => new()
+    {
+        ApplicationValidationId = v.ApplicationValidationId,
+        ApplicationId = v.ApplicationId,
+        RuleName = v.RuleName ?? string.Empty,
+        Result = v.Result ?? string.Empty,
+        Message = v.Message ?? string.Empty,
+        CheckedDate = v.CheckedDate
     };
 }

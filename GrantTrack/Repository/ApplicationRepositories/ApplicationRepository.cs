@@ -59,4 +59,31 @@ public class ApplicationRepository : IApplicationRepository
         await _db.ApplicationValidations.AddRangeAsync(validations);
         await _db.SaveChangesAsync();
     }
+    public async Task<List<ApplicationValidation>> GetValidationsByApplicationIdAsync(int applicationId)
+    => await _db.ApplicationValidations
+        .Where(v => v.ApplicationId == applicationId)
+        .OrderByDescending(v => v.CheckedDate)
+        .ToListAsync();
+
+    public async Task<(List<ApplicationValidation> Items, int TotalCount)> FilterValidationsAsync(
+        int? applicationId, string? result, int page, int pageSize)
+    {
+        var query = _db.ApplicationValidations.AsQueryable();
+
+        if (applicationId.HasValue)
+            query = query.Where(v => v.ApplicationId == applicationId.Value);
+
+        if (!string.IsNullOrWhiteSpace(result))
+            query = query.Where(v => v.Result == result);
+
+        var total = await query.CountAsync();
+
+        var items = await query
+            .OrderByDescending(v => v.CheckedDate)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        return (items, total);
+    }
 }
