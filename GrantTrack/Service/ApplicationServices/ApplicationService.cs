@@ -175,10 +175,19 @@ public class ApplicationService : IApplicationService
         {
             var user = appWithDocs.ApplicantIDNavigation;
             interpreter.SetVariable("AccountActive", user.Status);
-
-            var accountAgeDays = (int)(DateTime.UtcNow - user.CreatedAt).TotalDays;
-            interpreter.SetVariable("AccountAge", accountAgeDays);
         }
+        
+        // Expose program details for rule evaluation
+        if (appWithDocs.ProgramIDNavigation is not null)
+        {
+            var program = appWithDocs.ProgramIDNavigation;
+            interpreter.SetVariable("ProgramStartDate", program.StartDate);
+            interpreter.SetVariable("ProgramEndDate", program.EndDate);
+            interpreter.SetVariable("ProgramActive", program.Status);
+        }
+
+        // Current time for date-based rules
+        interpreter.SetVariable("Today", DateTime.UtcNow);
 
         foreach (var rule in rules)
         {

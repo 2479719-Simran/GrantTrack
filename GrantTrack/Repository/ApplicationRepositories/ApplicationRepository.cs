@@ -36,10 +36,11 @@ public class ApplicationRepository : IApplicationRepository
 
     // Loads the application along with its documents and applicant for evaluation.
     public async Task<Application?> GetForEvaluationAsync(int applicationId)
-        => await _db.Applications
-            .Include(a => a.Documents)
-            .Include(a => a.ApplicantIDNavigation)
-            .FirstOrDefaultAsync(a => a.ApplicationId == applicationId);
+    => await _db.Applications
+        .Include(a => a.Documents)
+        .Include(a => a.ApplicantIDNavigation)
+        .Include(a => a.ProgramIDNavigation)
+        .FirstOrDefaultAsync(a => a.ApplicationId == applicationId);
 
     // Returns all eligibility rules defined for the given program.
     public async Task<List<EligibilityRule>> GetRulesAsync(int programId)
