@@ -32,6 +32,7 @@
     <Folder Include="Repository\AssignmentService\" />
     <Folder Include="Repository\EligibilityRuleRepositories\" />
     <Folder Include="Dto\GrantReportDos\" />
+    <Folder Include="Dto\DocumentDtos\" />
     <Folder Include="Dto\RecommendationDto\" />
     <Folder Include="Repository\AssignmentService\" />
     <Folder Include="Repository\ComplianceCheckRepository\" />
