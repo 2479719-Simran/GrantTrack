@@ -10,8 +10,10 @@ public class CreatePaymentDto
     public int DisbursementId { get; set; }
 
     [Required]
-    [Range(0.01, double.MaxValue, ErrorMessage = "Amount must be greater than zero")]
-    public decimal Amount { get; set; }
+    [Range(typeof(decimal), "0.01", "79228162514264337593543950335.99", ErrorMessage = "Amount must be greater than zero")]
+    [RegularExpression(@"^\d+(\.\d{1,2})?$", ErrorMessage = "Amount allows max 2 decimal places")]
+
+    public decimal Amount { get; set; } =  0.00m;
 
     [Required]
     public DateTime Date { get; set; }

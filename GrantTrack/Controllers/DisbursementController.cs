@@ -155,5 +155,57 @@ namespace GrantTrack.Controllers
                     new { error = Messages.SomethingWentWrong });
             }
         }
+
+        /// <summary>
+        /// GET /api/v1/disbursement?applicationId=&status=
+        /// Finance Officer gets filtered list of disbursements.
+        /// </summary>
+        [HttpGet]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> GetDisbursements(
+            [FromQuery] int? applicationId,
+            [FromQuery] string? status,
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 10)
+        {
+            try
+            {
+                var result = await _disbursementService.GetDisbursementsAsync(
+                    applicationId, status, page, pageSize);
+                return Ok(result);
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    new { error = Messages.SomethingWentWrong });
+            }
+        }
+
+        /// <summary>
+        /// GET /api/v1/disbursement/payments?from=&to=
+        /// Finance Officer gets filtered paginated list of payments.
+        /// </summary>
+        [HttpGet("payments")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> GetPayments(
+            [FromQuery] DateTime? from,
+            [FromQuery] DateTime? to,
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 10)
+        {
+            try
+            {
+                var result = await _disbursementService.GetPaymentsAsync(
+                    from, to, page, pageSize);
+                return Ok(result);
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    new { error = Messages.SomethingWentWrong });
+            }
+        }
     }
 }

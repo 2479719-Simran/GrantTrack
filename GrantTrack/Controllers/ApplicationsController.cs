@@ -98,6 +98,73 @@ public class ApplicationsController : ControllerBase
             return StatusCode(StatusCodes.Status500InternalServerError, new { error = Messages.UnexpectedError });
         }
     }
+
+    /// <summary>
+    /// Gets all validation results for a specific application.
+    /// Applicants can only access their own; Reviewers and Admins can access any.
+    /// GET /api/v1/applications/{id}/validations
+    /// </summary>
+    [HttpGet("{id}/validations")]
+    [Authorize(Roles = $"{nameof(UserRole.Applicant)},{nameof(UserRole.Reviewer)},{nameof(UserRole.Admin)}")]
+    [ProducesResponseType(typeof(List<ValidationResponseDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> GetValidations(int id)
+    {
+        try
+        {
+            var userId = GetCurrentUserId();
+            var role = User.FindFirstValue(ClaimTypes.Role) ?? string.Empty;
+            var result = await _service.GetValidationsAsync(id, userId, role);
+            return Ok(result);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { error = ex.Message });
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, new { error = Messages.Forbidden });
+        }
+        catch (Exception)
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError, new { error = Messages.UnexpectedError });
+        }
+    }
+
+    /// <summary>
+    /// Filters validation results by ApplicationId and/or Result with pagination.
+    /// GET /api/v1/applications/validations/filter?applicationId=5&result=Failed&page=1&pageSize=20
+    /// </summary>
+    [HttpGet("validations/filter")]
+    [Authorize(Roles = $"{nameof(UserRole.Applicant)},{nameof(UserRole.Reviewer)},{nameof(UserRole.Admin)}")]
+    [ProducesResponseType(typeof(PagedValidationResponseDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> FilterValidations([FromQuery] ValidationFilterDto filter)
+    {
+        try
+        {
+            var userId = GetCurrentUserId();
+            var role = User.FindFirstValue(ClaimTypes.Role) ?? string.Empty;
+            var result = await _service.FilterValidationsAsync(filter, userId, role);
+            return Ok(result);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { error = ex.Message });
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, new { error = Messages.Forbidden });
+        }
+        catch (Exception)
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError, new { error = Messages.UnexpectedError });
+        }
+    }
     /// <summary>
     /// Extracts the authenticated user's ID from their JWT claims.
     /// </summary>

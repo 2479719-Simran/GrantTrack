@@ -8,7 +8,6 @@ public class RequiredDocument
 {
     [Key]
     public int DocumentId { get; set; }
-
     public int ProgramId { get; set; }
 
     [Required]
