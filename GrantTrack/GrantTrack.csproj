@@ -28,6 +28,7 @@
     <Folder Include="AutoMappers\" />
     <Folder Include="Dto\EligibilityRulesDtos\" />
     <Folder Include="Dto\RecommendationDto\" />
+    <Folder Include="Dto\RequiredDocumentsDtos\" />
     <Folder Include="Repository\AssignmentService\" />
     <Folder Include="Repository\EligibilityRuleRepositories\" />
     <Folder Include="Dto\GrantReportDos\" />
@@ -36,10 +37,12 @@
     <Folder Include="Repository\ComplianceCheckRepository\" />
     <Folder Include="Repository\GrantReportRepositories\" />
     <Folder Include="Repository\RecommendationRepository\" />
+    <Folder Include="Repository\RequiredDocumentRepository\" />
     <Folder Include="Repository\ReviewRepository\" />
     <Folder Include="Service\EligibilityRuleServices\" />
     <Folder Include="Service\GrantReportServices\" />
     <Folder Include="Service\RecommendationService\" />
+    <Folder Include="Service\RequiredDocumentServices\" />
     <Folder Include="Service\ReviewFilterService\" />
     <Folder Include="Dto\DisbursementDtos\" />
     <Folder Include="Repository\DisbursementRepositories\" />

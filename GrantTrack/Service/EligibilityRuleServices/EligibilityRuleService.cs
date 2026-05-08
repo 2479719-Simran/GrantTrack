@@ -2,6 +2,7 @@ using System;
 using GrantTrack.Dto.EligibilityRulesDtos;
 using GrantTrack.Repository.EligibilityRuleRepositories;
 using GrantTrack.Repository.ProgramRepository;
+using GrantTrack.Utility;
 
 namespace GrantTrack.Service.EligibilityRuleServices;
 
@@ -28,8 +29,12 @@ public class EligibilityRuleService : IEligibilityRuleService
             throw new ArgumentException("Rule description is required.");
 
         if (string.IsNullOrWhiteSpace(request.RuleExpression))
-            throw new ArgumentException("Rule expression is required.");
-
+            throw new ArgumentException("Rule expression is required."); 
+        IExpressionValidator expressionValidator = new ExpressionSyntaxValidator();  
+        SyntaxCheckResult val = expressionValidator.Validate(request.RuleExpression);
+        if(!val.IsValid)
+            throw new ArgumentException(val.Error);
+        
         // Ensure the program exists before attaching a rule to it
         var programExists = await programRepository.ExistsAsync(request.ProgramId);
         if (!programExists)
@@ -79,6 +84,10 @@ public class EligibilityRuleService : IEligibilityRuleService
         if (!ruleExists)
             throw new KeyNotFoundException($"Eligibility rule with ID {ruleId} does not exist.");
 
+        IExpressionValidator expressionValidator = new ExpressionSyntaxValidator();  
+        SyntaxCheckResult val = expressionValidator.Validate(request.RuleExpression);
+        if(!val.IsValid)
+            throw new ArgumentException(val.Error);
         // Ensure the (possibly reassigned) program exists and is active
         var programExists = await programRepository.ExistsAsync(request.ProgramId);
         if (!programExists)

@@ -45,7 +45,10 @@ public class User
     [Required]
     [Column(TypeName = "varchar(max)")]
     public string Password { get; set; }
-    public DateTime CreatedAt { get; set; }
+    public DateTime CreatedAt { get; set; } 
+    public int annualIncome { get; set; } 
+    public string location {get; set;} 
+    public int employeeCount { get; set; }
     //-------------------PrimaryKey---------------------//
     public List<Recommendation> Recommendations { get; set; }
     public List<Application> Applications { get; set; } = new List<Application>();

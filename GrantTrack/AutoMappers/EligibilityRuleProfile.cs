@@ -9,9 +9,9 @@ public class EligibilityRuleProfile : Profile
 {
     public EligibilityRuleProfile()
     {
-        CreateMap<EligibilityRule , CreateEligibilityRuleResponseDto>(); 
-        CreateMap<EligibilityRule , UpdateEligibilityRuleResponseDto>(); 
-        CreateMap<EligibilityRule , DeleteEligibilityRuleResponseDto>(); 
-        CreateMap<EligibilityRule , GetEligibilityRuleResponseDto>(); 
+        CreateMap<EligibilityRule, CreateEligibilityRuleResponseDto>();
+        CreateMap<EligibilityRule, UpdateEligibilityRuleResponseDto>();
+        CreateMap<EligibilityRule, DeleteEligibilityRuleResponseDto>();
+        CreateMap<EligibilityRule, GetEligibilityRuleResponseDto>();
     }
 }

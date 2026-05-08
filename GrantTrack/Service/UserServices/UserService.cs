@@ -170,6 +170,20 @@ namespace GrantTrack.Service
             {
                 throw new Exception("Invalid email format. Please enter a valid email (e.g., user@example.com).");
             }
+            if(request.annualIncome == 0)
+            {
+                throw new Exception("Annual Income cannot be zero");
+            }
+            if (string.IsNullOrWhiteSpace(request.location))
+            {
+                throw new Exception("Name cannot be null ");
+                
+            }
+            if(request.employeeCount == 0)
+            {
+                throw new Exception("Employee count cannot be zero");
+                
+            }
             var res = await _userRepository.UpdateUser(id, request);
 
             return res;
