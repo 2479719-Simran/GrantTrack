@@ -7,17 +7,16 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="12.0.1" />
+    <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
     <PackageReference Include="BCrypt.Net-Next" Version="4.1.0" />
     <PackageReference Include="DotNetEnv" Version="3.1.1" />
-    <PackageReference Include="DynamicExpresso.Core" Version="2.2.1" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.5" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.5" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.7" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.5">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.7" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="10.1.7" />
   </ItemGroup>
 
@@ -26,18 +25,26 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="AutoMappers\" />
+    <Folder Include="Dto\EligibilityRulesDtos\" />
+    <Folder Include="Dto\RecommendationDto\" />
+    <Folder Include="Dto\RequiredDocumentsDtos\" />
+    <Folder Include="Repository\AssignmentService\" />
+    <Folder Include="Repository\EligibilityRuleRepositories\" />
+    <Folder Include="Dto\GrantReportDos\" />
     <Folder Include="Dto\DocumentDtos\" />
-    <Folder Include="Dto\GrantReportDtos\" />
     <Folder Include="Dto\RecommendationDto\" />
     <Folder Include="Repository\AssignmentService\" />
     <Folder Include="Repository\ComplianceCheckRepository\" />
     <Folder Include="Repository\GrantReportRepositories\" />
     <Folder Include="Repository\RecommendationRepository\" />
+    <Folder Include="Repository\RequiredDocumentRepository\" />
     <Folder Include="Repository\ReviewRepository\" />
+    <Folder Include="Service\EligibilityRuleServices\" />
     <Folder Include="Service\GrantReportServices\" />
     <Folder Include="Service\RecommendationService\" />
+    <Folder Include="Service\RequiredDocumentServices\" />
     <Folder Include="Service\ReviewFilterService\" />
-
     <Folder Include="Dto\DisbursementDtos\" />
     <Folder Include="Repository\DisbursementRepositories\" />
     <Folder Include="Service\DisbursementServices\" />

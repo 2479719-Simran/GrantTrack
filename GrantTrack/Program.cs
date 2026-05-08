@@ -24,12 +24,16 @@ using GrantTrack.Repository.RecommendationRepository;
 using GrantTrack.Repository.DecisionRepositories;
 using GrantTrack.Service.DecisionServices;
 using GrantTrack.Repository.AuditLogRepoistories;
+using GrantTrack.Repository.EligibilityRuleRepositories;
+using GrantTrack.Service.EligibilityRuleServices;
 using GrantTrack.Repository.DocumentRepositories;
 using GrantTrack.Service.DocumentServices;
 using GrantTrack.Repository.ComplianceCheckRepository;
 using GrantTrack.Service.ComplianceCheckServices;
 using GrantTrack.Repository.GrantReportRepositories;
 using GrantTrack.Service.GrantReportServices;
+using GrantTrack.Repository.RequiredDocumentRepositories;
+using GrantTrack.Service.RequiredDocumentServices;
 // using Microsoft.OpenApi.Models; // Change this
 // using Microsoft.AspNetCore.Authentication.JwtBearer; // Ensure this is present
 Env.Load();
@@ -51,10 +55,10 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IReviewService, ReviewService>();
-builder.Services.AddScoped<IReviewRepository,ReviewRepository>();
-builder.Services.AddScoped<IRecommendationRepository,RecommendationRepository>();
-builder.Services.AddScoped<IRecommendationService,RecommendationService>();
-builder.Services.AddScoped<IReviewFilterService,ReviewFilterService>();
+builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
+builder.Services.AddScoped<IRecommendationRepository, RecommendationRepository>();
+builder.Services.AddScoped<IRecommendationService, RecommendationService>();
+builder.Services.AddScoped<IReviewFilterService, ReviewFilterService>();
 builder.Services.AddScoped<IDisbursementRepository, DisbursementRepository>();
 builder.Services.AddScoped<IDisbursementService, DisbursementService>();
 builder.Services.AddScoped<IProgramService, ProgramService>();
@@ -65,13 +69,18 @@ builder.Services.AddScoped<IAuditLogRepository, AuditLogRepository>();
 builder.Services.AddScoped<IApplicationRepository, ApplicationRepository>();
 builder.Services.AddScoped<IApplicationService, ApplicationService>();
 builder.Services.AddSingleton<IEventPublisher, InMemoryEventPublisher>();
+builder.Services.AddScoped<IEligibilityRuleRepository, EligibilityRuleRepository>();
+builder.Services.AddScoped<IEligibilityRuleService, EligibilityRuleService>();
+builder.Services.AddSingleton<IEventPublisher, InMemoryEventPublisher>();
 builder.Services.AddScoped<IDocumentRepository, DocumentRepository>();
 builder.Services.AddScoped<IDocumentService, DocumentService>();
 builder.Services.AddScoped<IComplianceCheckService, ComplianceCheckService>();
 builder.Services.AddScoped<IComplianceCheckRepository, ComplianceCheckRepository>();
+builder.Services.AddAutoMapper(typeof(Program).Assembly);
 builder.Services.AddScoped<IGrantReportRepository, GrantReportRepository>();
 builder.Services.AddScoped<IGrantReportService, GrantReportService>();
-
+builder.Services.AddScoped<IRequiredDocumentRepository, RequiredDocumentRepository>();
+builder.Services.AddScoped<IRequiredDocumentService, RequiredDocumentService>();
 
 
 builder.Services.AddSwaggerGen(options =>

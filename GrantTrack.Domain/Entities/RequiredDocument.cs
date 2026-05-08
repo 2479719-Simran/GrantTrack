@@ -1,20 +1,20 @@
-using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
+
 namespace GrantTrack.Domain.Entities;
 
-[PrimaryKey("DocumentId")]
 public class RequiredDocument
 {
     [Key]
     public int DocumentId { get; set; }
-    [ForeignKey("ProgramIDNavigation")]
     public int ProgramId { get; set; }
+
     [Required]
-    public string? Name { get; set; }
+    public string Name { get; set; } = string.Empty;
+
     public bool Mandatory { get; set; }
-    public virtual GrantProgram? ProgramIDNavigation { get; set; }
 
-
+    [ForeignKey("ProgramId")]
+    public virtual GrantProgram? Program { get; set; }
 }

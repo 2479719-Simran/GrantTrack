@@ -43,6 +43,9 @@ namespace GrantTrack.Repository
             user.Role = role;
             user.Status = request.Status;
             user.Email = request.Email;
+            user.annualIncome = request.annualIncome;
+            user.location = request.location;
+            user.employeeCount = request.employeeCount;
             await _context.SaveChangesAsync();
             return new UpdateUserResponseDto
             {
@@ -50,7 +53,11 @@ namespace GrantTrack.Repository
                 Phone = user.Phone,
                 Role = user.Role.ToString(),
                 Status = request.Status,
-                Email = user.Email
+                Email = user.Email,
+                annualIncome = user.annualIncome,
+                employeeCount = user.employeeCount,
+                location = user.location
+
             };
         }
         public async Task<User?> GetUserByEmailAsync(string email)
