@@ -1,0 +1,48 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="16.1.1" />
+    <PackageReference Include="BCrypt.Net-Next" Version="4.1.0" />
+    <PackageReference Include="DotNetEnv" Version="3.1.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.5" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.5" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.5">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="10.1.7" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\GrantTrack.Domain\GrantTrack.Domain.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Dto\GrantReportDos\" />
+    <Folder Include="Dto\NotificationsDtos\" />
+    <Folder Include="Dto\RecommendationDto\" />
+    <Folder Include="Repository\AssignmentService\" />
+    <Folder Include="Repository\ComplianceCheckRepository\" />
+    <Folder Include="Repository\NotificationRepository\" />
+    <Folder Include="Repository\RecommendationRepository\" />
+    <Folder Include="Repository\ReviewRepository\" />
+    <Folder Include="Service\NotificationServices\" />
+    <Folder Include="Service\RecommendationService\" />
+    <Folder Include="Service\ReviewFilterService\" />
+
+    <Folder Include="Dto\DisbursementDtos\" />
+    <Folder Include="Repository\DisbursementRepositories\" />
+    <Folder Include="Service\DisbursementServices\" />
+    <Folder Include="Dto\ProgramDtos\" />
+    <Folder Include="Repository\ProgramRepository\" />
+    <Folder Include="Service\ProgramServices\" />
+
+  </ItemGroup>
+
+</Project>
