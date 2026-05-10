@@ -42,6 +42,7 @@
     <Folder Include="Dto\ProgramDtos\" />
     <Folder Include="Repository\ProgramRepository\" />
     <Folder Include="Service\ProgramServices\" />
+    <Folder Include="uploads\applications\" />
 
   </ItemGroup>
 
