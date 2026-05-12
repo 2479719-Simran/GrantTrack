@@ -1,0 +1,62 @@
+@charset "UTF-8";
+/* Local styles shared by all auth pages. The split-pane shell lives in
+   AuthLayoutComponent — this file just polishes the form card. */
+.auth-card__header {
+  margin-bottom: 1.5rem;
+}
+
+/* Soft input group with leading icon. We custom-paint the focus ring so the
+   wrapper, not the inner inputs, gets the highlight. */
+.input-group-soft {
+  position: relative;
+}
+.input-group-soft .input-group-text {
+  background-color: #ffffff;
+  border-right: 0;
+  color: #94a3b8;
+  padding-right: 0.35rem;
+}
+.input-group-soft .form-control {
+  border-left: 0;
+  box-shadow: none !important;
+}
+.input-group-soft .form-control:focus {
+  border-color: var(--gt-navy-700);
+}
+.input-group-soft {
+  /* Focus-within ring on the whole group */
+}
+.input-group-soft:focus-within .input-group-text,
+.input-group-soft:focus-within .form-control,
+.input-group-soft:focus-within .btn {
+  border-color: var(--gt-navy-700);
+}
+.input-group-soft:focus-within {
+  box-shadow: 0 0 0 0.2rem rgba(30, 58, 138, 0.15);
+  border-radius: 0.625rem;
+}
+.input-group-soft.is-invalid .input-group-text,
+.input-group-soft.is-invalid .form-control,
+.input-group-soft.is-invalid .btn {
+  border-color: var(--bs-danger);
+}
+.input-group-soft .btn-outline-secondary {
+  border-color: #cbd5e1;
+  color: #64748b;
+}
+.input-group-soft .btn-outline-secondary:hover {
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+.form-error {
+  color: var(--bs-danger);
+  font-size: 0.8125rem;
+  margin-top: 0.375rem;
+}
+
+.btn-lg-fixed {
+  font-weight: 600;
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+}

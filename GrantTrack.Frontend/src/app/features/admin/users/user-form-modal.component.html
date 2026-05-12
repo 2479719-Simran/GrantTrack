@@ -1,0 +1,130 @@
+<div class="modal-header border-0 pb-0">
+  <h2 class="h5 fw-semibold mb-0">{{ title }}</h2>
+  <button type="button" class="btn-close" aria-label="Close" (click)="active.dismiss()"></button>
+</div>
+
+<form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+  <div class="modal-body pt-3">
+    @if (isEdit) {
+      <p class="text-body-secondary small mb-3">
+        <i class="bi bi-info-circle me-1"></i>
+        Phone is required by the API. Re-enter the user's phone even if it isn't changing.
+      </p>
+    }
+
+    <div class="row g-3">
+      <div class="col-md-12">
+        <label class="form-label" for="u-name">Full name</label>
+        <div class="input-group input-group-soft" [class.is-invalid]="name.touched && name.invalid">
+          <span class="input-group-text"><i class="bi bi-person"></i></span>
+          <input id="u-name" type="text" class="form-control" formControlName="name" placeholder="Jane Doe" />
+        </div>
+        @if (name.touched && name.errors?.['required']) {
+          <div class="form-error">Name is required.</div>
+        }
+      </div>
+
+      <div class="col-md-7">
+        <label class="form-label" for="u-email">Email</label>
+        <div class="input-group input-group-soft" [class.is-invalid]="email.touched && email.invalid">
+          <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+          <input id="u-email" type="email" class="form-control" formControlName="email"
+                 autocomplete="off" placeholder="user@example.com" />
+        </div>
+        @if (email.touched && email.errors) {
+          <div class="form-error">
+            @if (email.errors['required']) { Email is required. }
+            @else if (email.errors['pattern']) { Enter a valid email address. }
+          </div>
+        }
+      </div>
+
+      <div class="col-md-5">
+        <label class="form-label" for="u-phone">Phone</label>
+        <div class="input-group input-group-soft" [class.is-invalid]="phone.touched && phone.invalid">
+          <span class="input-group-text"><i class="bi bi-telephone"></i></span>
+          <input id="u-phone" type="tel" class="form-control" formControlName="phone"
+                 inputmode="numeric" maxlength="10" placeholder="10 digits" />
+        </div>
+        @if (phone.touched && phone.errors) {
+          <div class="form-error">
+            @if (phone.errors['required']) { Phone is required. }
+            @else if (phone.errors['pattern']) { Phone must be exactly 10 digits. }
+          </div>
+        }
+      </div>
+
+      <div class="col-md-7">
+        <label class="form-label" for="u-role">Role</label>
+        <select id="u-role" class="form-select" formControlName="role">
+          @for (r of roles; track r) {
+            <option [value]="r">{{ r }}</option>
+          }
+        </select>
+        @if (!isEdit && role.value === 'Admin') {
+          <div class="form-text small text-warning-emphasis">
+            <i class="bi bi-info-circle me-1"></i>
+            Note: the API blocks "Admin" at registration. To create an admin, register as another role then edit to promote.
+          </div>
+        }
+      </div>
+
+      <div class="col-md-5 d-flex align-items-end">
+        <div class="form-check form-switch mb-2">
+          <input id="u-status" class="form-check-input" type="checkbox" role="switch" formControlName="status" />
+          <label class="form-check-label small fw-medium" for="u-status">
+            {{ status.value ? 'Active' : 'Inactive' }}
+          </label>
+        </div>
+      </div>
+
+      @if (!isEdit) {
+        <div class="col-md-6">
+          <label class="form-label" for="u-password">Temporary password</label>
+          <div class="input-group input-group-soft" [class.is-invalid]="password.touched && password.invalid">
+            <span class="input-group-text"><i class="bi bi-lock"></i></span>
+            <input id="u-password" [type]="showPassword ? 'text' : 'password'" class="form-control"
+                   formControlName="password" autocomplete="new-password" />
+            <button type="button" class="btn btn-outline-secondary" (click)="showPassword = !showPassword">
+              <i class="bi" [class.bi-eye]="!showPassword" [class.bi-eye-slash]="showPassword"></i>
+            </button>
+          </div>
+          @if (password.touched && password.errors) {
+            <div class="form-error">
+              @if (password.errors['required']) { Password is required. }
+              @else if (password.errors['pattern']) {
+                8+ chars · upper · lower · digit · special.
+              }
+            </div>
+          } @else {
+            <div class="form-text small">8+ chars with upper, lower, digit &amp; special.</div>
+          }
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label" for="u-confirm">Confirm password</label>
+          <div class="input-group input-group-soft"
+               [class.is-invalid]="confirmPassword.touched && (confirmPassword.invalid || form.errors?.['passwordMismatch'])">
+            <span class="input-group-text"><i class="bi bi-lock-fill"></i></span>
+            <input id="u-confirm" [type]="showPassword ? 'text' : 'password'" class="form-control"
+                   formControlName="confirmPassword" autocomplete="new-password" />
+          </div>
+          @if (confirmPassword.touched && form.errors?.['passwordMismatch']) {
+            <div class="form-error">Passwords do not match.</div>
+          }
+        </div>
+      }
+    </div>
+
+    @if (submitError) {
+      <div class="alert alert-danger mt-3 py-2 small mb-0">
+        <i class="bi bi-exclamation-triangle-fill me-1"></i> {{ submitError }}
+      </div>
+    }
+  </div>
+
+  <div class="modal-footer border-0">
+    <button type="button" class="btn btn-outline-secondary" (click)="active.dismiss()">Cancel</button>
+    <button type="submit" class="btn btn-primary px-4">{{ submitLabel }}</button>
+  </div>
+</form>

@@ -1,0 +1,239 @@
+<section class="home-hero">
+  <div class="home-hero__inner container">
+    <div class="row align-items-center">
+      <div class="col-lg-8">
+        <p class="text-uppercase small fw-semibold text-info-emphasis mb-2 letter-spaced">
+          {{ roleLabel() }} workspace
+        </p>
+        <h1 class="display-6 fw-bold mb-2">
+          Welcome back@if (displayName()) {, {{ displayName() }}}.
+        </h1>
+        <p class="lead text-white-75 mb-0">
+          @if (isAdmin()) {
+            Here's a live view of every application's progress through the system.
+          } @else {
+            Here's what you can do today in GrantTrack.
+          }
+        </p>
+      </div>
+      <div class="col-lg-4 d-none d-lg-flex justify-content-end">
+        <div class="home-hero__decor">
+          <i class="bi bi-graph-up-arrow"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="container py-4">
+  @if (isAdmin()) {
+    <!-- ============== ADMIN DASHBOARD ============== -->
+
+    <!-- Lifecycle stage rollup — projects every step at a glance -->
+    <div class="lifecycle-grid mb-4">
+      <a class="stage-card" routerLink="/admin/applications" [queryParams]="{}">
+        <div class="stage-card__top">
+          <span class="stage-card__label">Total</span>
+          <i class="bi bi-files"></i>
+        </div>
+        <span class="stage-card__value">{{ stageStats().total }}</span>
+        <small class="stage-card__hint">Across every program</small>
+      </a>
+
+      <a class="stage-card stage-card--draft" routerLink="/admin/applications">
+        <div class="stage-card__top">
+          <span class="stage-card__label">1 · Draft</span>
+          <i class="bi bi-file-earmark-text"></i>
+        </div>
+        <span class="stage-card__value">{{ stageStats().drafts }}</span>
+        <small class="stage-card__hint">Started but not yet submitted</small>
+      </a>
+
+      <a class="stage-card stage-card--submitted" routerLink="/admin/applications">
+        <div class="stage-card__top">
+          <span class="stage-card__label">2 · Submitted</span>
+          <i class="bi bi-send-check"></i>
+        </div>
+        <span class="stage-card__value">{{ stageStats().submitted + stageStats().underReview }}</span>
+        <small class="stage-card__hint">Submitted or under review</small>
+      </a>
+
+      <a class="stage-card stage-card--awaiting" routerLink="/admin/assignments">
+        <div class="stage-card__top">
+          <span class="stage-card__label">3 · Needs reviewer</span>
+          <i class="bi bi-people"></i>
+        </div>
+        <span class="stage-card__value">{{ stageStats().awaitingReviewer }}</span>
+        <small class="stage-card__hint">No reviewer assigned yet</small>
+      </a>
+
+      <a class="stage-card stage-card--awaiting" routerLink="/admin/applications">
+        <div class="stage-card__top">
+          <span class="stage-card__label">4 · Reviewing</span>
+          <i class="bi bi-pencil-square"></i>
+        </div>
+        <span class="stage-card__value">{{ stageStats().awaitingRecommendation }}</span>
+        <small class="stage-card__hint">Reviewer assigned, no recommendation yet</small>
+      </a>
+
+      <a class="stage-card stage-card--awaiting" routerLink="/admin/applications">
+        <div class="stage-card__top">
+          <span class="stage-card__label">5 · Awaiting decision</span>
+          <i class="bi bi-hourglass-split"></i>
+        </div>
+        <span class="stage-card__value">{{ stageStats().awaitingDecision }}</span>
+        <small class="stage-card__hint">Recommendations in, approver to decide</small>
+      </a>
+
+      <a class="stage-card stage-card--approved" routerLink="/admin/applications">
+        <div class="stage-card__top">
+          <span class="stage-card__label">6a · Approved</span>
+          <i class="bi bi-check-circle"></i>
+        </div>
+        <span class="stage-card__value">{{ stageStats().approved }}</span>
+        <small class="stage-card__hint">Final decision = Approved</small>
+      </a>
+
+      <a class="stage-card stage-card--rejected" routerLink="/admin/applications">
+        <div class="stage-card__top">
+          <span class="stage-card__label">6b · Rejected</span>
+          <i class="bi bi-x-circle"></i>
+        </div>
+        <span class="stage-card__value">{{ stageStats().rejected }}</span>
+        <small class="stage-card__hint">Final decision = Rejected</small>
+      </a>
+    </div>
+
+    <!-- Recent activity + quick actions side-by-side on wide screens -->
+    <div class="row g-3 g-lg-4">
+      <div class="col-12 col-xl-7">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-body">
+            <div class="d-flex align-items-baseline justify-content-between mb-3">
+              <h2 class="h6 fw-semibold mb-0">Recent applications</h2>
+              <button type="button" class="btn btn-sm btn-link p-0"
+                      (click)="refreshAdminFeed()" [disabled]="loadingAdmin()">
+                <i class="bi bi-arrow-clockwise me-1"></i><small>Refresh</small>
+              </button>
+            </div>
+
+            @if (loadingAdmin() && adminApps().length === 0) {
+              <div class="text-body-secondary small py-3 text-center">
+                <span class="spinner-border spinner-border-sm me-2"></span> Loading…
+              </div>
+            } @else if (adminError()) {
+              <div class="alert alert-warning small mb-0">
+                <i class="bi bi-exclamation-triangle-fill me-1"></i>{{ adminError() }}
+              </div>
+            } @else if (recentApps().length === 0) {
+              <div class="text-body-secondary small py-3 text-center border rounded">
+                <i class="bi bi-inbox d-block fs-4 text-body-tertiary mb-1"></i>
+                No applications yet.
+              </div>
+            } @else {
+              <ul class="activity list-unstyled mb-0">
+                @for (a of recentApps(); track a.applicationId) {
+                  <li class="activity__item">
+                    <span class="gt-avatar">{{ initials(a.applicantName, a.applicantEmail) }}</span>
+                    <div class="flex-grow-1 min-w-0">
+                      <div class="d-flex justify-content-between gap-2 align-items-baseline">
+                        <a [routerLink]="['/admin/applications', a.applicationId]" class="fw-semibold text-truncate">
+                          {{ a.applicantName || '(no name)' }}
+                        </a>
+                        <small class="text-body-secondary text-nowrap">{{ a.submittedDate | date:'mediumDate' }}</small>
+                      </div>
+                      <div class="text-body-secondary small text-truncate">
+                        {{ a.programName }} · App #{{ a.applicationId }}
+                      </div>
+                      <div class="d-flex flex-wrap gap-1 mt-1">
+                        <span class="badge rounded-pill" [class]="statusClass(a.status)">{{ a.status }}</span>
+                        @if (a.reviewerCount > 0) {
+                          <span class="activity__chip"><i class="bi bi-people"></i>{{ a.reviewerCount }}</span>
+                        }
+                        @if (a.recommendationCount > 0) {
+                          <span class="activity__chip"><i class="bi bi-pencil-square"></i>{{ a.recommendationCount }}</span>
+                        }
+                        @if (a.documentCount > 0) {
+                          <span class="activity__chip"><i class="bi bi-paperclip"></i>{{ a.documentCount }}</span>
+                        }
+                        @if (a.finalDecision === 'Approved') {
+                          <span class="badge rounded-pill bg-success-subtle text-success-emphasis">
+                            <i class="bi bi-check-circle me-1"></i>Approved
+                          </span>
+                        } @else if (a.finalDecision === 'Rejected') {
+                          <span class="badge rounded-pill bg-danger-subtle text-danger-emphasis">
+                            <i class="bi bi-x-circle me-1"></i>Rejected
+                          </span>
+                        }
+                      </div>
+                    </div>
+                  </li>
+                }
+              </ul>
+            }
+          </div>
+          <div class="card-footer bg-transparent border-top-0 px-3 pb-3 pt-0">
+            <a routerLink="/admin/applications" class="small">
+              View all applications <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-12 col-xl-5">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-body">
+            <h2 class="h6 fw-semibold mb-3">Quick actions</h2>
+            <div class="row g-3">
+              @for (tile of myTiles(); track tile.to) {
+                <div class="col-12 col-sm-6">
+                  <a [routerLink]="tile.to" class="tile-card text-decoration-none">
+                    <div class="tile-card__icon">
+                      <i class="bi" [class]="tile.icon"></i>
+                    </div>
+                    <div class="tile-card__body">
+                      <h3 class="h6 mb-1">{{ tile.title }}</h3>
+                      <p class="text-body-secondary small mb-2" [innerHTML]="tile.blurb"></p>
+                      <span class="tile-card__cta">
+                        {{ tile.cta }} <i class="bi bi-arrow-right"></i>
+                      </span>
+                    </div>
+                  </a>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  } @else {
+    <!-- ============== NON-ADMIN ROLES ============== -->
+    @if (myTiles().length === 0) {
+      <div class="card border-0 shadow-sm">
+        <div class="card-body text-center text-body-secondary py-5">
+          <i class="bi bi-inbox display-5 text-body-tertiary"></i>
+          <p class="mb-0 mt-3">There are no shortcuts available for your role yet.</p>
+        </div>
+      </div>
+    } @else {
+      <div class="row g-3 g-lg-4">
+        @for (tile of myTiles(); track tile.to) {
+          <div class="col-12 col-md-6 col-xl-4">
+            <a [routerLink]="tile.to" class="tile-card text-decoration-none">
+              <div class="tile-card__icon">
+                <i class="bi" [class]="tile.icon"></i>
+              </div>
+              <div class="tile-card__body">
+                <h2 class="h6 mb-1">{{ tile.title }}</h2>
+                <p class="text-body-secondary small mb-3" [innerHTML]="tile.blurb"></p>
+                <span class="tile-card__cta">
+                  {{ tile.cta }} <i class="bi bi-arrow-right"></i>
+                </span>
+              </div>
+            </a>
+          </div>
+        }
+      </div>
+    }
+  }
+</section>

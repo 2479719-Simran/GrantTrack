@@ -1,0 +1,50 @@
+.letter-spaced {
+  letter-spacing: 0.08em;
+}
+
+.meta-tile {
+  background: #f8fafc;
+  border: 1px solid var(--gt-border);
+  border-radius: 0.625rem;
+  padding: 0.75rem 0.9rem;
+  height: 100%;
+}
+.meta-tile__label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--gt-text-muted);
+  margin-bottom: 0.15rem;
+}
+.meta-tile__value {
+  font-weight: 600;
+  color: var(--gt-text);
+}
+
+.apply-option {
+  display: flex;
+  gap: 0.9rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--gt-border);
+  border-radius: 0.625rem;
+  cursor: pointer;
+  margin-bottom: 0.65rem;
+  transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+}
+.apply-option:hover {
+  border-color: rgba(30, 58, 138, 0.3);
+  background: #fbfcfe;
+}
+.apply-option--active {
+  border-color: var(--gt-navy-700);
+  background: rgba(30, 58, 138, 0.05);
+  box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1);
+}
+.apply-option input[type=radio] {
+  flex: 0 0 auto;
+  margin-top: 0.15rem;
+}
+.apply-option small {
+  display: block;
+  margin-top: 0.15rem;
+}

@@ -1,0 +1,280 @@
+<div class="container-fluid container-xl px-3 px-lg-4">
+  <app-page-header
+    eyebrow="Administration"
+    icon="bi-files"
+    [title]="'Application #' + applicationId()"
+    [subtitle]="detail()?.programName ?? 'Full audit view of this application.'">
+    <a routerLink="/admin/applications" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left me-1"></i> Back to all applications
+    </a>
+  </app-page-header>
+
+  @if (detail(); as d) {
+    <div class="row g-3">
+      <!-- Applicant + Program header -->
+      <div class="col-12 col-xl-7">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+              <p class="text-uppercase fw-semibold small text-body-secondary mb-0 letter-spaced">Applicant</p>
+              <span class="badge rounded-pill" [class]="statusClass(d.status)">{{ d.status }}</span>
+            </div>
+            <div class="d-flex align-items-center gap-3 mb-3">
+              <span class="gt-avatar">{{ initials(d.applicantName, d.applicantEmail) }}</span>
+              <div class="min-w-0">
+                <div class="fw-semibold">{{ d.applicantName || '—' }}</div>
+                <small class="text-body-secondary d-block">{{ d.applicantEmail }}</small>
+                <small class="text-body-secondary">📞 {{ d.applicantPhone || '—' }}</small>
+              </div>
+            </div>
+            <hr class="my-3" />
+            <p class="text-uppercase fw-semibold small text-body-secondary mb-2 letter-spaced">Program</p>
+            <h2 class="h6 fw-semibold mb-1">{{ d.programName }}</h2>
+            <p class="text-body-secondary small mb-2">{{ d.programDescription }}</p>
+            <div class="row g-2">
+              <div class="col-6">
+                <small class="text-body-secondary d-block">Window</small>
+                <strong>{{ d.programStartDate | date:'MMM d, yyyy' }} → {{ d.programEndDate | date:'MMM d, yyyy' }}</strong>
+              </div>
+              <div class="col-6">
+                <small class="text-body-secondary d-block">Budget</small>
+                <strong>₹ {{ d.programBudget | number:'1.2-2' }}</strong>
+              </div>
+              <div class="col-12">
+                <small class="text-body-secondary d-block">Submitted</small>
+                <strong>{{ d.submittedDate | date:'medium' }}</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pipeline summary + final decision -->
+      <div class="col-12 col-xl-5">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-body">
+            <p class="text-uppercase fw-semibold small text-body-secondary mb-2 letter-spaced">Pipeline</p>
+            <div class="row g-2 text-center mb-3">
+              <div class="col-4">
+                <div class="stat-tile">
+                  <span class="stat-tile__value">{{ d.reviewers.length }}</span>
+                  <small>Reviewers</small>
+                </div>
+              </div>
+              <div class="col-4">
+                <div class="stat-tile">
+                  <span class="stat-tile__value">{{ d.recommendations.length }}</span>
+                  <small>Recommendations</small>
+                </div>
+              </div>
+              <div class="col-4">
+                <div class="stat-tile">
+                  <span class="stat-tile__value">{{ d.documents.length }}</span>
+                  <small>Documents</small>
+                </div>
+              </div>
+            </div>
+
+            <p class="text-uppercase fw-semibold small text-body-secondary mb-2 letter-spaced">Final decision</p>
+            @if (d.decision; as dec) {
+              <div class="decision-block"
+                   [class.decision-block--approved]="dec.decisionValue === 'Approved'"
+                   [class.decision-block--rejected]="dec.decisionValue === 'Rejected'">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                  <span class="badge rounded-pill" [class]="decisionClass(dec.decisionValue)">
+                    <i class="bi" [class.bi-check-circle]="dec.decisionValue === 'Approved'"
+                                  [class.bi-x-circle]="dec.decisionValue === 'Rejected'"></i>
+                    <span class="ms-1">{{ dec.decisionValue }}</span>
+                  </span>
+                  <small class="text-body-secondary">{{ dec.date | date:'medium' }}</small>
+                </div>
+                <div class="small mb-2">
+                  <span class="text-body-secondary">Approver:</span>
+                  <strong class="ms-1">{{ dec.approverName || '—' }}</strong>
+                  <span class="text-body-secondary"> · {{ dec.approverEmail }}</span>
+                </div>
+                <p class="small mb-0 text-body-secondary">{{ dec.notes || '—' }}</p>
+              </div>
+            } @else {
+              <div class="text-body-secondary small py-3 text-center border rounded">
+                <i class="bi bi-hourglass-split d-block fs-4 text-body-tertiary mb-1"></i>
+                No decision recorded yet.
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Reviewers panel -->
+      <div class="col-12">
+        <div class="card border-0 shadow-sm">
+          <div class="card-body">
+            <h2 class="h6 fw-semibold mb-3">
+              Assigned reviewers
+              <span class="badge bg-light text-body-secondary ms-1">{{ d.reviewers.length }}</span>
+            </h2>
+            @if (d.reviewers.length === 0) {
+              <div class="text-body-secondary small py-3 text-center border rounded">
+                <i class="bi bi-person-x d-block fs-4 text-body-tertiary mb-1"></i>
+                No reviewers assigned to this application.
+              </div>
+            } @else {
+              <div class="table-responsive">
+                <table class="table align-middle gt-table mb-0">
+                  <thead>
+                    <tr>
+                      <th class="ps-4">Reviewer</th>
+                      <th>Assigned</th>
+                      <th>Score</th>
+                      <th class="pe-4">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (rv of d.reviewers; track rv.reviewId) {
+                      <tr>
+                        <td class="ps-4">
+                          <div class="d-flex align-items-center gap-3">
+                            <span class="gt-avatar">{{ initials(rv.reviewerName, rv.reviewerEmail) }}</span>
+                            <div class="min-w-0">
+                              <div class="fw-semibold text-truncate">{{ rv.reviewerName || '—' }}</div>
+                              <small class="text-body-secondary text-truncate d-block">{{ rv.reviewerEmail }}</small>
+                            </div>
+                          </div>
+                        </td>
+                        <td><span class="small">{{ rv.assignedDate | date:'mediumDate' }}</span></td>
+                        <td>
+                          @if (rv.score > 0) {
+                            <strong>{{ rv.score }}</strong>
+                            <small class="text-body-secondary"> / 10</small>
+                          } @else {
+                            <span class="text-body-tertiary small">—</span>
+                          }
+                        </td>
+                        <td class="pe-4">
+                          @if (rv.hasSubmittedRecommendation) {
+                            <span class="badge rounded-pill bg-success-subtle text-success-emphasis">
+                              <i class="bi bi-check2 me-1"></i>Submitted
+                            </span>
+                          } @else {
+                            <span class="badge rounded-pill bg-warning-subtle text-warning-emphasis">
+                              <i class="bi bi-hourglass-split me-1"></i>Pending
+                            </span>
+                          }
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Recommendations panel -->
+      <div class="col-12">
+        <div class="card border-0 shadow-sm">
+          <div class="card-body">
+            <h2 class="h6 fw-semibold mb-3">
+              Recommendations
+              <span class="badge bg-light text-body-secondary ms-1">{{ d.recommendations.length }}</span>
+            </h2>
+            @if (d.recommendations.length === 0) {
+              <div class="text-body-secondary small py-3 text-center border rounded">
+                <i class="bi bi-pencil-square d-block fs-4 text-body-tertiary mb-1"></i>
+                No reviewers have submitted a recommendation yet.
+              </div>
+            } @else {
+              <div class="row g-3">
+                @for (r of d.recommendations; track r.recommendationId) {
+                  <div class="col-12 col-lg-6">
+                    <article class="rec-card h-100"
+                             [class.rec-card--approved]="r.decision === 'Approved'"
+                             [class.rec-card--rejected]="r.decision === 'Rejected'">
+                      <div class="d-flex align-items-start justify-content-between gap-2 mb-2">
+                        <div class="fw-semibold">{{ r.reviewerName || '—' }}</div>
+                        <span class="badge rounded-pill" [class]="decisionClass(r.decision)">
+                          {{ r.decision }}
+                        </span>
+                      </div>
+                      <p class="rec-card__notes mb-2">{{ r.notes || '—' }}</p>
+                      <small class="text-body-secondary">
+                        <i class="bi bi-clock-history me-1"></i>{{ r.date | date:'medium' }}
+                      </small>
+                    </article>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Funding panel — shared read-only component.
+           Renders an empty state when no disbursements exist. -->
+      <div class="col-12">
+        <app-funding-panel
+          [applicationId]="d.applicationId"
+          [programBudget]="d.programBudget">
+        </app-funding-panel>
+      </div>
+
+      <!-- Documents panel -->
+      <div class="col-12">
+        <div class="card border-0 shadow-sm">
+          <div class="card-body">
+            <h2 class="h6 fw-semibold mb-3">
+              Documents
+              <span class="badge bg-light text-body-secondary ms-1">{{ d.documents.length }}</span>
+            </h2>
+            @if (d.documents.length === 0) {
+              <div class="text-body-secondary small py-3 text-center border rounded">
+                <i class="bi bi-paperclip d-block fs-4 text-body-tertiary mb-1"></i>
+                The applicant didn't upload any documents.
+              </div>
+            } @else {
+              <ul class="doc-list list-unstyled mb-0">
+                @for (doc of d.documents; track doc.documentId) {
+                  <li class="doc-list__item">
+                    <i class="bi" [class]="fileIcon(doc.fileName)"></i>
+                    <div class="flex-grow-1 min-w-0">
+                      <div class="fw-semibold text-truncate">{{ doc.fileName }}</div>
+                      <small class="text-body-secondary">{{ doc.docType }}</small>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-outline-primary"
+                            (click)="download(doc)"
+                            [disabled]="downloadingDocId() === doc.documentId">
+                      @if (downloadingDocId() === doc.documentId) {
+                        <span class="spinner-border spinner-border-sm"></span>
+                      } @else {
+                        <i class="bi bi-download"></i>
+                      }
+                      <span class="ms-1 d-none d-sm-inline">Download</span>
+                    </button>
+                  </li>
+                }
+              </ul>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  } @else if (loadError()) {
+    <div class="card border-0 shadow-sm">
+      <div class="card-body text-center py-5">
+        <i class="bi bi-exclamation-triangle text-danger display-6"></i>
+        <p class="mt-3 mb-3">{{ loadError() }}</p>
+        <button class="btn btn-outline-primary" (click)="refresh()">
+          <i class="bi bi-arrow-clockwise me-1"></i> Try again
+        </button>
+      </div>
+    </div>
+  } @else if (loading()) {
+    <div class="card border-0 shadow-sm">
+      <div class="card-body text-center py-5">
+        <div class="spinner-border text-primary"></div>
+        <p class="text-body-secondary mt-3 mb-0">Loading application detail…</p>
+      </div>
+    </div>
+  }
+</div>

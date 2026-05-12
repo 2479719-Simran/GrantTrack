@@ -1,0 +1,82 @@
+<div class="modal-header border-0 pb-0">
+  <div>
+    <p class="text-uppercase small fw-semibold text-body-secondary mb-1 letter-spaced">
+      Complete check
+    </p>
+    <h2 class="h5 fw-semibold mb-0">
+      {{ check.type }} check #{{ check.checkId }}
+      <span class="text-body-secondary fw-normal small">· App #{{ check.applicationId }}</span>
+    </h2>
+  </div>
+  <button type="button" class="btn-close" aria-label="Close" (click)="active.dismiss()"></button>
+</div>
+
+<form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+  <div class="modal-body pt-3">
+    @if (!hasGrantReport) {
+      <div class="alert alert-warning d-flex align-items-start gap-2 small mb-3" role="alert">
+        <i class="bi bi-exclamation-triangle-fill mt-1"></i>
+        <div>
+          The grantee hasn't submitted a Grant Report for this application yet.
+          The backend requires one before a check can be finalised — submission
+          will fail with a clear error until the report exists.
+        </div>
+      </div>
+    }
+
+    <!-- Outcome picker -->
+    <div class="mb-4">
+      <label class="form-label fw-semibold mb-2">Outcome</label>
+      <div class="result-grid">
+        <button type="button"
+                class="result-card result-card--ok"
+                [class.result-card--active]="result.value === 'Completed'"
+                (click)="setResult('Completed')">
+          <i class="bi bi-check-circle-fill"></i>
+          <span>Completed</span>
+          <small class="text-body-secondary">
+            Compliance verified — Grant Report is marked Verified
+          </small>
+        </button>
+        <button type="button"
+                class="result-card result-card--bad"
+                [class.result-card--active]="result.value === 'Flagged'"
+                (click)="setResult('Flagged')">
+          <i class="bi bi-flag-fill"></i>
+          <span>Flagged</span>
+          <small class="text-body-secondary">
+            Issues found — Grant Report returned to the grantee for fixes
+          </small>
+        </button>
+      </div>
+    </div>
+
+    <!-- Notes -->
+    <div class="mb-1">
+      <label class="form-label" for="r-notes">
+        Notes <span class="text-danger">*</span>
+      </label>
+      <textarea id="r-notes" class="form-control" rows="4"
+                formControlName="notes"
+                maxlength="2000"
+                placeholder="Document the findings — evidence reviewed, what passed, what didn't, any conditions for re-submission."
+                [class.is-invalid]="notes.touched && notes.invalid"></textarea>
+      @if (notes.touched && notes.errors?.['required']) {
+        <div class="form-error">Notes are required.</div>
+      } @else {
+        <div class="form-text small text-end">{{ notes.value.length }} / 2000</div>
+      }
+    </div>
+  </div>
+
+  <div class="modal-footer border-0">
+    <button type="button" class="btn btn-outline-secondary" (click)="active.dismiss()">Cancel</button>
+    <button type="submit" class="btn px-4"
+            [class.btn-success]="result.value === 'Completed'"
+            [class.btn-danger]="result.value === 'Flagged'">
+      <i class="bi" [class.bi-check-circle]="result.value === 'Completed'"
+                    [class.bi-flag]="result.value === 'Flagged'"></i>
+      <span class="ms-1">Finalise as {{ result.value }}</span>
+    </button>
+  </div>
+</form>

@@ -1,0 +1,70 @@
+<div class="modal-header border-0 pb-0">
+  <div>
+    <p class="text-uppercase small fw-semibold text-body-secondary mb-1 letter-spaced">
+      Schedule compliance check
+    </p>
+    <h2 class="h5 fw-semibold mb-0">
+      Application #{{ applicationId }}
+      @if (applicantName) {
+        <span class="text-body-secondary fw-normal small">· {{ applicantName }}</span>
+      }
+    </h2>
+  </div>
+  <button type="button" class="btn-close" aria-label="Close" (click)="active.dismiss()"></button>
+</div>
+
+<form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+  <div class="modal-body pt-3">
+    <!-- Check-type picker -->
+    <div class="mb-4">
+      <label class="form-label fw-semibold mb-2">Check type</label>
+      <div class="type-grid">
+        @for (t of types; track t) {
+          <button type="button"
+                  class="type-card"
+                  [class.type-card--active]="type.value === t"
+                  [class.type-card--disabled]="isExisting(t)"
+                  [disabled]="isExisting(t)"
+                  (click)="setType(t)">
+            <i class="bi" [class.bi-cash-stack]="t === 'Financial'"
+                          [class.bi-gear]="t === 'Operational'"></i>
+            <span>{{ t }}</span>
+            <small>
+              @if (t === 'Financial') { Verifies money usage matches the grant terms }
+              @else { Verifies activities ran as proposed }
+            </small>
+            @if (isExisting(t)) {
+              <span class="badge rounded-pill bg-secondary-subtle text-secondary-emphasis mt-2">
+                <i class="bi bi-check2 me-1"></i>Already scheduled
+              </span>
+            }
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- Notes -->
+    <div class="mb-1">
+      <label class="form-label" for="c-notes">
+        Initial notes <span class="text-danger">*</span>
+      </label>
+      <textarea id="c-notes" class="form-control" rows="3"
+                formControlName="notes"
+                maxlength="2000"
+                placeholder="What is being checked? Any focus areas or evidence the grantee should provide."
+                [class.is-invalid]="notes.touched && notes.invalid"></textarea>
+      @if (notes.touched && notes.errors?.['required']) {
+        <div class="form-error">Notes are required.</div>
+      } @else {
+        <div class="form-text small text-end">{{ notes.value.length }} / 2000</div>
+      }
+    </div>
+  </div>
+
+  <div class="modal-footer border-0">
+    <button type="button" class="btn btn-outline-secondary" (click)="active.dismiss()">Cancel</button>
+    <button type="submit" class="btn btn-primary px-4">
+      <i class="bi bi-calendar-plus me-1"></i> Schedule check
+    </button>
+  </div>
+</form>

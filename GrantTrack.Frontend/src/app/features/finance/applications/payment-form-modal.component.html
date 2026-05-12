@@ -1,0 +1,88 @@
+<div class="modal-header border-0 pb-0">
+  <div>
+    <p class="text-uppercase small fw-semibold text-body-secondary mb-1 letter-spaced">
+      Record payment
+    </p>
+    <h2 class="h5 fw-semibold mb-0">
+      Tranche #{{ disbursement.disbursementId }}
+      <span class="text-body-secondary fw-normal small">
+        · ₹ {{ disbursement.amount | number:'1.2-2' }} scheduled
+      </span>
+    </h2>
+  </div>
+  <button type="button" class="btn-close" aria-label="Close" (click)="active.dismiss()"></button>
+</div>
+
+<form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+  <div class="modal-body pt-3">
+    <!-- Tranche summary block — informational, not editable. -->
+    <div class="row g-3 mb-3">
+      <div class="col-4">
+        <div class="meta-tile">
+          <small>Tranche total</small>
+          <strong>₹ {{ disbursement.amount | number:'1.2-2' }}</strong>
+        </div>
+      </div>
+      <div class="col-4">
+        <div class="meta-tile">
+          <small>Already paid</small>
+          <strong>₹ {{ disbursement.totalPaid | number:'1.2-2' }}</strong>
+        </div>
+      </div>
+      <div class="col-4">
+        <div class="meta-tile meta-tile--accent">
+          <small>Remaining</small>
+          <strong>₹ {{ disbursement.remainingOnTranche | number:'1.2-2' }}</strong>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-3">
+      <div class="col-md-6">
+        <label class="form-label" for="p-amount">Payment amount</label>
+        <div class="input-group input-group-soft" [class.is-invalid]="amount.touched && amount.invalid">
+          <span class="input-group-text">₹</span>
+          <input id="p-amount" type="number" min="0.01" step="0.01"
+                 class="form-control" formControlName="amount" placeholder="0.00" />
+        </div>
+        @if (amount.touched && amount.errors?.['required']) {
+          <div class="form-error">Amount is required.</div>
+        } @else if (amount.touched && amount.errors?.['min']) {
+          <div class="form-error">Amount must be greater than 0.</div>
+        } @else if (amount.touched && amount.errors?.['max']) {
+          <div class="form-error">
+            Amount can't exceed the tranche's remaining ₹ {{ disbursement.remainingOnTranche | number:'1.2-2' }}.
+          </div>
+        } @else {
+          <div class="form-text small">
+            Up to <strong>₹ {{ disbursement.remainingOnTranche | number:'1.2-2' }}</strong>.
+            A full payment marks the tranche Paid; a partial one marks it PartiallyPaid.
+          </div>
+        }
+      </div>
+
+      <div class="col-md-3">
+        <label class="form-label" for="p-date">Payment date</label>
+        <input id="p-date" type="date" class="form-control"
+               formControlName="date"
+               [class.is-invalid]="date.touched && date.invalid" />
+      </div>
+
+      <div class="col-md-3">
+        <label class="form-label" for="p-method">Method</label>
+        <select id="p-method" class="form-select" formControlName="method">
+          @for (m of methods; track m) {
+            <option [value]="m">{{ methodLabel(m) }}</option>
+          }
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-footer border-0">
+    <button type="button" class="btn btn-outline-secondary" (click)="active.dismiss()">Cancel</button>
+    <button type="submit" class="btn btn-primary px-4">
+      <i class="bi bi-cash-coin me-1"></i> Record payment
+    </button>
+  </div>
+</form>

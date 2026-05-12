@@ -1,0 +1,115 @@
+<div class="container-fluid container-xl px-3 px-lg-4">
+  <app-page-header
+    eyebrow="Approver"
+    icon="bi-check2-square"
+    title="Pending decisions"
+    subtitle="Applications that completed review and need your final approve/reject call.">
+    <button type="button" class="btn btn-outline-secondary" (click)="refresh()" [disabled]="loading()">
+      <i class="bi" [class.bi-arrow-clockwise]="!loading()"
+                    [class.spinner-border]="loading()"
+                    [class.spinner-border-sm]="loading()"></i>
+      <span class="ms-1">Refresh</span>
+    </button>
+  </app-page-header>
+
+  <!-- Search -->
+  <div class="card border-0 shadow-sm mb-3">
+    <div class="card-body py-3">
+      <div class="input-group input-group-soft">
+        <span class="input-group-text"><i class="bi bi-search"></i></span>
+        <input type="search" class="form-control"
+               placeholder="Search by applicant or program"
+               [ngModel]="search()" (ngModelChange)="search.set($event)" />
+      </div>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="card border-0 shadow-sm">
+    @if (loading() && rows().length === 0) {
+      <div class="card-body text-center py-5">
+        <div class="spinner-border text-primary"></div>
+        <p class="text-body-secondary mt-3 mb-0">Loading queue…</p>
+      </div>
+    } @else if (loadError()) {
+      <div class="card-body text-center py-5">
+        <i class="bi bi-exclamation-triangle text-danger display-6"></i>
+        <p class="mt-3 mb-3">{{ loadError() }}</p>
+        <button class="btn btn-outline-primary" (click)="refresh()">
+          <i class="bi bi-arrow-clockwise me-1"></i> Try again
+        </button>
+      </div>
+    } @else if (visible().length === 0) {
+      <div class="card-body text-center py-5 text-body-secondary">
+        <i class="bi bi-check2-circle display-6 text-success"></i>
+        <p class="mt-3 mb-1">All caught up.</p>
+        <small>No applications are waiting for your decision right now.</small>
+      </div>
+    } @else {
+      <div class="table-responsive">
+        <table class="table table-hover align-middle gt-table mb-0">
+          <thead>
+            <tr>
+              <th class="ps-4" style="width: 110px;">App #</th>
+              <th>Applicant</th>
+              <th>Program</th>
+              <th style="width: 130px;">Submitted</th>
+              <th style="width: 110px;" class="text-center">Avg score</th>
+              <th style="width: 220px;">Reviewer verdict</th>
+              <th class="text-end pe-4" style="width: 130px;">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (r of visible(); track r.applicationId) {
+              <tr>
+                <td class="ps-4 fw-medium text-body-secondary">#{{ r.applicationId }}</td>
+                <td>
+                  <div class="d-flex align-items-center gap-3">
+                    <span class="gt-avatar">{{ initials(r.applicantName, r.applicantEmail) }}</span>
+                    <div class="min-w-0">
+                      <div class="fw-semibold text-truncate">{{ r.applicantName || '—' }}</div>
+                      <div class="text-body-secondary small text-truncate">{{ r.applicantEmail }}</div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div class="fw-semibold text-truncate" style="max-width: 280px;">{{ r.programName }}</div>
+                  <small class="text-body-secondary">Program #{{ r.programId }}</small>
+                </td>
+                <td>
+                  <span class="small">{{ r.submittedDate | date:'mediumDate' }}</span>
+                </td>
+                <td class="text-center">
+                  @if (r.averageScore > 0) {
+                    <strong class="score">{{ r.averageScore | number:'1.1-1' }}</strong>
+                    <small class="text-body-secondary"> / 10</small>
+                  } @else {
+                    <span class="text-body-tertiary small">—</span>
+                  }
+                </td>
+                <td>
+                  <span class="badge rounded-pill" [class]="verdictHint(r).cls">
+                    <i class="bi bi-people me-1"></i>{{ verdictHint(r).label }}
+                  </span>
+                  <div class="small text-body-secondary mt-1">
+                    {{ r.recommendationCount }} reviewer{{ r.recommendationCount === 1 ? '' : 's' }}
+                  </div>
+                </td>
+                <td class="text-end pe-4">
+                  <a [routerLink]="['/approver/decisions', r.applicationId]"
+                     class="btn btn-sm btn-primary">
+                    Review <i class="bi bi-arrow-right ms-1"></i>
+                  </a>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      <div class="card-footer bg-transparent border-top-0 small text-body-secondary px-4 py-3">
+        Showing <strong>{{ visible().length }}</strong>
+        of <strong>{{ rows().length }}</strong> pending decision{{ rows().length === 1 ? '' : 's' }}.
+      </div>
+    }
+  </div>
+</div>

@@ -1,0 +1,56 @@
+<div class="auth-shell">
+  <!-- LEFT: brand / hero panel -->
+  <aside class="auth-hero d-none d-md-flex">
+    <div class="auth-hero__inner">
+      <a href="/" class="d-inline-flex align-items-center text-white text-decoration-none mb-5">
+        <app-brand-logo size="md" [withWordmark]="true" [light]="true" />
+      </a>
+
+      <h1 class="auth-hero__title">{{ headline }}</h1>
+      <p class="auth-hero__lede">{{ lede }}</p>
+
+      <ul class="auth-hero__feature-list">
+        <li>
+          <i class="bi bi-shield-check"></i>
+          <div>
+            <strong>Role-based workflows</strong>
+            <span>Applicants, reviewers, approvers, finance &amp; compliance — each with the right view.</span>
+          </div>
+        </li>
+        <li>
+          <i class="bi bi-graph-up-arrow"></i>
+          <div>
+            <strong>End-to-end visibility</strong>
+            <span>Track every application from draft through disbursement and compliance verification.</span>
+          </div>
+        </li>
+        <li>
+          <i class="bi bi-bell"></i>
+          <div>
+            <strong>Real-time updates</strong>
+            <span>Live notifications keep stakeholders aligned without inbox clutter.</span>
+          </div>
+        </li>
+      </ul>
+    </div>
+    <div class="auth-hero__footer">
+      <small>© {{ year }} GrantTrack · Public grant lifecycle &amp; compliance</small>
+    </div>
+  </aside>
+
+  <!-- RIGHT: form pane (slot) -->
+  <section class="auth-form-pane">
+    <div class="auth-form-pane__inner">
+      <!-- Mobile-only brand bar so brand is still visible when the hero is hidden -->
+      <div class="d-md-none mb-4 text-center">
+        <app-brand-logo size="md" [withWordmark]="true" />
+      </div>
+
+      <ng-content></ng-content>
+
+      <p class="text-center text-body-secondary small mt-5 mb-0 d-md-none">
+        © {{ year }} GrantTrack
+      </p>
+    </div>
+  </section>
+</div>

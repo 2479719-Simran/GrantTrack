@@ -1,0 +1,112 @@
+:host {
+  display: block;
+}
+
+.letter-spaced {
+  letter-spacing: 0.08em;
+}
+
+.money-tile {
+  background: #f8fafc;
+  border: 1px solid var(--gt-border);
+  border-radius: 0.55rem;
+  padding: 0.65rem 0.35rem;
+}
+.money-tile__value {
+  display: block;
+  font-size: 1.15rem;
+  font-weight: 700;
+  line-height: 1.05;
+  color: var(--gt-navy);
+  margin-bottom: 0.15rem;
+}
+.money-tile small {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--gt-text-muted);
+  font-weight: 600;
+}
+.money-tile--ok .money-tile__value {
+  color: #15803d;
+}
+.money-tile--accent {
+  background: rgba(30, 58, 138, 0.05);
+  border-color: rgba(30, 58, 138, 0.2);
+}
+.money-tile--accent .money-tile__value {
+  color: var(--gt-navy-700);
+}
+
+.tranche-card {
+  background: #ffffff;
+  border: 1px solid var(--gt-border);
+  border-left-width: 4px;
+  border-radius: 0.75rem;
+  padding: 0.9rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.tranche-card--scheduled {
+  border-left-color: #0ea5e9;
+}
+.tranche-card--paid {
+  border-left-color: #16a34a;
+  background: #fafefb;
+}
+.tranche-card--partial {
+  border-left-color: #f59e0b;
+}
+.tranche-card--cancelled {
+  border-left-color: #dc2626;
+  opacity: 0.85;
+}
+.tranche-card__amount {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--gt-text);
+  line-height: 1.1;
+}
+
+.progress {
+  background: #e2e8f0;
+  border-radius: 999px;
+}
+
+.progress-bar {
+  background-color: var(--gt-navy-700);
+}
+
+.tranche-card--paid .progress-bar {
+  background-color: #16a34a;
+}
+
+.tranche-card--partial .progress-bar {
+  background-color: #f59e0b;
+}
+
+.payments-details summary {
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+  padding: 0.25rem 0;
+}
+.payments-details summary::-webkit-details-marker {
+  display: none;
+}
+.payments-details summary i.bi {
+  margin-right: 0.35rem;
+  color: var(--gt-navy-700);
+}
+
+.payments-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.payments-list__item {
+  padding: 0.35rem 0.55rem;
+  background: #f8fafc;
+  border-radius: 0.35rem;
+}

@@ -1,0 +1,352 @@
+<div class="container-fluid container-xl px-3 px-lg-4">
+  <app-page-header
+    eyebrow="Applicant"
+    icon="bi-file-earmark-text"
+    [title]="'Application #' + applicationId()"
+    [subtitle]="app()?.programName ?? 'Manage documents and submit when ready.'">
+    <a routerLink="/applicant/applications" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left me-1"></i> Back to my applications
+    </a>
+  </app-page-header>
+
+  <!-- Application summary card -->
+  <div class="row g-3 mb-3">
+    <div class="col-12 col-lg-7">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body">
+          <div class="d-flex align-items-start justify-content-between gap-2 mb-2">
+            <div>
+              <p class="text-uppercase fw-semibold small text-body-secondary mb-1 letter-spaced">
+                Program
+              </p>
+              <h2 class="h5 fw-semibold mb-0">{{ app()?.programName ?? '—' }}</h2>
+            </div>
+            <span class="badge rounded-pill" [class]="statusClass(app()?.status)">
+              {{ app()?.status ?? '—' }}
+            </span>
+          </div>
+          <div class="row g-3 mt-1">
+            <div class="col-6">
+              <small class="text-body-secondary d-block">Created</small>
+              <strong>{{ app()?.createdAt ? (app()!.createdAt | date:'medium') : '—' }}</strong>
+            </div>
+            <div class="col-6">
+              <small class="text-body-secondary d-block">Submitted</small>
+              <strong>{{ app()?.submittedDate ? (app()!.submittedDate | date:'medium') : 'Not yet' }}</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Submit panel -->
+    <div class="col-12 col-lg-5">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body d-flex flex-column">
+          <p class="text-uppercase fw-semibold small text-body-secondary mb-1 letter-spaced">Next step</p>
+          @if (isDraft()) {
+            <h2 class="h6 fw-semibold mb-2">Submit your application</h2>
+            <p class="text-body-secondary small mb-3 flex-grow-1">
+              Review your uploaded documents below, then submit. After submission you
+              cannot change the application unless an administrator reopens it.
+            </p>
+            <button type="button" class="btn btn-primary"
+                    (click)="submitApplication()"
+                    [disabled]="!canSubmit()">
+              @if (submitting()) {
+                <span class="spinner-border spinner-border-sm me-2"></span>
+                Submitting…
+              } @else {
+                <i class="bi bi-send me-1"></i>
+                Submit application
+              }
+            </button>
+            @if (documents().length === 0) {
+              <p class="text-body-secondary small mt-2 mb-0">
+                <i class="bi bi-info-circle me-1"></i>
+                Upload at least one supporting document before you can submit.
+              </p>
+            }
+          } @else {
+            <h2 class="h6 fw-semibold mb-2">Application submitted</h2>
+            <p class="text-body-secondary small mb-0 flex-grow-1">
+              Your application is in review. You'll be notified when there's an update.
+              You can no longer add or remove documents.
+            </p>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Funding panel — only meaningful once the application leaves Draft.
+       Hidden for drafts (nothing's been approved yet) but shown for every
+       other state (Submitted/UnderReview show empty state until tranches
+       exist; Approved/Rejected show the actual schedule + payment history). -->
+  @if (!isDraft()) {
+    <div class="mb-3">
+      <app-funding-panel [applicationId]="applicationId()"></app-funding-panel>
+    </div>
+  }
+
+  <!-- Grant Report — only available once the application is Approved.
+       Submission unblocks the compliance officer's "Complete check" flow. -->
+  @if (isApproved()) {
+    <div class="card border-0 shadow-sm mb-3">
+      <div class="card-body">
+        <div class="d-flex align-items-baseline justify-content-between mb-3">
+          <h2 class="h6 fw-semibold mb-0">
+            <i class="bi bi-journal-check me-1 text-primary"></i>
+            Grant report
+            @if (grantReport(); as gr) {
+              <span class="badge rounded-pill ms-2" [class]="reportStatusClass(gr.status)">
+                <i class="bi" [class]="reportStatusIcon(gr.status)"></i>
+                <span class="ms-1">{{ gr.status }}</span>
+              </span>
+            }
+          </h2>
+          <button type="button" class="btn btn-sm btn-link p-0"
+                  (click)="refreshGrantReport()" [disabled]="loadingReport()">
+            <i class="bi bi-arrow-clockwise me-1"></i><small>Refresh</small>
+          </button>
+        </div>
+
+        @if (grantReport(); as gr) {
+          @if (reportReturned()) {
+            <div class="alert alert-warning small py-2 d-flex align-items-start gap-2 mb-3" role="alert">
+              <i class="bi bi-arrow-counterclockwise mt-1"></i>
+              <div>
+                The compliance officer flagged this report. Update the
+                fields below and resubmit for re-review.
+              </div>
+            </div>
+          } @else if (reportVerified()) {
+            <div class="alert alert-success small py-2 d-flex align-items-start gap-2 mb-3" role="alert">
+              <i class="bi bi-check-circle-fill mt-1"></i>
+              <div>
+                The compliance officer has verified this report. The grant
+                lifecycle is complete on your side.
+              </div>
+            </div>
+          }
+
+          <dl class="row g-2 mb-3">
+            <dt class="col-sm-3 text-body-secondary fw-normal">Scope</dt>
+            <dd class="col-sm-9 mb-0 fw-semibold">{{ gr.scope }}</dd>
+
+            <dt class="col-sm-3 text-body-secondary fw-normal">Submitted</dt>
+            <dd class="col-sm-9 mb-0">{{ gr.submittedDate | date:'medium' }}</dd>
+
+            <dt class="col-sm-3 text-body-secondary fw-normal">Metrics</dt>
+            <dd class="col-sm-9 mb-0 grant-report__pre">{{ gr.metrics }}</dd>
+
+            @if (gr.notes) {
+              <dt class="col-sm-3 text-body-secondary fw-normal">Notes</dt>
+              <dd class="col-sm-9 mb-0 grant-report__pre">{{ gr.notes }}</dd>
+            }
+
+            @if (gr.evidenceDocumentPath) {
+              <dt class="col-sm-3 text-body-secondary fw-normal">Evidence</dt>
+              <dd class="col-sm-9 mb-0">
+                <a [href]="gr.evidenceDocumentPath" target="_blank" rel="noopener">
+                  {{ gr.evidenceDocumentPath }}
+                  <i class="bi bi-box-arrow-up-right ms-1 small"></i>
+                </a>
+              </dd>
+            }
+          </dl>
+
+          <div class="d-flex gap-2">
+            @if (!reportVerified()) {
+              <button type="button" class="btn btn-primary btn-sm"
+                      (click)="openGrantReportModal()">
+                <i class="bi bi-pencil me-1"></i>
+                @if (reportReturned()) { Update &amp; resubmit }
+                @else { Edit report }
+              </button>
+            }
+          </div>
+        } @else if (loadingReport()) {
+          <div class="text-body-secondary small py-3 text-center">
+            <span class="spinner-border spinner-border-sm me-2"></span> Loading…
+          </div>
+        } @else if (reportError()) {
+          <div class="alert alert-warning small py-2 d-flex align-items-start gap-2 mb-0">
+            <i class="bi bi-exclamation-triangle-fill mt-1"></i>
+            <span>{{ reportError() }}</span>
+          </div>
+        } @else {
+          <div class="text-body-secondary small py-3 text-center border rounded mb-3">
+            <i class="bi bi-journal-plus d-block fs-3 text-body-tertiary mb-1"></i>
+            You haven't submitted a grant report yet. The compliance officer
+            cannot finalise their review until you do.
+          </div>
+          <div class="d-flex justify-content-center">
+            <button type="button" class="btn btn-primary"
+                    (click)="openGrantReportModal()">
+              <i class="bi bi-journal-check me-1"></i> Submit grant report
+            </button>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- Uploader (only while Draft) -->
+  @if (isDraft()) {
+    <div class="card border-0 shadow-sm mb-3">
+      <div class="card-body">
+        <div class="d-flex align-items-baseline justify-content-between mb-3">
+          <h2 class="h6 fw-semibold mb-0">Upload a document</h2>
+          <small class="text-body-secondary">PDF, JPG, PNG, DOC, XLS, TXT · max 10 MB</small>
+        </div>
+
+        <div class="row g-3 align-items-end">
+          <div class="col-md-4">
+            <label class="form-label small mb-1">Document type</label>
+            <select class="form-select"
+                    [ngModel]="docType()" (ngModelChange)="docType.set($event)"
+                    [disabled]="uploading()">
+              @for (t of docTypes; track t) {
+                <option [value]="t">{{ t }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="col-md-8">
+            <label class="form-label small mb-1">File</label>
+            <div class="dropzone"
+                 [class.dropzone--over]="dragOver()"
+                 [class.dropzone--has-file]="!!selectedFile()"
+                 (drop)="onDrop($event)"
+                 (dragover)="onDragOver($event)"
+                 (dragleave)="onDragLeave()">
+              @if (!selectedFile()) {
+                <input type="file" #picker class="dropzone__input"
+                       (change)="onFilePicked(picker)"
+                       accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx,.txt"
+                       [disabled]="uploading()" />
+                <div class="dropzone__cta">
+                  <i class="bi bi-cloud-arrow-up"></i>
+                  <span><strong>Click to choose</strong> or drag and drop a file here</span>
+                </div>
+              } @else {
+                <div class="dropzone__file">
+                  <i class="bi" [class]="fileIcon(selectedFile()!.name)"></i>
+                  <div class="flex-grow-1 min-w-0">
+                    <div class="fw-semibold text-truncate">{{ selectedFile()!.name }}</div>
+                    <small class="text-body-secondary">{{ formatBytes(selectedFile()!.size) }}</small>
+                  </div>
+                  @if (!uploading()) {
+                    <button type="button" class="btn btn-sm btn-outline-secondary"
+                            (click)="clearSelected()" title="Remove">
+                      <i class="bi bi-x-lg"></i>
+                    </button>
+                  }
+                </div>
+                @if (uploading()) {
+                  <div class="progress mt-2" style="height: 6px;">
+                    <div class="progress-bar" [style.width.%]="uploadPercent()"></div>
+                  </div>
+                  <small class="text-body-secondary">Uploading… {{ uploadPercent() }}%</small>
+                }
+              }
+            </div>
+          </div>
+
+          <div class="col-12 d-flex justify-content-end">
+            <button type="button" class="btn btn-primary"
+                    (click)="uploadSelected()"
+                    [disabled]="!selectedFile() || uploading()">
+              @if (uploading()) {
+                <span class="spinner-border spinner-border-sm me-2"></span>
+                Uploading…
+              } @else {
+                <i class="bi bi-upload me-1"></i> Upload
+              }
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Document list -->
+  <div class="card border-0 shadow-sm">
+    <div class="card-body pb-0 d-flex align-items-baseline justify-content-between">
+      <h2 class="h6 fw-semibold mb-3">
+        Uploaded documents
+        <span class="badge bg-light text-body-secondary ms-1">{{ documents().length }}</span>
+      </h2>
+      <button type="button" class="btn btn-sm btn-outline-secondary"
+              (click)="refreshDocs()" [disabled]="loadingDocs()">
+        <i class="bi" [class.bi-arrow-clockwise]="!loadingDocs()"
+                      [class.spinner-border]="loadingDocs()"
+                      [class.spinner-border-sm]="loadingDocs()"></i>
+      </button>
+    </div>
+
+    @if (loadingDocs() && documents().length === 0) {
+      <div class="card-body text-center py-4 text-body-secondary">
+        <div class="spinner-border spinner-border-sm me-2"></div> Loading documents…
+      </div>
+    } @else if (loadError()) {
+      <div class="card-body text-center py-4">
+        <i class="bi bi-exclamation-triangle text-danger fs-3"></i>
+        <p class="mt-2 mb-2 small">{{ loadError() }}</p>
+        <button class="btn btn-sm btn-outline-primary" (click)="refreshDocs()">
+          <i class="bi bi-arrow-clockwise me-1"></i> Try again
+        </button>
+      </div>
+    } @else if (documents().length === 0) {
+      <div class="card-body text-center py-4 text-body-secondary">
+        <i class="bi bi-inbox fs-3 text-body-tertiary"></i>
+        <p class="small mt-2 mb-0">No documents uploaded yet.</p>
+      </div>
+    } @else {
+      <div class="table-responsive">
+        <table class="table align-middle gt-table mb-0">
+          <thead>
+            <tr>
+              <th class="ps-4">File</th>
+              <th>Type</th>
+              <th class="text-end pe-4" style="width: 220px;">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (d of documents(); track d.documentId) {
+              <tr>
+                <td class="ps-4">
+                  <div class="d-flex align-items-center gap-3">
+                    <i class="bi" [class]="fileIcon(d.fileName)" style="font-size: 1.5rem; color: var(--gt-navy-700);"></i>
+                    <div class="min-w-0">
+                      <div class="fw-semibold text-truncate">{{ d.fileName }}</div>
+                      <small class="text-body-secondary">Document #{{ d.documentId }}</small>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <span class="badge rounded-pill bg-primary-subtle text-primary-emphasis">
+                    {{ d.docType }}
+                  </span>
+                </td>
+                <td class="text-end pe-4">
+                  <button type="button" class="btn btn-sm btn-outline-secondary me-1"
+                          (click)="download(d)" title="Download">
+                    <i class="bi bi-download"></i>
+                  </button>
+                  @if (isDraft()) {
+                    <button type="button" class="btn btn-sm btn-outline-danger"
+                            (click)="deleteDoc(d)" title="Delete">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+</div>

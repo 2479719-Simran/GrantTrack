@@ -1,0 +1,278 @@
+<div class="container-fluid container-xl px-3 px-lg-4">
+  <app-page-header
+    eyebrow="Approver"
+    icon="bi-check2-square"
+    [title]="'Application #' + applicationId()"
+    [subtitle]="app()?.programName ?? 'Review the recommendations and supporting documents, then decide.'">
+    <a routerLink="/approver/decisions" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left me-1"></i> Back to queue
+    </a>
+  </app-page-header>
+
+  @if (appLoadError()) {
+    <div class="alert alert-warning d-flex align-items-start gap-2 small mb-3">
+      <i class="bi bi-exclamation-triangle-fill mt-1"></i>
+      <div>
+        {{ appLoadError() }}
+        <a routerLink="/approver/decisions" class="alert-link ms-1">Back to queue</a>
+      </div>
+    </div>
+  }
+
+  <div class="row g-3">
+    <!-- Application summary -->
+    <div class="col-12 col-xl-7">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body">
+          <p class="text-uppercase fw-semibold small text-body-secondary mb-1 letter-spaced">Applicant</p>
+          @if (app(); as a) {
+            <div class="d-flex align-items-center gap-3 mb-3">
+              <span class="gt-avatar">{{ initials(a.applicantName, a.applicantEmail) }}</span>
+              <div class="min-w-0">
+                <div class="fw-semibold">{{ a.applicantName || '—' }}</div>
+                <small class="text-body-secondary">{{ a.applicantEmail }}</small>
+              </div>
+            </div>
+            <div class="row g-3">
+              <div class="col-12 col-md-7">
+                <small class="text-body-secondary d-block">Program</small>
+                <strong>{{ a.programName }}</strong>
+                <div class="text-body-secondary small">Program #{{ a.programId }}</div>
+              </div>
+              <div class="col-6 col-md-5">
+                <small class="text-body-secondary d-block">Submitted</small>
+                <strong>{{ a.submittedDate | date:'medium' }}</strong>
+              </div>
+            </div>
+          } @else if (loadingApp()) {
+            <div class="text-body-secondary small py-3">
+              <span class="spinner-border spinner-border-sm me-2"></span> Loading…
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- Verdict snapshot -->
+    <div class="col-12 col-xl-5">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body">
+          <p class="text-uppercase fw-semibold small text-body-secondary mb-3 letter-spaced">
+            Reviewer snapshot
+          </p>
+          <div class="row g-3 text-center">
+            <div class="col-4">
+              <div class="stat stat--ok">
+                <span class="stat__value">{{ approvedRecCount() }}</span>
+                <small>Approve</small>
+              </div>
+            </div>
+            <div class="col-4">
+              <div class="stat stat--bad">
+                <span class="stat__value">{{ rejectedRecCount() }}</span>
+                <small>Reject</small>
+              </div>
+            </div>
+            <div class="col-4">
+              <div class="stat stat--score">
+                <span class="stat__value">
+                  @if (avgScore() > 0) { {{ avgScore() | number:'1.1-1' }} }
+                  @else { — }
+                </span>
+                <small>Avg score</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recommendations panel -->
+    <div class="col-12">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body">
+          <h2 class="h6 fw-semibold mb-3">
+            Reviewer recommendations
+            <span class="badge bg-light text-body-secondary ms-1">{{ recommendations().length }}</span>
+          </h2>
+
+          @if (loadingRecs() && recommendations().length === 0) {
+            <div class="text-body-secondary small py-3 text-center">
+              <span class="spinner-border spinner-border-sm me-2"></span> Loading recommendations…
+            </div>
+          } @else if (recommendations().length === 0) {
+            <div class="text-body-secondary small py-3 text-center border rounded">
+              <i class="bi bi-inbox d-block fs-4 text-body-tertiary mb-1"></i>
+              No recommendations have been submitted yet.
+            </div>
+          } @else {
+            <div class="row g-3">
+              @for (r of recommendations(); track r.recommendationId) {
+                <div class="col-12 col-lg-6">
+                  <article class="rec-card h-100"
+                           [class.rec-card--approved]="r.decision === 'Approved'"
+                           [class.rec-card--rejected]="r.decision === 'Rejected'">
+                    <div class="d-flex align-items-start gap-3 mb-2">
+                      <span class="gt-avatar">{{ initials(r.reviewerName, r.reviewerEmail) }}</span>
+                      <div class="flex-grow-1 min-w-0">
+                        <div class="fw-semibold text-truncate">{{ r.reviewerName || '—' }}</div>
+                        <small class="text-body-secondary text-truncate d-block">{{ r.reviewerEmail }}</small>
+                      </div>
+                      <span class="badge rounded-pill" [class]="decisionClass(r.decision)">
+                        <i class="bi" [class]="decisionIcon(r.decision)"></i>
+                        <span class="ms-1">{{ r.decision }}</span>
+                      </span>
+                    </div>
+
+                    <div class="rec-card__score mb-2">
+                      <small class="text-body-secondary">Score</small>
+                      @if (r.score > 0) {
+                        <span class="rec-card__score-value">{{ r.score }}<small> / 10</small></span>
+                      } @else {
+                        <span class="text-body-tertiary">—</span>
+                      }
+                    </div>
+
+                    <small class="text-body-secondary d-block">Notes</small>
+                    <p class="rec-card__notes mb-2">
+                      {{ r.recommendationNotes || '—' }}
+                    </p>
+
+                    @if (r.reviewComments) {
+                      <small class="text-body-secondary d-block">Comments</small>
+                      <p class="small mb-0">{{ r.reviewComments }}</p>
+                    }
+
+                    <div class="text-body-secondary small mt-2">
+                      <i class="bi bi-clock-history me-1"></i> {{ r.date | date:'medium' }}
+                    </div>
+                  </article>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- Documents panel -->
+    <div class="col-12">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body">
+          <h2 class="h6 fw-semibold mb-3">
+            Supporting documents
+            <span class="badge bg-light text-body-secondary ms-1">{{ documents().length }}</span>
+          </h2>
+
+          @if (loadingDocs() && documents().length === 0) {
+            <div class="text-body-secondary small py-3 text-center">
+              <span class="spinner-border spinner-border-sm me-2"></span> Loading documents…
+            </div>
+          } @else if (documents().length === 0) {
+            <div class="text-body-secondary small py-3 text-center border rounded">
+              <i class="bi bi-inbox d-block fs-4 text-body-tertiary mb-1"></i>
+              The applicant didn't upload any supporting documents.
+            </div>
+          } @else {
+            <ul class="doc-list list-unstyled mb-0">
+              @for (d of documents(); track d.documentId) {
+                <li class="doc-list__item">
+                  <i class="bi" [class]="fileIcon(d.fileName)"></i>
+                  <div class="flex-grow-1 min-w-0">
+                    <div class="fw-semibold text-truncate">{{ d.fileName }}</div>
+                    <small class="text-body-secondary">{{ d.docType }}</small>
+                  </div>
+                  <button type="button" class="btn btn-sm btn-outline-primary"
+                          (click)="download(d)"
+                          [disabled]="downloadingDocId() === d.documentId">
+                    @if (downloadingDocId() === d.documentId) {
+                      <span class="spinner-border spinner-border-sm"></span>
+                    } @else {
+                      <i class="bi bi-download"></i>
+                    }
+                    <span class="ms-1 d-none d-sm-inline">Download</span>
+                  </button>
+                </li>
+              }
+            </ul>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- Decision form -->
+    <div class="col-12">
+      <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+        <div class="card border-0 shadow-sm">
+          <div class="card-body">
+            <div class="d-flex align-items-baseline justify-content-between mb-3">
+              <h2 class="h6 fw-semibold mb-0">Your decision</h2>
+              @if (!canDecide() && !loadingApp()) {
+                <span class="badge rounded-pill bg-secondary-subtle text-secondary-emphasis">
+                  <i class="bi bi-lock me-1"></i> Already decided
+                </span>
+              }
+            </div>
+
+            <div class="decision-grid mb-3">
+              <button type="button"
+                      class="decision-card"
+                      [class.decision-card--active]="decisionValue.value === 'Approved'"
+                      [class.decision-card--approved]="decisionValue.value === 'Approved'"
+                      (click)="setDecision('Approved')">
+                <i class="bi bi-check-circle-fill"></i>
+                <span>Approve</span>
+                <small class="text-body-secondary">Award the grant to this applicant</small>
+              </button>
+              <button type="button"
+                      class="decision-card"
+                      [class.decision-card--active]="decisionValue.value === 'Rejected'"
+                      [class.decision-card--rejected]="decisionValue.value === 'Rejected'"
+                      (click)="setDecision('Rejected')">
+                <i class="bi bi-x-circle-fill"></i>
+                <span>Reject</span>
+                <small class="text-body-secondary">Decline this application</small>
+              </button>
+            </div>
+
+            <div class="mb-2">
+              <label class="form-label" for="d-notes">
+                Decision notes <span class="text-danger">*</span>
+              </label>
+              <textarea id="d-notes"
+                        class="form-control"
+                        rows="4"
+                        formControlName="notes"
+                        maxlength="1000"
+                        placeholder="Reasoning for your decision. The applicant and audit trail will reference this."
+                        [class.is-invalid]="notes.touched && notes.invalid"></textarea>
+              @if (notes.touched && notes.errors?.['required']) {
+                <div class="form-error">Decision notes are required.</div>
+              } @else {
+                <div class="form-text small text-end">{{ notes.value.length }} / 1000</div>
+              }
+            </div>
+
+            <div class="d-flex justify-content-end gap-2 mt-3">
+              <a routerLink="/approver/decisions" class="btn btn-outline-secondary">Cancel</a>
+              <button type="submit"
+                      class="btn px-4"
+                      [class.btn-success]="decisionValue.value === 'Approved'"
+                      [class.btn-danger]="decisionValue.value === 'Rejected'"
+                      [disabled]="submitting() || form.invalid || !canDecide()">
+                @if (submitting()) {
+                  <span class="spinner-border spinner-border-sm me-2"></span>
+                  Submitting…
+                } @else {
+                  <i class="bi" [class.bi-check-circle]="decisionValue.value === 'Approved'"
+                                [class.bi-x-circle]="decisionValue.value === 'Rejected'"></i>
+                  <span class="ms-1">{{ decisionValue.value }} application</span>
+                }
+              </button>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

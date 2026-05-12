@@ -1,0 +1,63 @@
+<div class="modal-header border-0 pb-0">
+  <div>
+    <p class="text-uppercase small fw-semibold text-body-secondary mb-1 letter-spaced">Apply to program</p>
+    <h2 class="h5 fw-semibold mb-0">{{ program.name }}</h2>
+  </div>
+  <button type="button" class="btn-close" aria-label="Close" (click)="active.dismiss()"
+          [disabled]="busy()"></button>
+</div>
+
+<div class="modal-body pt-3">
+  <p class="text-body-secondary mb-3">{{ program.description }}</p>
+
+  <div class="program-meta row g-3 mb-4">
+    <div class="col-6 col-md-4">
+      <div class="meta-tile">
+        <div class="meta-tile__label">Start</div>
+        <div class="meta-tile__value">{{ program.startDate | date:'mediumDate' }}</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-4">
+      <div class="meta-tile">
+        <div class="meta-tile__label">End</div>
+        <div class="meta-tile__value">{{ program.endDate | date:'mediumDate' }}</div>
+      </div>
+    </div>
+    <div class="col-12 col-md-4">
+      <div class="meta-tile">
+        <div class="meta-tile__label">Budget</div>
+        <div class="meta-tile__value">₹ {{ program.budget | number:'1.2-2' }}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="alert alert-light border d-flex gap-3 align-items-start small mb-0">
+    <i class="bi bi-info-circle text-primary fs-5 mt-1"></i>
+    <div>
+      We'll create a <strong>draft application</strong> for you. On the next page you can
+      <strong>upload supporting documents</strong> (PDF, image, Word, Excel — up to 10 MB
+      each) and then submit when ready.
+    </div>
+  </div>
+
+  @if (errorMessage()) {
+    <div class="alert alert-danger d-flex align-items-start gap-2 small mt-3 mb-0 py-2" role="alert">
+      <i class="bi bi-exclamation-triangle-fill mt-1"></i>
+      <span>{{ errorMessage() }}</span>
+    </div>
+  }
+</div>
+
+<div class="modal-footer border-0">
+  <button type="button" class="btn btn-outline-secondary"
+          (click)="active.dismiss()" [disabled]="busy()">Cancel</button>
+  <button type="button" class="btn btn-primary px-4"
+          (click)="confirm()" [disabled]="busy()">
+    @if (busy()) {
+      <span class="spinner-border spinner-border-sm me-2"></span>
+      Creating draft…
+    } @else {
+      Continue <i class="bi bi-arrow-right ms-1"></i>
+    }
+  </button>
+</div>

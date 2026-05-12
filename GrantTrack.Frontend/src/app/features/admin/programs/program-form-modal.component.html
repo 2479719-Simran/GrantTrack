@@ -1,0 +1,74 @@
+<div class="modal-header border-0 pb-0">
+  <h2 class="h5 fw-semibold mb-0">{{ title }}</h2>
+  <button type="button" class="btn-close" aria-label="Close" (click)="active.dismiss()"></button>
+</div>
+
+<form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+  <div class="modal-body pt-3">
+    <div class="row g-3">
+      <div class="col-md-12">
+        <label class="form-label" for="p-name">Program name</label>
+        <div class="input-group input-group-soft" [class.is-invalid]="name.touched && name.invalid">
+          <span class="input-group-text"><i class="bi bi-collection"></i></span>
+          <input id="p-name" type="text" class="form-control" formControlName="name"
+                 placeholder="e.g. Rural Innovation Grant 2026" />
+        </div>
+        @if (name.touched && name.errors?.['required']) {
+          <div class="form-error">Name is required.</div>
+        }
+      </div>
+
+      <div class="col-md-12">
+        <label class="form-label" for="p-description">Description</label>
+        <textarea id="p-description" class="form-control" rows="3"
+                  formControlName="description"
+                  placeholder="What this grant is for, eligibility highlights, etc."
+                  [class.is-invalid]="description.touched && description.invalid"></textarea>
+        @if (description.touched && description.errors?.['required']) {
+          <div class="form-error">Description is required.</div>
+        }
+      </div>
+
+      <div class="col-md-4">
+        <label class="form-label" for="p-start">Start date</label>
+        <input id="p-start" type="date" class="form-control"
+               formControlName="startDate"
+               [class.is-invalid]="startDate.touched && startDate.invalid" />
+      </div>
+      <div class="col-md-4">
+        <label class="form-label" for="p-end">End date</label>
+        <input id="p-end" type="date" class="form-control"
+               formControlName="endDate"
+               [class.is-invalid]="endDate.touched && (endDate.invalid || form.errors?.['dateOrder'])" />
+        @if (form.errors?.['dateOrder']) {
+          <div class="form-error">End date must be on or after the start date.</div>
+        }
+      </div>
+      <div class="col-md-4">
+        <label class="form-label" for="p-budget">Budget</label>
+        <div class="input-group input-group-soft" [class.is-invalid]="budget.touched && budget.invalid">
+          <span class="input-group-text">₹</span>
+          <input id="p-budget" type="number" min="0.01" step="0.01"
+                 class="form-control" formControlName="budget" placeholder="0.00" />
+        </div>
+        @if (budget.touched && budget.errors?.['min']) {
+          <div class="form-error">Budget must be greater than 0.</div>
+        }
+      </div>
+
+      <div class="col-md-12">
+        <div class="form-check form-switch">
+          <input id="p-status" class="form-check-input" type="checkbox" role="switch" formControlName="status" />
+          <label class="form-check-label small fw-medium" for="p-status">
+            {{ status.value ? 'Active — accepting applications' : 'Inactive — closed for new applications' }}
+          </label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-footer border-0">
+    <button type="button" class="btn btn-outline-secondary" (click)="active.dismiss()">Cancel</button>
+    <button type="submit" class="btn btn-primary px-4">{{ submitLabel }}</button>
+  </div>
+</form>

@@ -1,0 +1,184 @@
+<div class="container-fluid container-xl px-3 px-lg-4">
+  <app-page-header
+    eyebrow="Compliance"
+    icon="bi-shield-check"
+    [title]="'Application #' + applicationId()"
+    [subtitle]="detail()?.programName ?? 'Schedule and finalise compliance checks.'">
+    <a routerLink="/compliance/applications" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left me-1"></i> Back to queue
+    </a>
+  </app-page-header>
+
+  @if (detail(); as d) {
+    <div class="row g-3">
+      <!-- Applicant + Program -->
+      <div class="col-12 col-xl-7">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-body">
+            <p class="text-uppercase fw-semibold small text-body-secondary mb-2 letter-spaced">Grantee</p>
+            <div class="d-flex align-items-center gap-3 mb-3">
+              <span class="gt-avatar">{{ initials(d.applicantName, d.applicantEmail) }}</span>
+              <div class="min-w-0">
+                <div class="fw-semibold">{{ d.applicantName || '—' }}</div>
+                <small class="text-body-secondary d-block">{{ d.applicantEmail }}</small>
+                <small class="text-body-secondary">📞 {{ d.applicantPhone || '—' }}</small>
+              </div>
+            </div>
+            <hr class="my-3" />
+            <p class="text-uppercase fw-semibold small text-body-secondary mb-2 letter-spaced">Program</p>
+            <h2 class="h6 fw-semibold mb-1">{{ d.programName }}</h2>
+            <p class="text-body-secondary small mb-2">{{ d.programDescription }}</p>
+            <div class="row g-2">
+              <div class="col-6">
+                <small class="text-body-secondary d-block">Window</small>
+                <strong>{{ d.programStartDate | date:'MMM d' }} → {{ d.programEndDate | date:'MMM d, yyyy' }}</strong>
+              </div>
+              <div class="col-6">
+                <small class="text-body-secondary d-block">Program budget</small>
+                <strong>₹ {{ d.programBudget | number:'1.2-2' }}</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Decision + Grant Report status -->
+      <div class="col-12 col-xl-5">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-body">
+            <p class="text-uppercase fw-semibold small text-body-secondary mb-2 letter-spaced">Approver</p>
+            @if (d.approverId) {
+              <div class="decision-block mb-3">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                  <strong>{{ d.approverName || '—' }}</strong>
+                  <small class="text-body-secondary">{{ d.decisionDate | date:'medium' }}</small>
+                </div>
+                <p class="small mb-0 text-body-secondary">{{ d.decisionNotes || '—' }}</p>
+              </div>
+            }
+
+            <p class="text-uppercase fw-semibold small text-body-secondary mb-2 letter-spaced">Grant report</p>
+            @if (d.grantReportId) {
+              <div class="report-block">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                  <span class="badge rounded-pill" [class]="reportStatusClass(d.reportStatus)">
+                    {{ d.reportStatus }}
+                  </span>
+                  <small class="text-body-secondary">{{ d.reportSubmittedDate | date:'mediumDate' }}</small>
+                </div>
+                <small class="text-body-secondary d-block">Scope</small>
+                <strong class="d-block mb-2">{{ d.reportScope || '—' }}</strong>
+                @if (d.reportNotes) {
+                  <small class="text-body-secondary d-block">Notes</small>
+                  <p class="small mb-0">{{ d.reportNotes }}</p>
+                }
+              </div>
+            } @else {
+              <div class="alert alert-warning small mb-0 py-2 d-flex align-items-start gap-2">
+                <i class="bi bi-exclamation-triangle-fill mt-1"></i>
+                <div>
+                  No Grant Report submitted yet. Checks can be scheduled, but
+                  finalising one requires a report (BE: <em>"No Grant Report
+                  found to verify"</em>).
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Funding panel — read-only context for the CO -->
+      <div class="col-12">
+        <app-funding-panel
+          [applicationId]="d.applicationId"
+          [programBudget]="d.programBudget">
+        </app-funding-panel>
+      </div>
+
+      <!-- Compliance checks -->
+      <div class="col-12">
+        <div class="card border-0 shadow-sm">
+          <div class="card-body">
+            <div class="d-flex align-items-baseline justify-content-between mb-3">
+              <h2 class="h6 fw-semibold mb-0">
+                Compliance checks
+                <span class="badge bg-light text-body-secondary ms-1">{{ d.checks.length }}</span>
+              </h2>
+              <button type="button" class="btn btn-primary btn-sm" (click)="openSchedule()">
+                <i class="bi bi-calendar-plus me-1"></i> Schedule check
+              </button>
+            </div>
+
+            @if (d.checks.length === 0) {
+              <div class="text-body-secondary small py-4 text-center border rounded">
+                <i class="bi bi-shield-check d-block fs-3 text-body-tertiary mb-2"></i>
+                No compliance checks scheduled yet for this application.
+              </div>
+            } @else {
+              <div class="row g-3">
+                @for (c of d.checks; track c.checkId) {
+                  <div class="col-12 col-lg-6">
+                    <article class="check-card h-100"
+                             [class.check-card--verified]="c.stage === 'Verified'"
+                             [class.check-card--returned]="c.stage === 'Returned'"
+                             [class.check-card--scheduled]="c.stage === 'Scheduled'">
+                      <div class="d-flex align-items-start justify-content-between gap-2 mb-2">
+                        <div class="d-flex align-items-center gap-2">
+                          <i class="bi" [class]="typeIcon(c.type)"></i>
+                          <div>
+                            <p class="text-uppercase fw-semibold small text-body-secondary mb-0 letter-spaced">
+                              {{ c.type }} check #{{ c.checkId }}
+                            </p>
+                            <small class="text-body-secondary">{{ c.date | date:'medium' }}</small>
+                          </div>
+                        </div>
+                        <span class="badge rounded-pill" [class]="stageClass(c.stage)">
+                          <i class="bi" [class]="stageIcon(c.stage)"></i>
+                          <span class="ms-1">{{ c.stage }}</span>
+                        </span>
+                      </div>
+
+                      <small class="text-body-secondary d-block">Notes</small>
+                      <p class="check-card__notes mb-2">{{ c.notes || '—' }}</p>
+
+                      <div class="check-card__actions d-flex gap-2 mt-auto">
+                        @if (c.stage !== 'Verified') {
+                          <button type="button" class="btn btn-sm btn-primary"
+                                  (click)="openComplete(c)">
+                            <i class="bi bi-check2-circle me-1"></i>
+                            @if (c.stage === 'Returned') { Re-finalise } @else { Complete check }
+                          </button>
+                        } @else {
+                          <span class="text-body-secondary small">
+                            <i class="bi bi-lock me-1"></i> Locked — report verified
+                          </span>
+                        }
+                      </div>
+                    </article>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  } @else if (loadError()) {
+    <div class="card border-0 shadow-sm">
+      <div class="card-body text-center py-5">
+        <i class="bi bi-exclamation-triangle text-danger display-6"></i>
+        <p class="mt-3 mb-3">{{ loadError() }}</p>
+        <button class="btn btn-outline-primary" (click)="refresh()">
+          <i class="bi bi-arrow-clockwise me-1"></i> Try again
+        </button>
+      </div>
+    </div>
+  } @else if (loading()) {
+    <div class="card border-0 shadow-sm">
+      <div class="card-body text-center py-5">
+        <div class="spinner-border text-primary"></div>
+        <p class="text-body-secondary mt-3 mb-0">Loading compliance detail…</p>
+      </div>
+    </div>
+  }
+</div>

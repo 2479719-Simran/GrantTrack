@@ -1,0 +1,112 @@
+<div class="modal-header border-0 pb-0">
+  <div>
+    <p class="text-uppercase small fw-semibold text-body-secondary mb-1 letter-spaced">
+      Grant report · App #{{ applicationId }}
+    </p>
+    <h2 class="h5 fw-semibold mb-0">{{ title }}</h2>
+    @if (programName) {
+      <small class="text-body-secondary">{{ programName }}</small>
+    }
+  </div>
+  <button type="button" class="btn-close" aria-label="Close" (click)="active.dismiss()"></button>
+</div>
+
+<div class="modal-body pt-3">
+  <!-- Form lives INSIDE .modal-body so ng-bootstrap's scrollable layout
+       (scrollable: true on modal options) can keep the modal-footer pinned
+       to the bottom. Wrapping body+footer in a single <form> would break
+       the flex chain and push the Submit button off-screen on shorter
+       viewports. The Submit button references this form via the HTML5
+       `form` attribute below. -->
+  <form [formGroup]="form" (ngSubmit)="submit()" id="grant-report-form" novalidate>
+    @if (isReturned) {
+      <div class="alert alert-warning d-flex align-items-start gap-2 small mb-3" role="alert">
+        <i class="bi bi-exclamation-triangle-fill mt-1"></i>
+        <div>
+          The compliance officer flagged your previous submission. Update the
+          fields based on the feedback (visible on the application detail page)
+          and resubmit for review.
+        </div>
+      </div>
+    } @else if (!isUpdate) {
+      <div class="alert alert-light border d-flex gap-3 align-items-start small mb-3">
+        <i class="bi bi-info-circle text-primary fs-5 mt-1"></i>
+        <div>
+          A grant report is your account of how the funding is being used.
+          The compliance officer reviews it and either <strong>verifies</strong>
+          (closes the loop) or <strong>flags</strong> it (returns it to you for
+          fixes).
+        </div>
+      </div>
+    }
+
+    <div class="row g-3">
+      <div class="col-12">
+        <label class="form-label" for="gr-scope">
+          Scope <span class="text-danger">*</span>
+        </label>
+        <input id="gr-scope" type="text" class="form-control"
+               formControlName="scope"
+               maxlength="200"
+               placeholder="One-line description of what this report covers"
+               [class.is-invalid]="scope.touched && scope.invalid" />
+        @if (scope.touched && scope.errors?.['required']) {
+          <div class="form-error">Scope is required.</div>
+        } @else {
+          <div class="form-text small text-end">{{ scope.value.length }} / 200</div>
+        }
+      </div>
+
+      <div class="col-12">
+        <label class="form-label" for="gr-metrics">
+          Metrics &amp; outcomes <span class="text-danger">*</span>
+        </label>
+        <textarea id="gr-metrics" class="form-control" rows="5"
+                  formControlName="metrics"
+                  maxlength="4000"
+                  placeholder="Quantitative outcomes — people reached, units delivered, money spent on each activity, etc."
+                  [class.is-invalid]="metrics.touched && metrics.invalid"></textarea>
+        @if (metrics.touched && metrics.errors?.['required']) {
+          <div class="form-error">Metrics are required.</div>
+        } @else {
+          <div class="form-text small text-end">{{ metrics.value.length }} / 4000</div>
+        }
+      </div>
+
+      <div class="col-12">
+        <label class="form-label" for="gr-notes">
+          Notes <span class="text-body-secondary fw-normal small">— optional</span>
+        </label>
+        <textarea id="gr-notes" class="form-control" rows="3"
+                  formControlName="notes"
+                  maxlength="4000"
+                  placeholder="Any additional context, challenges, or learnings."></textarea>
+      </div>
+
+      <div class="col-12">
+        <label class="form-label" for="gr-evidence">
+          Evidence link <span class="text-body-secondary fw-normal small">— optional</span>
+        </label>
+        <input id="gr-evidence" type="url" class="form-control"
+               formControlName="evidenceDocumentPath"
+               maxlength="500"
+               placeholder="https://drive.google.com/... or any URL with supporting evidence" />
+        <div class="form-text small">
+          For richer evidence, upload supporting documents to this application
+          via the Documents section.
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+
+<!-- Footer is a sibling of .modal-body so ng-bootstrap's scrollable modal
+     can pin it to the bottom while the body scrolls. The submit button
+     references the form by id via the HTML5 `form` attribute, which fires
+     (ngSubmit) on the form above even though the button is outside it. -->
+<div class="modal-footer border-0">
+  <button type="button" class="btn btn-outline-secondary" (click)="active.dismiss()">Cancel</button>
+  <button type="submit" form="grant-report-form" class="btn btn-primary px-4">
+    <i class="bi bi-send me-1"></i> {{ submitLabel }}
+  </button>
+</div>

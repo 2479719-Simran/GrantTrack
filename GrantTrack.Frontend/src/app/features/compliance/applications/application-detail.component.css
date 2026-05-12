@@ -1,0 +1,77 @@
+@charset "UTF-8";
+:host {
+  display: block;
+}
+
+.letter-spaced {
+  letter-spacing: 0.08em;
+}
+
+.min-w-0 {
+  min-width: 0;
+}
+
+.decision-block {
+  background: rgba(22, 163, 74, 0.04);
+  border: 1px solid rgba(22, 163, 74, 0.18);
+  border-left: 4px solid #16a34a;
+  border-radius: 0.55rem;
+  padding: 0.7rem 0.85rem;
+}
+
+.report-block {
+  background: #f8fafc;
+  border: 1px solid var(--gt-border);
+  border-radius: 0.55rem;
+  padding: 0.7rem 0.85rem;
+}
+
+/* Compliance check cards — colour-banded by stage */
+.check-card {
+  background: #ffffff;
+  border: 1px solid var(--gt-border);
+  border-left-width: 4px;
+  border-radius: 0.75rem;
+  padding: 1rem 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.check-card--scheduled {
+  border-left-color: #f59e0b;
+}
+.check-card--verified {
+  border-left-color: #16a34a;
+  background: #fafefb;
+}
+.check-card--returned {
+  border-left-color: #dc2626;
+}
+.check-card:hover {
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
+  border-color: rgba(30, 58, 138, 0.25);
+}
+.check-card > .d-flex > .d-flex > i.bi {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--gt-navy-100);
+  color: var(--gt-navy);
+  font-size: 1rem;
+  flex: 0 0 auto;
+}
+.check-card__notes {
+  background: #f8fafc;
+  padding: 0.55rem 0.7rem;
+  border-radius: 0.4rem;
+  font-size: 0.9rem;
+  margin: 0;
+  white-space: pre-wrap;
+}
+.check-card__actions {
+  margin-top: 0.5rem;
+}

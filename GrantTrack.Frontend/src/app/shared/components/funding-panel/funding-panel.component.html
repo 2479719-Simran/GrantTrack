@@ -1,0 +1,131 @@
+<div class="card border-0 shadow-sm">
+  <div class="card-body">
+    <div class="d-flex align-items-baseline justify-content-between mb-3">
+      <h2 class="h6 fw-semibold mb-0">
+        <i class="bi bi-cash-coin me-1 text-primary"></i>
+        Funding
+        <span class="badge bg-light text-body-secondary ms-1">{{ disbursements().length }}</span>
+      </h2>
+      <button type="button" class="btn btn-sm btn-link p-0"
+              (click)="refresh()" [disabled]="loading()">
+        <i class="bi bi-arrow-clockwise me-1"></i><small>Refresh</small>
+      </button>
+    </div>
+
+    <!-- Money summary -->
+    @if (disbursements().length > 0) {
+      <div class="row g-2 text-center mb-3">
+        <div [class]="programBudget !== null ? 'col-4' : 'col-6'">
+          <div class="money-tile">
+            <span class="money-tile__value">₹ {{ totalDisbursed() | number:'1.0-0' }}</span>
+            <small>Disbursed</small>
+          </div>
+        </div>
+        <div [class]="programBudget !== null ? 'col-4' : 'col-6'">
+          <div class="money-tile money-tile--ok">
+            <span class="money-tile__value">₹ {{ totalPaid() | number:'1.0-0' }}</span>
+            <small>Paid</small>
+          </div>
+        </div>
+        @if (programBudget !== null) {
+          <div class="col-4">
+            <div class="money-tile money-tile--accent">
+              <span class="money-tile__value">₹ {{ remaining() | number:'1.0-0' }}</span>
+              <small>Headroom</small>
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- States -->
+    @if (loading() && disbursements().length === 0) {
+      <div class="text-body-secondary small py-3 text-center">
+        <span class="spinner-border spinner-border-sm me-2"></span> Loading funding state…
+      </div>
+    } @else if (loadError()) {
+      <div class="alert alert-warning small py-2 d-flex align-items-start gap-2 mb-0">
+        <i class="bi bi-exclamation-triangle-fill mt-1"></i>
+        <span>Could not load disbursements: {{ loadError() }}</span>
+      </div>
+    } @else if (disbursements().length === 0) {
+      <div class="text-body-secondary small py-4 text-center border rounded">
+        <i class="bi bi-cash-stack d-block fs-3 text-body-tertiary mb-2"></i>
+        No disbursement tranches set up yet.
+      </div>
+    } @else {
+      <div class="row g-3">
+        @for (disb of disbursements(); track disb.disbursementId) {
+          <div class="col-12 col-lg-6">
+            <article class="tranche-card h-100"
+                     [class.tranche-card--paid]="disb.status === 'Paid'"
+                     [class.tranche-card--cancelled]="disb.status === 'Cancelled'"
+                     [class.tranche-card--scheduled]="disb.status === 'Scheduled'"
+                     [class.tranche-card--partial]="disb.status === 'PartiallyPaid'">
+              <div class="d-flex align-items-start justify-content-between gap-2 mb-2">
+                <div>
+                  <p class="text-uppercase fw-semibold small text-body-secondary mb-0 letter-spaced">
+                    Tranche #{{ disb.disbursementId }}
+                  </p>
+                  <div class="tranche-card__amount">₹ {{ disb.amount | number:'1.2-2' }}</div>
+                </div>
+                <span class="badge rounded-pill" [class]="statusClass(disb.status)">
+                  <i class="bi" [class]="statusIcon(disb.status)"></i>
+                  <span class="ms-1">{{ disb.status }}</span>
+                </span>
+              </div>
+
+              <div class="row g-2 small mb-2">
+                <div class="col-6">
+                  <small class="text-body-secondary d-block">Scheduled</small>
+                  <strong>{{ disb.scheduledDate | date:'mediumDate' }}</strong>
+                </div>
+                <div class="col-6">
+                  <small class="text-body-secondary d-block">Actual</small>
+                  <strong>{{ disb.actualDate ? (disb.actualDate | date:'mediumDate') : '—' }}</strong>
+                </div>
+              </div>
+
+              <div class="mb-2">
+                <div class="d-flex justify-content-between small mb-1">
+                  <span><strong>₹ {{ disb.totalPaid | number:'1.2-2' }}</strong> paid</span>
+                  <span class="text-body-secondary">of ₹ {{ disb.amount | number:'1.2-2' }}</span>
+                </div>
+                <div class="progress" style="height: 6px;">
+                  <div class="progress-bar" [style.width.%]="paidPercent(disb)"></div>
+                </div>
+                @if (disb.remainingOnTranche > 0 && disb.status !== 'Cancelled') {
+                  <small class="text-body-secondary">
+                    ₹ {{ disb.remainingOnTranche | number:'1.2-2' }} remaining
+                  </small>
+                }
+              </div>
+
+              @if (disb.payments.length > 0) {
+                <details class="payments-details">
+                  <summary class="small text-body-secondary">
+                    <i class="bi bi-cash"></i>
+                    {{ disb.payments.length }} payment{{ disb.payments.length === 1 ? '' : 's' }}
+                  </summary>
+                  <ul class="payments-list list-unstyled mb-0 mt-2">
+                    @for (p of disb.payments; track p.paymentId) {
+                      <li class="payments-list__item small">
+                        <div class="d-flex justify-content-between">
+                          <span>
+                            <strong>₹ {{ p.amount | number:'1.2-2' }}</strong>
+                            · {{ p.method }}
+                          </span>
+                          <span class="text-body-secondary">{{ p.date | date:'mediumDate' }}</span>
+                        </div>
+                      </li>
+                    }
+                  </ul>
+                </details>
+              }
+            </article>
+          </div>
+        }
+      </div>
+    }
+  </div>
+</div>

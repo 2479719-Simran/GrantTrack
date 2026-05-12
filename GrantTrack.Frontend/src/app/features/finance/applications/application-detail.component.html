@@ -1,0 +1,232 @@
+<div class="container-fluid container-xl px-3 px-lg-4">
+  <app-page-header
+    eyebrow="Finance"
+    icon="bi-cash-coin"
+    [title]="'Application #' + applicationId()"
+    [subtitle]="detail()?.programName ?? 'Manage tranches and record payments.'">
+    <a routerLink="/finance/applications" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left me-1"></i> Back to queue
+    </a>
+  </app-page-header>
+
+  @if (detail(); as d) {
+    <div class="row g-3">
+      <!-- Applicant + Program header -->
+      <div class="col-12 col-xl-7">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-body">
+            <p class="text-uppercase fw-semibold small text-body-secondary mb-2 letter-spaced">Grantee</p>
+            <div class="d-flex align-items-center gap-3 mb-3">
+              <span class="gt-avatar">{{ initials(d.applicantName, d.applicantEmail) }}</span>
+              <div class="min-w-0">
+                <div class="fw-semibold">{{ d.applicantName || '—' }}</div>
+                <small class="text-body-secondary d-block">{{ d.applicantEmail }}</small>
+                <small class="text-body-secondary">📞 {{ d.applicantPhone || '—' }}</small>
+              </div>
+            </div>
+            <hr class="my-3" />
+            <p class="text-uppercase fw-semibold small text-body-secondary mb-2 letter-spaced">Program</p>
+            <h2 class="h6 fw-semibold mb-1">{{ d.programName }}</h2>
+            <p class="text-body-secondary small mb-2">{{ d.programDescription }}</p>
+            <div class="row g-2">
+              <div class="col-6">
+                <small class="text-body-secondary d-block">Window</small>
+                <strong>{{ d.programStartDate | date:'MMM d' }} → {{ d.programEndDate | date:'MMM d, yyyy' }}</strong>
+              </div>
+              <div class="col-6">
+                <small class="text-body-secondary d-block">Program budget</small>
+                <strong>₹ {{ d.programBudget | number:'1.2-2' }}</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Money summary -->
+      <div class="col-12 col-xl-5">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-body">
+            <p class="text-uppercase fw-semibold small text-body-secondary mb-3 letter-spaced">Money summary</p>
+            <div class="row g-2 text-center mb-3">
+              <div class="col-4">
+                <div class="money-tile">
+                  <span class="money-tile__value">₹ {{ d.totalDisbursed | number:'1.0-0' }}</span>
+                  <small>Disbursed</small>
+                </div>
+              </div>
+              <div class="col-4">
+                <div class="money-tile money-tile--ok">
+                  <span class="money-tile__value">₹ {{ d.totalPaid | number:'1.0-0' }}</span>
+                  <small>Paid</small>
+                </div>
+              </div>
+              <div class="col-4">
+                <div class="money-tile money-tile--accent">
+                  <span class="money-tile__value">₹ {{ d.remaining | number:'1.0-0' }}</span>
+                  <small>Headroom</small>
+                </div>
+              </div>
+            </div>
+            @if (d.decisionId) {
+              <p class="text-uppercase fw-semibold small text-body-secondary mb-2 letter-spaced">Approver</p>
+              <div class="decision-block">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                  <strong>{{ d.approverName || '—' }}</strong>
+                  <small class="text-body-secondary">{{ d.decisionDate | date:'medium' }}</small>
+                </div>
+                <p class="small mb-0 text-body-secondary">{{ d.decisionNotes || '—' }}</p>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Tranches panel -->
+      <div class="col-12">
+        <div class="card border-0 shadow-sm">
+          <div class="card-body">
+            <div class="d-flex align-items-baseline justify-content-between mb-3">
+              <h2 class="h6 fw-semibold mb-0">
+                Disbursement tranches
+                <span class="badge bg-light text-body-secondary ms-1">{{ d.disbursements.length }}</span>
+              </h2>
+              <button type="button" class="btn btn-primary btn-sm"
+                      (click)="openCreateDisbursement()"
+                      [disabled]="d.remaining <= 0">
+                <i class="bi bi-plus-lg me-1"></i>
+                New tranche
+              </button>
+            </div>
+
+            @if (d.disbursements.length === 0) {
+              <div class="text-body-secondary small py-4 text-center border rounded">
+                <i class="bi bi-cash-stack d-block fs-3 text-body-tertiary mb-2"></i>
+                No tranches set up yet. Click <strong>New tranche</strong> to start disbursing.
+              </div>
+            } @else {
+              <div class="row g-3">
+                @for (disb of d.disbursements; track disb.disbursementId) {
+                  <div class="col-12 col-lg-6">
+                    <article class="tranche-card h-100"
+                             [class.tranche-card--paid]="disb.status === 'Paid'"
+                             [class.tranche-card--cancelled]="disb.status === 'Cancelled'"
+                             [class.tranche-card--scheduled]="disb.status === 'Scheduled'"
+                             [class.tranche-card--partial]="disb.status === 'PartiallyPaid'">
+                      <div class="d-flex align-items-start justify-content-between gap-2 mb-2">
+                        <div>
+                          <p class="text-uppercase fw-semibold small text-body-secondary mb-0 letter-spaced">
+                            Tranche #{{ disb.disbursementId }}
+                          </p>
+                          <div class="tranche-card__amount">₹ {{ disb.amount | number:'1.2-2' }}</div>
+                        </div>
+                        <span class="badge rounded-pill" [class]="statusClass(disb.status)">
+                          <i class="bi" [class]="statusIcon(disb.status)"></i>
+                          <span class="ms-1">{{ disb.status }}</span>
+                        </span>
+                      </div>
+
+                      <div class="row g-2 small mb-2">
+                        <div class="col-6">
+                          <small class="text-body-secondary d-block">Scheduled</small>
+                          <strong>{{ disb.scheduledDate | date:'mediumDate' }}</strong>
+                        </div>
+                        <div class="col-6">
+                          <small class="text-body-secondary d-block">Actual</small>
+                          <strong>{{ disb.actualDate ? (disb.actualDate | date:'mediumDate') : '—' }}</strong>
+                        </div>
+                      </div>
+
+                      <!-- Progress bar — paid vs tranche total -->
+                      <div class="mb-2">
+                        <div class="d-flex justify-content-between small mb-1">
+                          <span><strong>₹ {{ disb.totalPaid | number:'1.2-2' }}</strong> paid</span>
+                          <span class="text-body-secondary">of ₹ {{ disb.amount | number:'1.2-2' }}</span>
+                        </div>
+                        <div class="progress" style="height: 6px;">
+                          <div class="progress-bar" [style.width.%]="paidPercent(disb)"></div>
+                        </div>
+                        @if (disb.remainingOnTranche > 0 && disb.status !== 'Cancelled') {
+                          <small class="text-body-secondary">
+                            ₹ {{ disb.remainingOnTranche | number:'1.2-2' }} remaining on this tranche
+                          </small>
+                        }
+                      </div>
+
+                      <!-- Payments mini-list -->
+                      @if (disb.payments.length > 0) {
+                        <details class="payments-details mb-2">
+                          <summary class="small text-body-secondary">
+                            <i class="bi bi-cash"></i>
+                            {{ disb.payments.length }} payment{{ disb.payments.length === 1 ? '' : 's' }}
+                          </summary>
+                          <ul class="payments-list list-unstyled mb-0 mt-2">
+                            @for (p of disb.payments; track p.paymentId) {
+                              <li class="payments-list__item small">
+                                <div class="d-flex justify-content-between">
+                                  <span>
+                                    <strong>₹ {{ p.amount | number:'1.2-2' }}</strong>
+                                    · {{ p.method }}
+                                  </span>
+                                  <span class="text-body-secondary">{{ p.date | date:'mediumDate' }}</span>
+                                </div>
+                              </li>
+                            }
+                          </ul>
+                        </details>
+                      }
+
+                      <!-- Action row -->
+                      <div class="tranche-card__actions d-flex flex-wrap gap-2 mt-auto">
+                        @if (disb.status === 'Pending') {
+                          <button type="button" class="btn btn-sm btn-primary"
+                                  (click)="scheduleTranche(disb)">
+                            <i class="bi bi-calendar-check me-1"></i> Schedule
+                          </button>
+                        }
+                        @if (disb.status === 'Scheduled') {
+                          <button type="button" class="btn btn-sm btn-success"
+                                  (click)="openRecordPayment(disb)">
+                            <i class="bi bi-cash-coin me-1"></i> Record payment
+                          </button>
+                        }
+                        @if (!isTerminalStatus(disb.status)) {
+                          <button type="button" class="btn btn-sm btn-outline-secondary"
+                                  (click)="openUpdateDisbursement(disb)">
+                            <i class="bi bi-pencil"></i>
+                            <span class="ms-1 d-none d-md-inline">Edit</span>
+                          </button>
+                          <button type="button" class="btn btn-sm btn-outline-danger ms-auto"
+                                  (click)="cancelTranche(disb)">
+                            <i class="bi bi-x-lg"></i>
+                            <span class="ms-1 d-none d-md-inline">Cancel</span>
+                          </button>
+                        }
+                      </div>
+                    </article>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  } @else if (loadError()) {
+    <div class="card border-0 shadow-sm">
+      <div class="card-body text-center py-5">
+        <i class="bi bi-exclamation-triangle text-danger display-6"></i>
+        <p class="mt-3 mb-3">{{ loadError() }}</p>
+        <button class="btn btn-outline-primary" (click)="refresh()">
+          <i class="bi bi-arrow-clockwise me-1"></i> Try again
+        </button>
+      </div>
+    </div>
+  } @else if (loading()) {
+    <div class="card border-0 shadow-sm">
+      <div class="card-body text-center py-5">
+        <div class="spinner-border text-primary"></div>
+        <p class="text-body-secondary mt-3 mb-0">Loading application detail…</p>
+      </div>
+    </div>
+  }
+</div>

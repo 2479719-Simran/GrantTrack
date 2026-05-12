@@ -1,0 +1,121 @@
+<div class="container-fluid container-xl px-3 px-lg-4">
+  <app-page-header
+    eyebrow="Applicant"
+    icon="bi-file-earmark-text"
+    title="My applications"
+    subtitle="Track your draft and submitted applications.">
+    <button type="button" class="btn btn-outline-secondary"
+            (click)="refreshAll()" [disabled]="refreshing()">
+      <i class="bi" [class.bi-arrow-clockwise]="!refreshing()"
+                    [class.spinner-border]="refreshing()"
+                    [class.spinner-border-sm]="refreshing()"></i>
+      <span class="ms-1">Refresh</span>
+    </button>
+    <a routerLink="/applicant/programs" class="btn btn-primary">
+      <i class="bi bi-plus-lg me-1"></i> Apply to a program
+    </a>
+  </app-page-header>
+
+  <!-- Tabs -->
+  <ul class="nav nav-pills mb-3">
+    <li class="nav-item">
+      <button type="button"
+              class="nav-link"
+              [class.active]="tab() === 'all'"
+              (click)="setTab('all')">
+        All
+        <span class="badge bg-light text-body-secondary ms-1">{{ api.applications().length }}</span>
+      </button>
+    </li>
+    <li class="nav-item">
+      <button type="button"
+              class="nav-link"
+              [class.active]="tab() === 'draft'"
+              (click)="setTab('draft')">
+        Drafts
+        <span class="badge bg-light text-body-secondary ms-1">{{ api.draftCount() }}</span>
+      </button>
+    </li>
+    <li class="nav-item">
+      <button type="button"
+              class="nav-link"
+              [class.active]="tab() === 'submitted'"
+              (click)="setTab('submitted')">
+        Submitted
+        <span class="badge bg-light text-body-secondary ms-1">{{ api.submittedCount() }}</span>
+      </button>
+    </li>
+  </ul>
+
+  @if (visible().length === 0) {
+    <div class="card border-0 shadow-sm">
+      <div class="card-body text-center py-5 text-body-secondary">
+        <i class="bi bi-inbox display-6 text-body-tertiary"></i>
+        <p class="mt-3 mb-1">
+          @if (tab() === 'draft') { No drafts in your list. }
+          @else if (tab() === 'submitted') { No submitted applications yet. }
+          @else { You haven't applied to any programs yet. }
+        </p>
+        <a routerLink="/applicant/programs" class="btn btn-primary mt-3">
+          <i class="bi bi-collection me-1"></i> Browse active programs
+        </a>
+      </div>
+    </div>
+  } @else {
+    <div class="row g-3">
+      @for (a of visible(); track a.applicationId) {
+        <div class="col-12 col-lg-6">
+          <article class="application-card h-100">
+            <div class="d-flex align-items-start justify-content-between gap-2 mb-2">
+              <div class="flex-grow-1 min-w-0">
+                <p class="text-uppercase fw-semibold small text-body-secondary mb-1 letter-spaced">
+                  Application #{{ a.applicationId }}
+                </p>
+                <h2 class="h6 fw-semibold mb-0 text-truncate">{{ a.programName }}</h2>
+              </div>
+              <span class="badge rounded-pill" [class]="statusClass(a.status)">
+                <i class="bi" [class]="statusIcon(a.status)"></i>
+                <span class="ms-1">{{ a.status }}</span>
+              </span>
+            </div>
+
+            <div class="application-card__meta small text-body-secondary mb-3">
+              @if (a.submittedDate) {
+                <span><i class="bi bi-send-check me-1"></i>
+                  Submitted {{ a.submittedDate | date:'medium' }}
+                </span>
+              } @else {
+                <span><i class="bi bi-clock-history me-1"></i>
+                  Started {{ a.createdAt | date:'medium' }}
+                </span>
+              }
+            </div>
+
+            <div class="application-card__cta d-flex flex-wrap gap-2">
+              <a [routerLink]="['/applicant/applications', a.applicationId]"
+                 class="btn btn-primary btn-sm">
+                @if (a.status === 'Draft') {
+                  <i class="bi bi-folder-symlink me-1"></i> Open &amp; manage docs
+                } @else {
+                  <i class="bi bi-eye me-1"></i> Open
+                }
+              </a>
+              <button type="button" class="btn btn-outline-secondary btn-sm ms-auto"
+                      (click)="stopTracking(a)" title="Remove from local list">
+                <i class="bi bi-x-lg"></i>
+              </button>
+            </div>
+          </article>
+        </div>
+      }
+    </div>
+
+    <div class="alert alert-light border d-flex gap-3 align-items-start mt-4 small">
+      <i class="bi bi-info-circle text-primary fs-5 mt-1"></i>
+      <div class="mb-0">
+        This list is stored on this device. Applications you submit on another browser
+        won't appear here until the backend exposes a "my applications" endpoint.
+      </div>
+    </div>
+  }
+</div>

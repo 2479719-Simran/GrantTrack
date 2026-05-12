@@ -1,0 +1,179 @@
+<div class="container-fluid container-xl px-3 px-lg-4">
+  <app-page-header
+    eyebrow="Finance"
+    icon="bi-cash-coin"
+    title="Approved applications"
+    subtitle="Set up disbursement tranches and record payments for every approved grant.">
+    <button type="button" class="btn btn-outline-secondary" (click)="refresh()" [disabled]="loading()">
+      <i class="bi" [class.bi-arrow-clockwise]="!loading()"
+                    [class.spinner-border]="loading()"
+                    [class.spinner-border-sm]="loading()"></i>
+      <span class="ms-1">Refresh</span>
+    </button>
+  </app-page-header>
+
+  <!-- Stat strip + tabs -->
+  <ul class="nav nav-pills mb-3 flex-wrap">
+    <li class="nav-item">
+      <button type="button" class="nav-link" [class.active]="tab() === 'all'" (click)="setTab('all')">
+        All <span class="badge bg-light text-body-secondary ms-1">{{ totalCount() }}</span>
+      </button>
+    </li>
+    <li class="nav-item">
+      <button type="button" class="nav-link" [class.active]="tab() === 'no-tranches'" (click)="setTab('no-tranches')">
+        Needs setup <span class="badge bg-light text-body-secondary ms-1">{{ noTranchesCount() }}</span>
+      </button>
+    </li>
+    <li class="nav-item">
+      <button type="button" class="nav-link" [class.active]="tab() === 'in-flight'" (click)="setTab('in-flight')">
+        In flight <span class="badge bg-light text-body-secondary ms-1">{{ inFlightCount() }}</span>
+      </button>
+    </li>
+    <li class="nav-item">
+      <button type="button" class="nav-link" [class.active]="tab() === 'fully-paid'" (click)="setTab('fully-paid')">
+        Fully paid <span class="badge bg-light text-body-secondary ms-1">{{ fullyPaidCount() }}</span>
+      </button>
+    </li>
+  </ul>
+
+  <!-- Search bar -->
+  <div class="card border-0 shadow-sm mb-3">
+    <div class="card-body py-3">
+      <div class="input-group input-group-soft">
+        <span class="input-group-text"><i class="bi bi-search"></i></span>
+        <input type="search" class="form-control"
+               placeholder="Search by applicant, program or app id"
+               [ngModel]="search()" (ngModelChange)="search.set($event)" />
+      </div>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="card border-0 shadow-sm">
+    @if (loading() && rows().length === 0) {
+      <div class="card-body text-center py-5">
+        <div class="spinner-border text-primary"></div>
+        <p class="text-body-secondary mt-3 mb-0">Loading queue…</p>
+      </div>
+    } @else if (loadError()) {
+      <div class="card-body text-center py-5">
+        <i class="bi bi-exclamation-triangle text-danger display-6"></i>
+        <p class="mt-3 mb-3">{{ loadError() }}</p>
+        <button class="btn btn-outline-primary" (click)="refresh()">
+          <i class="bi bi-arrow-clockwise me-1"></i> Try again
+        </button>
+      </div>
+    } @else if (visible().length === 0) {
+      <div class="card-body text-center py-5 text-body-secondary">
+        <i class="bi bi-cash-stack display-6 text-body-tertiary"></i>
+        <p class="mt-3 mb-1">
+          @if (tab() === 'no-tranches') { No applications waiting on tranche setup. }
+          @else if (tab() === 'in-flight') { No tranches in flight right now. }
+          @else if (tab() === 'fully-paid') { No fully-paid grants yet. }
+          @else { No approved applications. }
+        </p>
+        <small>Approver decisions surface here once recorded.</small>
+      </div>
+    } @else {
+      <div class="table-responsive">
+        <table class="table table-hover align-middle gt-table mb-0">
+          <thead>
+            <tr>
+              <th class="ps-4" style="width: 90px;">App #</th>
+              <th>Applicant</th>
+              <th>Program</th>
+              <th class="text-end" style="width: 130px;">Budget</th>
+              <th style="min-width: 220px;">Disbursed / Paid</th>
+              <th style="width: 200px;">Tranche status</th>
+              <th class="text-end pe-4" style="width: 110px;"></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (r of visible(); track r.applicationId) {
+              <tr>
+                <td class="ps-4 fw-medium text-body-secondary">#{{ r.applicationId }}</td>
+                <td>
+                  <div class="d-flex align-items-center gap-3">
+                    <span class="gt-avatar">{{ initials(r.applicantName, r.applicantEmail) }}</span>
+                    <div class="min-w-0">
+                      <div class="fw-semibold text-truncate">{{ r.applicantName || '—' }}</div>
+                      <div class="text-body-secondary small text-truncate">{{ r.applicantEmail }}</div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div class="fw-semibold text-truncate" style="max-width: 240px;">{{ r.programName }}</div>
+                  <small class="text-body-secondary">Approved {{ r.decisionDate | date:'mediumDate' }}</small>
+                </td>
+                <td class="text-end">
+                  <strong>₹ {{ r.programBudget | number:'1.0-0' }}</strong>
+                </td>
+                <td>
+                  @if (r.totalDisbursed > 0) {
+                    <div class="d-flex justify-content-between small mb-1">
+                      <span><strong>₹ {{ r.totalPaid | number:'1.0-0' }}</strong> paid</span>
+                      <span class="text-body-secondary">of ₹ {{ r.totalDisbursed | number:'1.0-0' }}</span>
+                    </div>
+                    <div class="progress" style="height: 6px;">
+                      <div class="progress-bar" role="progressbar"
+                           [style.width.%]="paidPercent(r)"
+                           [attr.aria-valuenow]="paidPercent(r)"
+                           aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                    <small class="text-body-secondary">
+                      ₹ {{ r.remaining | number:'1.0-0' }} headroom remaining
+                    </small>
+                  } @else {
+                    <span class="text-body-tertiary small">No tranches yet</span>
+                  }
+                </td>
+                <td>
+                  <div class="status-chips">
+                    @if (r.pendingCount > 0) {
+                      <span class="status-chips__chip" title="Pending">
+                        <i class="bi bi-hourglass-split"></i>{{ r.pendingCount }}
+                      </span>
+                    }
+                    @if (r.scheduledCount > 0) {
+                      <span class="status-chips__chip status-chips__chip--info" title="Scheduled">
+                        <i class="bi bi-calendar-event"></i>{{ r.scheduledCount }}
+                      </span>
+                    }
+                    @if (r.partiallyPaidCount > 0) {
+                      <span class="status-chips__chip status-chips__chip--warning" title="Partially paid">
+                        <i class="bi bi-pie-chart"></i>{{ r.partiallyPaidCount }}
+                      </span>
+                    }
+                    @if (r.paidCount > 0) {
+                      <span class="status-chips__chip status-chips__chip--success" title="Paid">
+                        <i class="bi bi-check-circle"></i>{{ r.paidCount }}
+                      </span>
+                    }
+                    @if (r.cancelledCount > 0) {
+                      <span class="status-chips__chip status-chips__chip--danger" title="Cancelled">
+                        <i class="bi bi-x-circle"></i>{{ r.cancelledCount }}
+                      </span>
+                    }
+                    @if (r.disbursementCount === 0) {
+                      <span class="text-body-tertiary small">—</span>
+                    }
+                  </div>
+                </td>
+                <td class="text-end pe-4">
+                  <a [routerLink]="['/finance/applications', r.applicationId]"
+                     class="btn btn-sm btn-primary">
+                    Manage <i class="bi bi-arrow-right ms-1"></i>
+                  </a>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      <div class="card-footer bg-transparent border-top-0 small text-body-secondary px-4 py-3">
+        Showing <strong>{{ visible().length }}</strong>
+        of <strong>{{ rows().length }}</strong> approved application{{ rows().length === 1 ? '' : 's' }}.
+      </div>
+    }
+  </div>
+</div>

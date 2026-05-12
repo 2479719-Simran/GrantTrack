@@ -1,0 +1,172 @@
+<div class="modal-header border-0 pb-0">
+  <div>
+    <p class="text-uppercase small fw-semibold text-body-secondary mb-1 letter-spaced">
+      Submit recommendation
+    </p>
+    <h2 class="h5 fw-semibold mb-0">
+      Application #{{ review.applicationId }}
+      <span class="text-body-secondary fw-normal small">· {{ review.holderName }}</span>
+    </h2>
+  </div>
+  <button type="button" class="btn-close" aria-label="Close"
+          (click)="active.dismiss()" [disabled]="busy()"></button>
+</div>
+
+<div class="modal-body pt-3">
+  <!-- Form is INSIDE the modal-body so ng-bootstrap's scrollable layout
+       (scrollable: true on modal options) keeps the modal-footer pinned to
+       the bottom. Wrapping body+footer in a single <form> would break the
+       flex chain and push the Submit button off-screen on shorter viewports. -->
+  <form [formGroup]="form" (ngSubmit)="submit()" id="recommendation-form" novalidate>
+    <!-- Applicant's supporting documents -->
+    <div class="mb-4">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <label class="form-label fw-semibold mb-0">
+          Supporting documents
+          <span class="badge bg-light text-body-secondary ms-1">{{ documents().length }}</span>
+        </label>
+        <button type="button" class="btn btn-sm btn-link p-0"
+                (click)="loadDocuments()" [disabled]="loadingDocs()">
+          <i class="bi bi-arrow-clockwise me-1"></i>
+          <small>Refresh</small>
+        </button>
+      </div>
+
+      @if (loadingDocs() && documents().length === 0) {
+        <div class="docs-state text-body-secondary small py-3 text-center">
+          <span class="spinner-border spinner-border-sm me-1"></span> Loading documents…
+        </div>
+      } @else if (docLoadError()) {
+        <div class="alert alert-warning small py-2 d-flex align-items-start gap-2 mb-0">
+          <i class="bi bi-exclamation-triangle-fill mt-1"></i>
+          <span>Could not load documents: {{ docLoadError() }}</span>
+        </div>
+      } @else if (documents().length === 0) {
+        <div class="docs-state text-body-secondary small py-3 text-center border rounded">
+          <i class="bi bi-inbox d-block fs-4 text-body-tertiary mb-1"></i>
+          The applicant didn't upload any supporting documents.
+        </div>
+      } @else {
+        <ul class="doc-list list-unstyled mb-0">
+          @for (d of documents(); track d.documentId) {
+            <li class="doc-list__item">
+              <i class="bi" [class]="fileIcon(d.fileName)"></i>
+              <div class="flex-grow-1 min-w-0">
+                <div class="fw-semibold text-truncate">{{ d.fileName }}</div>
+                <small class="text-body-secondary">{{ d.docType }}</small>
+              </div>
+              <button type="button" class="btn btn-sm btn-outline-primary"
+                      (click)="download(d)"
+                      [disabled]="downloadingDocId() === d.documentId">
+                @if (downloadingDocId() === d.documentId) {
+                  <span class="spinner-border spinner-border-sm"></span>
+                } @else {
+                  <i class="bi bi-download"></i>
+                }
+                <span class="ms-1 d-none d-sm-inline">Download</span>
+              </button>
+            </li>
+          }
+        </ul>
+      }
+    </div>
+
+    <!-- Decision selector -->
+    <div class="mb-4">
+      <label class="form-label fw-semibold mb-2">Your recommendation</label>
+      <div class="decision-grid">
+        @for (d of decisions; track d) {
+          <button type="button"
+                  class="decision-card"
+                  [class.decision-card--active]="decision.value === d"
+                  [class.decision-card--approved]="d === 'Approved' && decision.value === d"
+                  [class.decision-card--rejected]="d === 'Rejected' && decision.value === d"
+                  (click)="setDecision(d)">
+            <i class="bi" [class.bi-check-circle-fill]="d === 'Approved'"
+                          [class.bi-x-circle-fill]="d === 'Rejected'"></i>
+            <span>{{ d }}</span>
+            <small class="text-body-secondary">
+              @if (d === 'Approved') { Recommend funding this application }
+              @else { Recommend declining this application }
+            </small>
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- Score selector -->
+    <div class="mb-4">
+      <label class="form-label fw-semibold mb-2">
+        Score <span class="text-body-secondary fw-normal small">— rate the application 1 (poor) to 10 (excellent)</span>
+      </label>
+      <div class="score-row" role="radiogroup" aria-label="Score">
+        @for (n of scoreOptions; track n) {
+          <button type="button"
+                  class="score-chip"
+                  [class.score-chip--active]="score.value === n"
+                  [attr.aria-checked]="score.value === n"
+                  role="radio"
+                  (click)="setScore(n)">
+            {{ n }}
+          </button>
+        }
+      </div>
+      @if (score.touched && score.errors) {
+        <div class="form-error">Score must be between 1 and 10.</div>
+      }
+    </div>
+
+    <!-- Notes -->
+    <div class="mb-3">
+      <label class="form-label" for="r-notes">Notes <span class="text-danger">*</span></label>
+      <textarea id="r-notes" class="form-control" rows="3"
+                formControlName="notes"
+                maxlength="2000"
+                placeholder="Why are you recommending this decision? Mention strengths, concerns and any conditions."
+                [class.is-invalid]="notes.touched && notes.invalid"></textarea>
+      @if (notes.touched && notes.errors?.['required']) {
+        <div class="form-error">Notes are required.</div>
+      } @else {
+        <div class="form-text small text-end">{{ notes.value.length }} / 2000</div>
+      }
+    </div>
+
+    <!-- Comments (optional, internal) -->
+    <div class="mb-1">
+      <label class="form-label" for="r-comments">
+        Comments
+        <span class="text-body-secondary fw-normal small">— optional, internal notes</span>
+      </label>
+      <input id="r-comments" type="text" class="form-control"
+             formControlName="comments"
+             maxlength="500"
+             placeholder="Any short internal note for the approver"
+             [class.is-invalid]="comments.touched && comments.invalid" />
+    </div>
+
+    @if (errorMessage()) {
+      <div class="alert alert-danger d-flex align-items-start gap-2 small mt-3 mb-0 py-2" role="alert">
+        <i class="bi bi-exclamation-triangle-fill mt-1"></i>
+        <span>{{ errorMessage() }}</span>
+      </div>
+    }
+  </form>
+</div>
+
+<!-- Footer is a sibling of .modal-body so ng-bootstrap's modal-dialog-scrollable
+     can pin it to the bottom while the body scrolls. The submit button
+     uses the HTML5 `form` attribute to fire (ngSubmit) on the form above. -->
+<div class="modal-footer border-0">
+  <button type="button" class="btn btn-outline-secondary"
+          (click)="active.dismiss()" [disabled]="busy()">Cancel</button>
+  <button type="submit" form="recommendation-form"
+          class="btn btn-primary px-4" [disabled]="busy()">
+    @if (busy()) {
+      <span class="spinner-border spinner-border-sm me-2"></span>
+      Submitting…
+    } @else {
+      <i class="bi bi-send me-1"></i>
+      Submit {{ decision.value | lowercase }}
+    }
+  </button>
+</div>

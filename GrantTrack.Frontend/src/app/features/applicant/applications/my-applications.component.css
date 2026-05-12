@@ -1,0 +1,54 @@
+:host {
+  display: block;
+}
+
+.letter-spaced {
+  letter-spacing: 0.08em;
+}
+
+.min-w-0 {
+  min-width: 0;
+}
+
+/* Pill-style nav with our brand colour */
+.nav-pills .nav-link {
+  color: var(--gt-text-muted);
+  font-weight: 500;
+  padding: 0.45rem 0.9rem;
+  border-radius: 999px;
+  font-size: 0.9rem;
+}
+.nav-pills .nav-link:hover {
+  background: var(--gt-navy-100);
+  color: var(--gt-navy);
+}
+.nav-pills .nav-link.active {
+  background: var(--gt-navy-700);
+  color: #ffffff;
+}
+.nav-pills .nav-link.active .badge {
+  background: rgba(255, 255, 255, 0.18) !important;
+  color: #ffffff !important;
+}
+
+.application-card {
+  background: var(--gt-surface);
+  border: 1px solid var(--gt-border);
+  border-radius: 0.875rem;
+  padding: 1.1rem 1.15rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.application-card:hover {
+  border-color: rgba(30, 58, 138, 0.25);
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.06);
+}
+.application-card__cta {
+  margin-top: auto;
+}
+
+.badge .bi {
+  vertical-align: -0.1em;
+}

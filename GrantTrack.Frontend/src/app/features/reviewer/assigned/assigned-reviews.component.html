@@ -1,0 +1,138 @@
+<div class="container-fluid container-xl px-3 px-lg-4">
+  <app-page-header
+    eyebrow="Reviewer"
+    icon="bi-list-check"
+    title="Assigned reviews"
+    subtitle="Score and submit recommendations on the applications assigned to you.">
+    <button type="button" class="btn btn-outline-secondary" (click)="refresh()" [disabled]="loading()">
+      <i class="bi" [class.bi-arrow-clockwise]="!loading()"
+                    [class.spinner-border]="loading()"
+                    [class.spinner-border-sm]="loading()"></i>
+      <span class="ms-1">Refresh</span>
+    </button>
+  </app-page-header>
+
+  <!-- Tabs (decision filter) -->
+  <ul class="nav nav-pills mb-3">
+    @for (t of tabs; track t) {
+      <li class="nav-item">
+        <button type="button"
+                class="nav-link"
+                [class.active]="tab() === t"
+                (click)="setTab(t)">
+          {{ t }}
+        </button>
+      </li>
+    }
+  </ul>
+
+  <!-- Table card -->
+  <div class="card border-0 shadow-sm">
+    @if (loading() && rows().length === 0) {
+      <div class="card-body text-center py-5">
+        <div class="spinner-border text-primary"></div>
+        <p class="text-body-secondary mt-3 mb-0">Loading your reviews…</p>
+      </div>
+    } @else if (loadError()) {
+      <div class="card-body text-center py-5">
+        <i class="bi bi-exclamation-triangle text-danger display-6"></i>
+        <p class="mt-3 mb-3">{{ loadError() }}</p>
+        <button class="btn btn-outline-primary" (click)="refresh()">
+          <i class="bi bi-arrow-clockwise me-1"></i> Try again
+        </button>
+      </div>
+    } @else if (rows().length === 0) {
+      <div class="card-body text-center py-5 text-body-secondary">
+        <i class="bi bi-inbox display-6 text-body-tertiary"></i>
+        <p class="mt-3 mb-1">
+          @if (tab() === 'Pending') { No pending reviews — you're all caught up. }
+          @else if (tab() === 'Approved') { You haven't approved any applications yet. }
+          @else if (tab() === 'Rejected') { You haven't rejected any applications. }
+          @else { No reviews assigned to you yet. }
+        </p>
+        <small>An admin assigns applications to reviewers from the Assignments page.</small>
+      </div>
+    } @else {
+      <div class="table-responsive">
+        <table class="table table-hover align-middle gt-table mb-0">
+          <thead>
+            <tr>
+              <th class="ps-4" style="width: 110px;">Review #</th>
+              <th>Applicant</th>
+              <th style="width: 130px;">Application</th>
+              <th style="width: 150px;">Status</th>
+              <th class="text-end pe-4" style="width: 220px;">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (r of rows(); track r.reviewId) {
+              <tr>
+                <td class="ps-4 fw-medium text-body-secondary">#{{ r.reviewId }}</td>
+                <td>
+                  <div class="d-flex align-items-center gap-3">
+                    <span class="gt-avatar">{{ initials(r.holderName) }}</span>
+                    <div class="min-w-0">
+                      <div class="fw-semibold text-truncate">{{ r.holderName }}</div>
+                      <div class="text-body-secondary small">Applicant</div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div class="fw-semibold">#{{ r.applicationId }}</div>
+                </td>
+                <td>
+                  <span class="badge rounded-pill" [class]="decisionClass(r.decision)">
+                    <i class="bi" [class]="decisionIcon(r.decision)"></i>
+                    <span class="ms-1">{{ r.decision || 'Pending' }}</span>
+                  </span>
+                </td>
+                <td class="text-end pe-4">
+                  @if (!r.decision || r.decision === 'Pending') {
+                    <button type="button" class="btn btn-sm btn-primary"
+                            (click)="openRecommendationModal(r)">
+                      <i class="bi bi-pencil-square me-1"></i>
+                      Submit recommendation
+                    </button>
+                  } @else {
+                    <span class="text-body-secondary small">
+                      <i class="bi bi-check2-circle me-1"></i> Submitted
+                    </span>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pager -->
+      <div class="card-footer bg-transparent border-top d-flex flex-wrap justify-content-between align-items-center gap-2 px-4 py-3">
+        <div class="small text-body-secondary">
+          Page <strong>{{ pageNumber() }}</strong>
+          · {{ rows().length }} row{{ rows().length === 1 ? '' : 's' }}
+          · Showing {{ pageSize() }} per page
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          <select class="form-select form-select-sm" style="width: 90px;"
+                  [ngModel]="pageSize()"
+                  (ngModelChange)="pageSize.set($event); pageNumber.set(1); refresh()">
+            <option [ngValue]="5">5</option>
+            <option [ngValue]="10">10</option>
+            <option [ngValue]="25">25</option>
+            <option [ngValue]="50">50</option>
+          </select>
+          <button type="button" class="btn btn-sm btn-outline-secondary"
+                  (click)="prevPage()" [disabled]="pageNumber() <= 1 || loading()">
+            <i class="bi bi-chevron-left"></i>
+            <span class="ms-1 d-none d-md-inline">Previous</span>
+          </button>
+          <button type="button" class="btn btn-sm btn-outline-secondary"
+                  (click)="nextPage()" [disabled]="!hasNextPage() || loading()">
+            <span class="me-1 d-none d-md-inline">Next</span>
+            <i class="bi bi-chevron-right"></i>
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+</div>

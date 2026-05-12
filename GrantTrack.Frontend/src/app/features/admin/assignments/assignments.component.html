@@ -1,0 +1,184 @@
+<div class="container-fluid container-xl px-3 px-lg-4">
+  <app-page-header
+    eyebrow="Administration"
+    icon="bi-diagram-3"
+    title="Reviewer assignments"
+    subtitle="Pick an applicant, choose which of their applications to review, then assign a reviewer.">
+  </app-page-header>
+
+  <!-- Hint card -->
+  <div class="alert alert-light border d-flex gap-3 align-items-start mb-3">
+    <i class="bi bi-info-circle text-primary fs-5 mt-1"></i>
+    <div class="small mb-0">
+      Start by picking the <strong>applicant</strong>. If they have only one open
+      application we'll select it automatically; if they have several, the
+      <strong>Application</strong> picker will let you choose. The system
+      enforces a maximum of <strong>5 active assignments per reviewer</strong>
+      and rejects duplicates. <strong>Score</strong> and <strong>Comments</strong>
+      are typically left blank — the reviewer fills them in when they complete
+      the review.
+    </div>
+  </div>
+
+  @if (userLoadError()) {
+    <div class="alert alert-danger small">
+      <i class="bi bi-exclamation-triangle-fill me-1"></i>
+      Could not load reviewers: {{ userLoadError() }}
+    </div>
+  }
+  @if (appLoadError()) {
+    <div class="alert alert-danger small">
+      <i class="bi bi-exclamation-triangle-fill me-1"></i>
+      Could not load applications: {{ appLoadError() }}
+    </div>
+  }
+
+  <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    <div class="card border-0 shadow-sm">
+      <div class="table-responsive">
+        <table class="table align-middle gt-table mb-0">
+          <thead>
+            <tr>
+              <th class="ps-4" style="width: 60px;">#</th>
+              <th style="min-width: 260px;">Applicant</th>
+              <th style="min-width: 280px;">Application</th>
+              <th style="min-width: 260px;">Reviewer</th>
+              <th style="width: 100px;">Score</th>
+              <th>Comments</th>
+              <th class="text-end pe-4" style="width: 70px;"></th>
+            </tr>
+          </thead>
+          <tbody formArrayName="assignments">
+            @for (row of rows.controls; track $index; let i = $index) {
+              <tr [formGroupName]="i">
+                <td class="ps-4 fw-medium text-body-secondary">{{ i + 1 }}</td>
+
+                <!-- Applicant picker (PRIMARY) -->
+                <td>
+                  <select class="form-select"
+                          [class.is-invalid]="row.get('applicantId')!.touched && row.get('applicantId')!.invalid"
+                          [ngModel]="row.get('applicantId')!.value"
+                          [ngModelOptions]="{ standalone: true }"
+                          (ngModelChange)="onApplicantChange(i, $event)">
+                    <option [ngValue]="null">— select applicant —</option>
+                    @for (b of applicantBuckets(); track b.applicantId) {
+                      <option [ngValue]="b.applicantId">
+                        {{ b.applicantName || '(no name)' }} · {{ b.applicantEmail }}
+                        ({{ b.applications.length }} app{{ b.applications.length === 1 ? '' : 's' }})
+                      </option>
+                    }
+                  </select>
+                  @if (loadingApps()) {
+                    <div class="form-text small">
+                      <span class="spinner-border spinner-border-sm me-1"></span> Loading applicants…
+                    </div>
+                  } @else if (applicantBuckets().length === 0) {
+                    <div class="form-error">No applicants with open applications. They may all be decided already.</div>
+                  } @else if (row.get('applicantId')!.touched && row.get('applicantId')!.invalid) {
+                    <div class="form-error">Applicant is required.</div>
+                  }
+                </td>
+
+                <!-- Application sub-picker. Auto-resolves when applicant has 1 app. -->
+                <td>
+                  @if (row.get('applicantId')!.value === null) {
+                    <input type="text" class="form-control" disabled placeholder="Pick an applicant first" />
+                  } @else if (appsFor(row.get('applicantId')!.value).length === 1) {
+                    <!-- Single application — auto-resolved, show as a read-only chip. -->
+                    @if (appById(row.get('applicationId')!.value); as picked) {
+                      <div class="resolved-app">
+                        <span class="badge bg-primary-subtle text-primary-emphasis">App #{{ picked.applicationId }}</span>
+                        <span class="resolved-app__name">{{ picked.programName }}</span>
+                        <span class="badge rounded-pill bg-secondary-subtle text-secondary-emphasis">{{ picked.status }}</span>
+                      </div>
+                    }
+                  } @else {
+                    <!-- Multiple applications — explicit picker. -->
+                    <select class="form-select"
+                            formControlName="applicationId"
+                            [class.is-invalid]="row.get('applicationId')!.touched && row.get('applicationId')!.invalid">
+                      <option [ngValue]="null">— select which application —</option>
+                      @for (a of appsFor(row.get('applicantId')!.value); track a.applicationId) {
+                        <option [ngValue]="a.applicationId">
+                          {{ a.programName }} · App #{{ a.applicationId }} · {{ a.status }}
+                        </option>
+                      }
+                    </select>
+                    @if (row.get('applicationId')!.touched && row.get('applicationId')!.invalid) {
+                      <div class="form-error">This applicant has multiple applications — pick one.</div>
+                    }
+                  }
+                  @if (appById(row.get('applicationId')!.value); as picked) {
+                    <div class="form-text small text-body-secondary">
+                      <i class="bi bi-people me-1"></i>{{ picked.reviewerCount }} reviewer{{ picked.reviewerCount === 1 ? '' : 's' }} assigned ·
+                      <i class="bi bi-pencil-square me-1 ms-1"></i>{{ picked.recommendationCount }} recommendation{{ picked.recommendationCount === 1 ? '' : 's' }}
+                    </div>
+                  }
+                </td>
+
+                <!-- Reviewer picker -->
+                <td>
+                  <select class="form-select"
+                          formControlName="reviewerId"
+                          [class.is-invalid]="row.get('reviewerId')!.touched && row.get('reviewerId')!.invalid">
+                    <option [ngValue]="null">— select reviewer —</option>
+                    @for (r of reviewers(); track r.userId) {
+                      <option [ngValue]="r.userId">
+                        {{ r.name || '(no name)' }} · {{ r.email }}
+                      </option>
+                    }
+                  </select>
+                  @if (loadingUsers()) {
+                    <div class="form-text small">
+                      <span class="spinner-border spinner-border-sm me-1"></span> Loading reviewers…
+                    </div>
+                  } @else if (reviewers().length === 0) {
+                    <div class="form-error">No active reviewers found. Promote a user to the Reviewer role first.</div>
+                  } @else if (row.get('reviewerId')!.touched && row.get('reviewerId')!.invalid) {
+                    <div class="form-error">Reviewer is required.</div>
+                  }
+                </td>
+
+                <td>
+                  <input type="number" class="form-control"
+                         formControlName="score"
+                         min="0" max="10" />
+                </td>
+                <td>
+                  <input type="text" class="form-control"
+                         formControlName="comments"
+                         placeholder="Optional" />
+                </td>
+                <td class="text-end pe-4">
+                  <button type="button" class="btn btn-sm btn-outline-danger"
+                          (click)="removeRow(i)" title="Remove row">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card-footer bg-transparent border-top d-flex flex-wrap justify-content-between align-items-center gap-2 px-4 py-3">
+        <button type="button" class="btn btn-sm btn-outline-primary" (click)="addRow()">
+          <i class="bi bi-plus-lg me-1"></i> Add another assignment
+        </button>
+        <div class="d-flex gap-2 ms-auto">
+          <button type="submit" class="btn btn-primary px-4"
+                  [disabled]="submitting() || rows.length === 0
+                              || reviewers().length === 0 || applicantBuckets().length === 0">
+            @if (submitting()) {
+              <span class="spinner-border spinner-border-sm me-2"></span>
+              Submitting…
+            } @else {
+              <i class="bi bi-send me-1"></i>
+              Submit {{ rows.length }} assignment{{ rows.length === 1 ? '' : 's' }}
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>

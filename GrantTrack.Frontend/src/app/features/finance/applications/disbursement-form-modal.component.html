@@ -1,0 +1,79 @@
+<div class="modal-header border-0 pb-0">
+  <h2 class="h5 fw-semibold mb-0">{{ title }}</h2>
+  <button type="button" class="btn-close" aria-label="Close" (click)="active.dismiss()"></button>
+</div>
+
+<form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+  <div class="modal-body pt-3">
+    @if (!isEdit) {
+      <div class="alert alert-light border d-flex gap-3 align-items-start small mb-3">
+        <i class="bi bi-info-circle text-primary fs-5 mt-1"></i>
+        <div>
+          New tranches start in <strong>Pending</strong>. The remaining budget
+          for this application is
+          <strong>₹ {{ remainingBudget | number:'1.2-2' }}</strong> — you can split
+          this across as many tranches as you need.
+        </div>
+      </div>
+    }
+
+    <div class="row g-3">
+      <div class="col-md-6">
+        <label class="form-label" for="d-amount">Amount</label>
+        <div class="input-group input-group-soft" [class.is-invalid]="amount.touched && amount.invalid">
+          <span class="input-group-text">₹</span>
+          <input id="d-amount" type="number" min="0.01" step="0.01"
+                 class="form-control" formControlName="amount" placeholder="0.00" />
+        </div>
+        @if (amount.touched && amount.errors?.['min']) {
+          <div class="form-error">Amount must be greater than 0.</div>
+        } @else if (amount.touched && amount.errors?.['required']) {
+          <div class="form-error">Amount is required.</div>
+        } @else if (!isEdit) {
+          <div class="form-text small">
+            Headroom: <strong>₹ {{ remainingBudget | number:'1.2-2' }}</strong>
+          </div>
+        }
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label" for="d-scheduled">Scheduled date</label>
+        <input id="d-scheduled" type="date" class="form-control"
+               formControlName="scheduledDate"
+               [class.is-invalid]="scheduledDate.touched && scheduledDate.invalid" />
+        @if (scheduledDate.touched && scheduledDate.errors?.['required']) {
+          <div class="form-error">Scheduled date is required.</div>
+        } @else {
+          <div class="form-text small">Cannot be in the past (BE rule).</div>
+        }
+      </div>
+
+      @if (isEdit) {
+        <div class="col-md-6">
+          <label class="form-label" for="d-actual">Actual date</label>
+          <input id="d-actual" type="date" class="form-control"
+                 formControlName="actualDate" />
+          <div class="form-text small">Optional — set when payment goes out.</div>
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label" for="d-status">Status</label>
+          <select id="d-status" class="form-select" formControlName="status">
+            @for (s of statusOptions(); track s) {
+              <option [value]="s">{{ s }}</option>
+            }
+          </select>
+          <div class="form-text small">
+            <i class="bi bi-info-circle me-1"></i>
+            Allowed transitions only — Paid and Cancelled are terminal.
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+
+  <div class="modal-footer border-0">
+    <button type="button" class="btn btn-outline-secondary" (click)="active.dismiss()">Cancel</button>
+    <button type="submit" class="btn btn-primary px-4">{{ submitLabel }}</button>
+  </div>
+</form>

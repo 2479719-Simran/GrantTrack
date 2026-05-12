@@ -1,0 +1,61 @@
+:host {
+  display: block;
+}
+
+.min-w-0 {
+  min-width: 0;
+}
+
+.input-group-soft .input-group-text {
+  background-color: #ffffff;
+  border-right: 0;
+  color: #94a3b8;
+  padding-right: 0.35rem;
+}
+.input-group-soft .form-control {
+  border-left: 0;
+  box-shadow: none !important;
+}
+.input-group-soft .form-control:focus {
+  border-color: var(--gt-navy-700);
+}
+.input-group-soft:focus-within .input-group-text,
+.input-group-soft:focus-within .form-control {
+  border-color: var(--gt-navy-700);
+}
+.input-group-soft:focus-within {
+  box-shadow: 0 0 0 0.2rem rgba(30, 58, 138, 0.15);
+  border-radius: 0.625rem;
+}
+
+.gt-table thead th {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--gt-text-muted);
+  background: #f8fafc;
+  border-bottom: 1px solid var(--gt-border);
+  padding-top: 0.85rem;
+  padding-bottom: 0.85rem;
+}
+.gt-table tbody td {
+  padding-top: 0.9rem;
+  padding-bottom: 0.9rem;
+  border-bottom: 1px solid var(--gt-border);
+}
+.gt-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+.gt-table tbody tr:hover {
+  background-color: #fbfcfe;
+}
+
+.score {
+  font-size: 1.05rem;
+  color: var(--gt-navy-700);
+  font-weight: 600;
+}
+
+.badge .bi {
+  vertical-align: -0.1em;
+}

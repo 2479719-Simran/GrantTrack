@@ -1,0 +1,131 @@
+<div class="container-fluid container-xl px-3 px-lg-4">
+  <app-page-header
+    eyebrow="Applicant"
+    icon="bi-collection"
+    title="Browse programs"
+    subtitle="Active grant programs you can apply to right now.">
+    <a routerLink="/applicant/applications" class="btn btn-outline-primary">
+      <i class="bi bi-file-earmark-text me-1"></i>
+      My applications
+    </a>
+  </app-page-header>
+
+  <!-- Search bar -->
+  <div class="card border-0 shadow-sm mb-3">
+    <div class="card-body py-3">
+      <div class="row g-2 align-items-center">
+        <div class="col-md-9">
+          <div class="input-group input-group-soft">
+            <span class="input-group-text"><i class="bi bi-search"></i></span>
+            <input type="search" class="form-control" placeholder="Search by program name or description"
+                   [ngModel]="search()" (ngModelChange)="search.set($event)" />
+          </div>
+        </div>
+        <div class="col-md-3">
+          <button type="button" class="btn btn-outline-secondary w-100"
+                  (click)="refresh()" [disabled]="loading()">
+            <i class="bi" [class.bi-arrow-clockwise]="!loading()"
+                          [class.spinner-border]="loading()"
+                          [class.spinner-border-sm]="loading()"></i>
+            <span class="ms-1">Refresh</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  @if (loading() && programs().length === 0) {
+    <div class="card border-0 shadow-sm">
+      <div class="card-body text-center py-5">
+        <div class="spinner-border text-primary"></div>
+        <p class="text-body-secondary mt-3 mb-0">Loading programs…</p>
+      </div>
+    </div>
+  } @else if (loadError()) {
+    <div class="card border-0 shadow-sm">
+      <div class="card-body text-center py-5">
+        <i class="bi bi-exclamation-triangle text-danger display-6"></i>
+        <p class="mt-3 mb-3">{{ loadError() }}</p>
+        <button class="btn btn-outline-primary" (click)="refresh()">
+          <i class="bi bi-arrow-clockwise me-1"></i> Try again
+        </button>
+      </div>
+    </div>
+  } @else if (visiblePrograms().length === 0) {
+    <div class="card border-0 shadow-sm">
+      <div class="card-body text-center py-5 text-body-secondary">
+        <i class="bi bi-search display-6 text-body-tertiary"></i>
+        <p class="mt-3 mb-1">No active programs match your search.</p>
+        <small>Try a different keyword or clear the search box.</small>
+      </div>
+    </div>
+  } @else {
+    <div class="row g-3 g-lg-4">
+      @for (p of visiblePrograms(); track p.programId) {
+        <div class="col-12 col-md-6 col-xl-4">
+          <article class="program-card h-100">
+            <div class="program-card__head">
+              <div class="program-card__icon"><i class="bi bi-collection"></i></div>
+              <div class="ms-auto d-flex flex-wrap gap-1 justify-content-end">
+                @if (daysLeft(p) <= 7) {
+                  <span class="badge rounded-pill bg-danger-subtle text-danger-emphasis">
+                    <i class="bi bi-clock-history me-1"></i>
+                    {{ daysLeft(p) === 0 ? 'Closes today' : daysLeft(p) + 'd left' }}
+                  </span>
+                } @else if (daysLeft(p) <= 30) {
+                  <span class="badge rounded-pill bg-warning-subtle text-warning-emphasis">
+                    {{ daysLeft(p) }} days left
+                  </span>
+                } @else {
+                  <span class="badge rounded-pill bg-success-subtle text-success-emphasis">
+                    Open
+                  </span>
+                }
+                @if (appliedIds().has(p.programId)) {
+                  <span class="badge rounded-pill bg-primary-subtle text-primary-emphasis">
+                    <i class="bi bi-check2 me-1"></i> Applied
+                  </span>
+                }
+              </div>
+            </div>
+
+            <h2 class="h6 fw-semibold mb-1">{{ p.name }}</h2>
+            <p class="text-body-secondary small mb-3 program-card__desc">
+              {{ p.description }}
+            </p>
+
+            <div class="program-card__meta">
+              <div>
+                <small class="text-body-secondary">Window</small>
+                <strong>{{ p.startDate | date:'MMM d' }} → {{ p.endDate | date:'MMM d, yyyy' }}</strong>
+              </div>
+              <div>
+                <small class="text-body-secondary">Budget</small>
+                <strong>₹ {{ p.budget | number:'1.0-0' }}</strong>
+              </div>
+            </div>
+
+            <div class="program-card__cta">
+              @if (appliedIds().has(p.programId)) {
+                <a routerLink="/applicant/applications" class="btn btn-outline-primary btn-sm w-100">
+                  View my application <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+              } @else {
+                <button type="button" class="btn btn-primary btn-sm w-100"
+                        (click)="apply(p)">
+                  Apply <i class="bi bi-arrow-right ms-1"></i>
+                </button>
+              }
+            </div>
+          </article>
+        </div>
+      }
+    </div>
+
+    <p class="text-body-secondary small mt-3 mb-0">
+      Showing <strong>{{ visiblePrograms().length }}</strong>
+      of <strong>{{ programs().length }}</strong>
+      active program{{ programs().length === 1 ? '' : 's' }}.
+    </p>
+  }
+</div>
